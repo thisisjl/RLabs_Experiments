@@ -58,7 +58,7 @@ time_fixp = 0.7
 forced = 0
 
 # 1 if connected to the eyetracker, 0 if not. Temporal variable. 
-testing_with_eyetracker = 1
+testing_with_eyetracker = 0
 
 # Randomize trials?
 randomize_trials = 0
