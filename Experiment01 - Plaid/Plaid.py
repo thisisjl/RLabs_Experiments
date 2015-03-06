@@ -13,7 +13,7 @@ from pyglet import clock
 import time                                                                 # for the while loop
 from numpy.random import permutation as np_permutation                      # for random trials
 
-def main(ExpName = 'Plaid_v19', subjectname = ''):
+def main(ExpName = 'Plaid_v20', subjectname = ''):
     ######################################################
     ## Load parameters
     ######################################################
@@ -57,7 +57,6 @@ def main(ExpName = 'Plaid_v19', subjectname = ''):
     if aperture_switch:
         allowstencil = pyglet.gl.Config(stencil_size = 8,double_buffer=True)
         MyWin = MyWindow(config=allowstencil, fullscreen = True, screen = screens[0], visible = 0)
-        # MyWin = Window(config=allowstencil,fullscreen=True,screen=screens[0], visible = 0) # Create window (not visible for now)
     else:
         MyWin = MyWindow(fullscreen = True, screen = screens[0], visible = 0)
     
@@ -73,10 +72,7 @@ def main(ExpName = 'Plaid_v19', subjectname = ''):
     ######################################################
     
     # Name of the data files
-    filename_fordata   = os.path.join('data',("Plaid_v19" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "data" + ".txt"))
-    filename_rawdata   = os.path.join('data',("Plaid_v19" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "rawd" + ".txt"))
     eyetrackeroutput   = os.path.join('data',("Plaid_v19" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyet" + ".txt"))
-    eyetrackeroutput2  = os.path.join('data',("Plaid_v19" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "etvg" + ".txt"))
     filename_data      = os.path.join('data',("Plaid_v19" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "alldata" + ".txt"))
 
     right_keys  = [4, 109, 110, 106] # right click, M, N, J                 # array with ascii codes for right keys
@@ -111,7 +107,7 @@ def main(ExpName = 'Plaid_v19', subjectname = ''):
         ######################################################  
         ## Initialize controller (MyTobiiController)
         ######################################################
-        controller = MyTobiiController(datafilename=eyetrackeroutput, vergdfn = eyetrackeroutput2)       # create controller
+        controller = MyTobiiController(datafilename=eyetrackeroutput)       # create controller
         controller.waitForFindEyeTracker()                                  # wait to find eyetracker
         controller.activate(controller.eyetrackers.keys()[0])               # activate eyetracker
     
@@ -121,10 +117,8 @@ def main(ExpName = 'Plaid_v19', subjectname = ''):
     ######################################################
 
     if testing_with_eyetracker:
-        controller.startTracking()                                                              # start the eye tracking recording
-        time.sleep(0.2)                                                                         # wait for the eytracker to warm up
-        # controller.recordEvent("{0}\t{1}\t{2}".format('InfoEvent','ExpName',ExpName))           # write event to eyetracker data file: expname
-        # controller.recordEvent("{0}\t{1}\t{2}".format('InfoEvent','SubjectName',subjectname))   # write event to eyetracker data file: subjectname
+        controller.startTracking()                                          # start the eye tracking recording
+        time.sleep(0.2)                                                     # wait for the eytracker to warm up
 
     MyWin.set_visible(True)                                                 # set window to visible
     MyWin.set_mouse_visible(False)                                          # set mouse to not visible
@@ -138,8 +132,6 @@ def main(ExpName = 'Plaid_v19', subjectname = ''):
         
         trial = trials_array[trial_counter]
 
-        # read from trials
-
         apertRad_pix = MyWin.height / apertureDiv
         
         grating11 = Grating(MyWin, mycoords(0,0, MyWin).x + stereo1, mycoords(0,0, MyWin).y, red_color, orientation1[trial], mylambda1[trial], duty_cycle1, apertRad_pix, speed1)
@@ -147,9 +139,6 @@ def main(ExpName = 'Plaid_v19', subjectname = ''):
         grating21 = Grating(MyWin, mycoords(0,0, MyWin).x + stereo2, mycoords(0,0, MyWin).y, red_color, orientation2[trial], mylambda2[trial], duty_cycle2, apertRad_pix, speed2)
         grating22 = Grating(MyWin, mycoords(0,0, MyWin).x - stereo2, mycoords(0,0, MyWin).y, cyan_color, orientation2[trial], mylambda2[trial], duty_cycle2, apertRad_pix, speed2)
         
-        # grating11 = GratingHORIZONTAL(MyWin, mycoords(0,0, MyWin).x + stereo1, mycoords(0,0, MyWin).y, red_color, orientation1[trial], mylambda1[trial], duty_cycle1, apertRad_pix, speed1)
-        # grating12 = GratingHORIZONTAL(MyWin, mycoords(0,0, MyWin).x - stereo1, mycoords(0,0, MyWin).y, cyan_color, orientation1[trial], mylambda1[trial], duty_cycle1, apertRad_pix, speed1)
-
         ######################################################  
         ## Wait for go Loop
         ######################################################
@@ -161,13 +150,11 @@ def main(ExpName = 'Plaid_v19', subjectname = ''):
                 lbl_instr.draw()                                            # show instructions
             
             else:                                                           # for the rest show fixation point
-                lbl_instr2.draw()                                            # show instructions
-                drawCircle(xcenter, ycenter, numTheta, FPsize * 4, surrp_color)
-                drawCircle(xcenter, ycenter, numTheta, FPsize, fixp_color)
+                lbl_instr2.draw()                                           # show instructions
+                if fixYN:
+                    drawCircle(xcenter, ycenter, numTheta, FPsize * 4, surrp_color)
+                    drawCircle(xcenter, ycenter, numTheta, FPsize, fixp_color)
                 
-
-
-            
             MyWin.flip()                                                    # flip window
 
 
@@ -189,12 +176,10 @@ def main(ExpName = 'Plaid_v19', subjectname = ''):
 
         timeStart = time.time()                                             # get trial start time
         
-        if testing_with_eyetracker:                                         # write START trial to log file
-            controller.recordEvent("{0}\t{1}\t{2}".format('TrialEvent',trial,'START'))     # write event to eyetracker data file
-            controller.myRecordEvent(name = 'TrialEvent', intype = '{0} START'.format(trial), inid = time.time())     # write event to eyetracker data file
-
         eventcount += 1
         events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeStart, etype = trial, eid = 'START'))
+        if testing_with_eyetracker: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = time.time(), etype = '{0} START'.format(trial), eid = timeStart))
+        
         MyWin.reset_events()
 
         while (time.time() - timeStart) < timeCurrentTrial and not MyWin.has_exit:
@@ -208,30 +193,12 @@ def main(ExpName = 'Plaid_v19', subjectname = ''):
             MyWin.dispatch_events()                                         # dispatch window events (very important call)
 
             ######################################################  
-            ## Retrieve subject input and save it to data arrays
-            ######################################################
-            # MyWin.dispatch_events()
-            lastevent = my_dispatch_events(MyWin, lastevent)                # my_dispatch_events is defined in rlabs_libutils
-                                                                            # last event subject has triggered, will remain the same until subject triggers another event
-            # write last event to data arrays
-            if lastevent.type != []:                                        # if there's an event, save it
-                eventcount += 1
-
-                save_data_to_arrays(lastevent, data_struct, trial, timeNow) # save_data_to_arrays is defined in rlabs_libutils
-        
-                if testing_with_eyetracker: 
-                    controller.recordEvent("{0}\t{1}\t{0}".format('InputEvent', lastevent))     # write event to eyetracker data file
-                    controller.myRecordEvent(name = 'InputEvent', lastevent = lastevent)
-
-                lastevent.reset_values()                                    # reset values of event
-                
-
-            ######################################################  
             ## Update position of objects
             ######################################################
 
             if forced:
-                stereo1, stereo2, i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2 = compute_forced_values(i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2, timeRamp, timeStart, timeNow, transTimeL, transTimeR)
+                stereo1, stereo2, i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2 = compute_forced_values(
+                    i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2, timeRamp, timeStart, timeNow, transTimeL, transTimeR)
             else:
                 stereo1 = stereo1
                 stereo2 = stereo2
@@ -255,61 +222,60 @@ def main(ExpName = 'Plaid_v19', subjectname = ''):
             grating22.draw()
             
             glDisable(GL_BLEND)
+
             if fixYN:
                 drawCircle(xcenter, ycenter, numTheta, FPsize * 4, surrp_color)
                 drawCircle(xcenter, ycenter, numTheta, FPsize, fixp_color)
 
             fps.draw()
 
-
             ######################################################  
             ## Flip the window
             ######################################################
-            MyWin.flip()                                                    # flip window
+            MyWin.flip()                                                        # flip window
 
             endMs = clock.tick() # manual frame rate control: time point when frame ends.
             # delaytime = frameMs - (endMs-startMs) # manual frame rate control: time time frame must be frozen.
 
         timeNow = time.time()
         
-        # get events from window
-        for e in MyWin.events:
-            eventcount += 1
-            e.counter = eventcount
-            events_struct.append(e)
+
+
+        ######################################################  
+        ## Events
+        ######################################################
+        for e in MyWin.events:                                                  # get events from window
+            eventcount += 1                                                     # increase counter for each event
+            e.counter = eventcount                                              # copy counter
+            events_struct.append(e)                                             # append to events_struct
             
-            if testing_with_eyetracker: controller.myRecordEvent2(event = e)     # write event to eyetracker data file
+            if testing_with_eyetracker: controller.myRecordEvent2(event = e)    # write event to eyetracker data file
         
         eventcount += 1
         events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = trial, eid = 'END'))
-        # if testing_with_eyetracker: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, type = trial, id = 'END'))
+        if testing_with_eyetracker: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = '{0} END'.format(trial), eid = time.time()))
 
 
-        if testing_with_eyetracker:                                         # write END trial to log file
-            controller.recordEvent("{0}\t{1}\t{2}".format('TrialEvent',trial,'END'))     # write event to eyetracker data file
-            controller.myRecordEvent(name = 'TrialEvent', intype = '{0} END'.format(trial), inid = time.time())     # write event to eyetracker data file
-
-        if MyWin.has_exit:                                                  # This breaks the For stimulus loop. 
-            break                                                           # Data is not lost, it has already been saved in the arrays.
+        if MyWin.has_exit:                                                      # This breaks the For stimulus loop. 
+            break                                                               # Data is not lost, it has already been saved in the arrays.
 
     ###############################################################  
     ## Stop eyetracker processes, save data and close pyglet window
     ###############################################################
     if testing_with_eyetracker:
-        controller.stopTracking()                                           # stop eye tracking and write output file
-        controller.destroy()                                                # destroy controller
+        controller.stopTracking()                                               # stop eye tracking and write output file
+        controller.destroy()                                                    # destroy controller
 
     # save_raw_data(filename_rawdata, data_struct)                            # save raw data
     # save_data_formatted(filename_fordata,data_struct,right_keys,left_keys)  # save formatted data
 
-    write_data_file(filename_data, events_struct)                           # write data file, it has raw and formatted data
+    write_data_file(filename_data, events_struct)                               # write data file, it has raw and formatted data
 
-    MyWin.close()                                                           # close pyglet window
+    MyWin.close()                                                               # close pyglet window
 
 
 
     ######################################################  
-    ## 
     ######################################################
 
 if __name__ == '__main__':
