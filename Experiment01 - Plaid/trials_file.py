@@ -1,4 +1,4 @@
-numtrials = 3 					# number of trials
+numtrials = 1 					# number of trials
 # parameters for gratings 1
 
 
