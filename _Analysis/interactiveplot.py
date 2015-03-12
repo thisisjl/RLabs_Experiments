@@ -18,11 +18,6 @@ from bokeh.embed import components, file_html
 from bokeh import mpl
 from bokeh.plotting import figure, output_file, show, VBox
 
-outformat = 'png'
-
-create_ihtml = 0
-create_ihtml_bokeh = 1
-
 def main(datafileslist = '', DIR_IN='', DIR_OUT='', fWebName='', fWeb_HEADER='html_template.html', DATE_TIME_format="%Y-%m-%d_%H.%M", input_extension = '*.txt',
 	left_rgb = (1.0, 0., 0.), right_rgb = (0., 1.0, 0.), YvalsA=[0.80, 0.90, 0, 1], YvalsB=[0.75, 0.85, 0, 1],
 	apply_fade = 1, fade_sec = 0.5, samplingfreq = 120.0, shiftval = 0.05, color_shift = [-0.3,0,0], plotrange = [-0.1,1.1], forshow0_forsave1 = 0,
