@@ -1,37 +1,27 @@
-import glob 							# to list the files in directory
-import sys								# to parse input
-import numpy as np 						# to read data
-import matplotlib.pyplot as plt 		# to plot
-import os 								# to save figures in folder
-import time 							# to name figures
+import glob 								# to list the files in directory
+import sys									# to parse input
+import numpy as np 							# to read data
+import matplotlib.pyplot as plt 			# to plot
+import os 									# to save figures in folder
+import time 								# to name figures
+import shutil 								# to delete folders
 
-from collections import OrderedDict		# for plotTC
+from collections import OrderedDict			# for plotTC
 
 from Tkinter import Tk 						# for open file GUI
 from tkFileDialog import askopenfilenames 	# for open file GUI
-from tkSimpleDialog import askstring
-from tkMessageBox import askquestion
-
-# import mpld3							# to save figures to html with zoom
+from tkSimpleDialog import askstring 		# if name of html exists,
+from tkMessageBox import askquestion 		# ask new name
 
 from bokeh.resources import CDN
 from bokeh.embed import components, file_html
 from bokeh import mpl
 from bokeh.plotting import figure, output_file, show, VBox
 
-# DIR_IN='exp_sets/'
-# DIR_OUT='Tvsf_res_files/'
-# fWeb_NAME='Tvsf_res'
-# fWeb_HEADER='Tvsf_html_header_SAV.txt'
-# DATE_TIME_format='yyyy-mm-dd_HHMM'
 outformat = 'png'
-ithtml = 'interactivehtml.html' 
 
 create_ihtml = 0
 create_ihtml_bokeh = 1
-
-import shutil # to delete folders
-import time # to wait for gif creation
 
 def main(datafileslist = '', DIR_IN='', DIR_OUT='', fWebName='', fWeb_HEADER='html_template.html', DATE_TIME_format="%Y-%m-%d_%H.%M", input_extension = '*.txt',
 	left_rgb = (1.0, 0., 0.), right_rgb = (0., 1.0, 0.), YvalsA=[0.80, 0.90, 0, 1], YvalsB=[0.75, 0.85, 0, 1],
@@ -52,6 +42,9 @@ def main(datafileslist = '', DIR_IN='', DIR_OUT='', fWebName='', fWeb_HEADER='ht
 	###############################################
 	for datafile in datafileslist:											# for each data file
 		print 'datafile used: {0}\n'.format(os.path.split(datafile)[1])		# print the name of the current data file 
+
+		print os.path.split(datafile)[1]
+		print os.path.splitext(os.path.split(datafile)[1])[0]
 
 		ds = DataStruct()													# create new DataStruct instance
 		ds = read_data2(ds, datafile)										# read data and store in datastruct
@@ -127,9 +120,6 @@ def main(datafileslist = '', DIR_IN='', DIR_OUT='', fWebName='', fWeb_HEADER='ht
 			mb_container.append(components(plot, CDN))
 			mycontainer[cit].scriptY, mycontainer[cit].divY = components(plot, CDN)
 			cit += 1
-
-
-			if createvideoYN and 0: createmp4(ds.timestamps, ds.leftgazeX, ds.leftgazeY, videoname = 'alltrials.mp4')
 
 
 		if create_ihtml_bokeh and ds.numtrials > 1:
@@ -245,7 +235,7 @@ def main(datafileslist = '', DIR_IN='', DIR_OUT='', fWebName='', fWeb_HEADER='ht
 		###########################################	
 		# Create Interactive html
 		###########################################
-		fWebName = '{0}.html'.format(os.path.splitext(os.path.split(f)[1]))[0]
+		fWebName = '{0}.html'.format(os.path.splitext(os.path.split(datafile)[1])[0])
 		if create_ihtml_bokeh:
 			## copy header
 			with open(fWeb_HEADER,'r') as head:
@@ -464,7 +454,6 @@ def read_data(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1'
 
 	return datastruct
 
-
 def read_data2(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1'], epsilon = 0.0123, plotrange = [-0.1,1.1], shiftval = 0.05):
 	###########################################
 	# Constants: indexes of colums in data file
@@ -480,7 +469,7 @@ def read_data2(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1
 	#######################################
 	datastruct.filename = os.path.split(datafile)[1]
 	try:
-		data = np.genfromtxt(datafile, delimiter="\t", dtype=None, usecols=np.arange(0,31))	# read data file
+		data = np.genfromtxt(datafile, delimiter="\t", dtype=None, usecols=np.arange(0,33))	# read data file
 	except ValueError:
 		data = np.genfromtxt(datafile, delimiter="\t", dtype=None, usecols=np.arange(0,6))	# read data file
 
@@ -490,7 +479,7 @@ def read_data2(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1
 	#######################################
 	numofcolumns  = np.shape(data)[1]			# get number of columns
 
-	if numofcolumns == 31: 													# eyetracker and input data
+	if numofcolumns > 6: 													# eyetracker and input data
 		
 		######################
 		# Read eyetracker data
@@ -520,12 +509,12 @@ def read_data2(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1
 	######################
 	
 	# Constants: indexes of colums for events
-	idx_ets = numofcolumns - 6	# events time stamps 	index
-	idx_enm = numofcolumns - 5 	# events name 			index
-	idx_etp = numofcolumns - 4	# events type 			index
-	idx_eid = numofcolumns - 3	# events id 			index
-	idx_evl = numofcolumns - 2	# events code 			index
-	idx_ect = numofcolumns - 1	# events counter		index
+	# idx_ets = numofcolumns - 6	# events time stamps 	index
+	# idx_enm = numofcolumns - 5 	# events name 			index
+	# idx_etp = numofcolumns - 4	# events type 			index
+	# idx_eid = numofcolumns - 3	# events id 			index
+	# idx_evl = numofcolumns - 2	# events code 			index
+	# idx_ect = numofcolumns - 1	# events counter		index
 
 	idx_ets = numofcolumns - 4	# events time stamps 	index
 	idx_enm = numofcolumns - 3 	# events name 			index
@@ -650,25 +639,6 @@ def plotTC(figure, time_stamps, time_max, Y_vals, color, change_axis = 0, label 
 	return figure
 
 
-def find_nearest_above(array, value):
-	diff = array - value
-	mask = np.ma.less_equal(diff, 0)
-    # We need to mask the negative differences and zero
-    # since we are looking for values above
-	if np.all(mask):
-		return None, None # returns None if target is greater than any value
-	masked_diff = np.ma.masked_array(diff, mask)
-
-	idx = masked_diff.argmin()
-	val = array[idx]
-	
-	if val < value:		# if there's no value above
-		val = -1 		# use -1 for val
-		idx = 0 		# and 0 for idx
-
-
-	return val, idx
-
 def plot_gaze(figure, timestamps, gazeX, gazeY, label1 = '', label2 = '',trial_ts = [], X_color = (1.0, 0., 0.), Y_color = (1.0, 0., 0.), shiftval = 0.05, 
 	plotrange = [-0.1,1.1], plotinput = 0, xaxislabel = '', yaxislabel = ''):
 
@@ -750,10 +720,6 @@ def bokeh_plotTC(figure, time_stamps, time_max, Y_vals, color, change_axis = 0, 
 		figure.line([time_stamps[i][1]-tiny, time_stamps[i][1]], [ymin, Y_vals[1]], color = color, line_dash = 'dotted')
 	pass
 
-	# handles, labels = plt.gca().get_legend_handles_labels()
-	# by_label = OrderedDict(zip(labels, handles))	
-	# figure.legend(by_label.values(), by_label.keys(), loc='best')
-
 	return figure
 
 def rgb2hex(color):
@@ -775,7 +741,6 @@ class my_bokeh_html_container():
 	def append(self,a):
 		self.scripts.append(a[0]) 	# script
 		self.divs.append(a[1])		# div
-
 
 class html_container():
 	def __init__(self):
@@ -963,7 +928,6 @@ def create_interactive_html2(datastruct = None, cont = None, fWebID='', DIR_IN =
 
 	pass
 
-
 def plot_XYeye(figure,x,y,ntimestamp = '',label='', color = (1.0,0.0,0.0), plotrange = [-0.1,1.1], anotation = 0, text = None):
 
 	figure.scatter(x,y,marker = 'x', color = color, label = label)
@@ -977,146 +941,6 @@ def plot_XYeye(figure,x,y,ntimestamp = '',label='', color = (1.0,0.0,0.0), plotr
 		text.set_position((x-0.05,y-0.05))
 
 	return figure
-
-def creategif(datafileslist = '', imfolder = 'im2gif', gifname = 'outputgif2.gif', format = 'jpg'):
-	import subprocess
-
-	for datafile in datafileslist:											# for each data file
-		print 'datafile used: ... {0}\n'.format(datafile[-30:])				# print the name of the current data file 
-
-		# create directory to save gif images
-		if not os.path.exists(imfolder):
-			os.makedirs(imfolder)
-
-		ds = DataStruct()													# create new DataStruct instance
-		ds = read_data(ds, datafile)										# read data and store in datastruct
-
-		ntimestamp = 20
-		it = 0 ######################################################################################################
-		start = ds.trial_ts[it]												# start of trial value
-		end = ds.trial_ts[it+1]												# end of trial value
-
-		val, idx_start = find_nearest_above(ds.timestamps, start)			# find nearest above eyetracker time stamp
-
-		idx_end = idx_start + ntimestamp #end
-
-		ts = ds.timestamps[idx_start:idx_end]
-		LgazeX = ds.leftgazeX[idx_start:idx_end]
-		LgazeY = ds.leftgazeY[idx_start:idx_end]
-
-
-		for n in range(ntimestamp):
-			f, ax = plt.subplots()		
-			Lx, Ly = LgazeX[n], LgazeY[n]
-
-			plot_XYeye(ax,Lx,Ly)
-
-
-			title = 'time stamp: {0}. frame: {1}'.format(ts[n], "%04d" % (n))
-			ax.set_title(title)
-
-
-			imname = '{0}_{1}_{2}.{3}'.format(ds.expname,ds.subjectname,"%04d" % (n), format)
-
-			plt.savefig(os.path.join(imfolder,imname))
-
-
-		# this creates the gif from command line not python, imagemagick is doing the gif
-		delay = 20
-		loop = 0
-		imset = '{0}_{1}_*.{2}'.format(os.path.join(imfolder, ds.expname), ds.subjectname, format)
-		# task = subprocess.Popen('convert -delay {0} -loop {1} {2}_{3}_*.{4} {5}'.format(delay, loop, os.path.join(imfolder, ds.expname), ds.subjectname, format, gifname))
-		# task = subprocess.Popen(['C:\Program Files\ImageMagick-6.9.0-Q16\convert', '-delay', '{0}'.format(delay), '-loop', '{0}'.format(), 'im2gif/Plaid_v19_jl2_*.jpg', 'gifname.gif'])
-		task = subprocess.Popen(['C:\Program Files\ImageMagick-6.9.0-Q16\convert', '-delay', '{0}'.format(delay), '-loop', '{0}'.format(loop), '{0}'.format(imset), '{0}'.format(gifname)])
-		time.sleep(10
-
-			)
-		task.terminate()
-
-		# # os.system('convert -delay {0} -loop {1} {2}_{3}_*.{4} {5}'.format(delay, loop, os.path.join(imfolder, ds.expname), ds.subjectname, format, gifname))
-		# # convert -delay 20 -loop 0 Plaid_v19_jl2_*.jpg animation.gif
-
-
-		# remove folder with images
-		if os.path.exists(imfolder):
-
-			import errno, stat, shutil
-
-			def handleRemoveReadonly(func, path, exc):
-			  excvalue = exc[1]
-			  if func in (os.rmdir, os.remove) and excvalue.errno == errno.EACCES:
-			      os.chmod(path, stat.S_IRWXU| stat.S_IRWXG| stat.S_IRWXO) # 0777
-			      func(path)
-			  else:
-			      raise
-
-			shutil.rmtree(imfolder, ignore_errors=False, onerror=handleRemoveReadonly)
-			# shutil.rmtree(imfolder)		
-
-
-	pass
-
-def createmp4(timestamps, LgazeX, LgazeY, videoname = '', RgazeX = '', RgazeY = '', xlabel = '', plottitle = ''):
-	import matplotlib.animation as animation
-	print 'createmp4'
-
-	ntimestamp = len(timestamps)
-	
-	def init():
-		line1.set_data([], [])
-		line2.set_data([], [])
-
-		text.set_text('')
-		annotation.set_text('')
-		# annotation = plt.annotate('', xy=(0,0))
-		# annotation.set_animated(True)
-
-		return line1, line2, text, annotation
-
-	def update_line(num, timestamps, gazeX, gazeY, line1, line2):
-		ts = timestamps[num]
-		x = gazeX[num]
-		y = gazeY[num]
-		line1.set_data([x-0.01,x+0.01], [y-0.01,y+0.01])
-		line2.set_data([x-0.01,x+0.01], [y+0.01,y-0.01])
-
-		text.set_text("timestamp: {0} frame: {1}".format(ts, num))
-
-		# annotation = plt.annotate('({0},{1})'.format( '%.2f' % (x),'%.2f' % (y)), xy=(x-0.05,y-0.05))
-		annotation.set_text('({0},{1})'.format( '%.2f' % (x),'%.2f' % (y)))
-		annotation.set_position((x-0.05,y-0.05))
-
-		return line1, line2, text, annotation
-
-
-	fig1 = plt.figure()
-
-	line1, = plt.plot([], [], 'r-')
-	line2, = plt.plot([], [], 'r-')
-
-	text = plt.text(0, 0, "timestamp: \tframe: ")
-	annotation = plt.text(0, 0, "")
-
-	# matplotlib.text.Text(x=0, y=0, text=u'', color=None, verticalalignment=u'baseline', horizontalalignment=u'left', multialignment=None, fontproperties=None, rotation=None, linespacing=None, rotation_mode=None, **kwargs)
-
-	plt.xlim(0, 1)
-	plt.ylim(0, 1)
-	plt.xlabel(xlabel)
-	plt.title(plottitle)
-	line_ani = animation.FuncAnimation(fig1, update_line, ntimestamp, fargs=(timestamps, LgazeX, LgazeY, line1, line2), interval=500, blit=True, init_func = init)
-	
-	dpi = 100
-	writer = animation.writers['ffmpeg'](fps=30)
-	line_ani.save(videoname,writer=writer,dpi=dpi)
-
-	# line_ani.save(videoname)
-	#plt.show()
-
-	# return fig1, 
-
-
-	pass
-
 
 def createvideo(timestamps, LgazeX, LgazeY, RgazeX = '', RgazeY = '', videoname = '', xlabel = '', plottitle = '', show_pos = 1):
 
@@ -1164,57 +988,6 @@ def createvideo(timestamps, LgazeX, LgazeY, RgazeX = '', RgazeY = '', videoname 
 			frameinfo.set_text("timestamp: {0} frame: {1}".format(ts, i))
 
 			writer.grab_frame()
-
-
-def createvideowithmoviepy(timestamps, LgazeX, LgazeY, RgazeX = '', RgazeY = '', videoname = '', xlabel = '', plottitle = '', show_pos = 1):
-
-	from moviepy.editor import VideoClip
-	from moviepy.video.io.bindings import mplfig_to_npimage
-
-	videofps = 120
-	framerate = 120.0 							# framerate of tobii.
-	duration = len(timestamps) / framerate		# compute duration in seconds
-
-	def make_frame(i):
-	# returns an image of the frame at time t
-		plt.close('all')
-		fig = plt.figure()
-		left_eye, = plt.plot([], [], 'k-o')
-		# right_eye, = plt.plot([], [], 'k-o')
-
-		plt.xlim(0, 1)
-		plt.ylim(0, 1)
-
-		plt.xlabel(xlabel)
-		plt.title(plottitle)
-
-		lpostext = fig.text(0, 0, "")
-		frameinfo = fig.text(0, 0, "")
-
-
-		lx = LgazeX[i]
-		ly = LgazeY[i]
-		# rx = RgazeX[i]
-		# ry = RgazeY[i]
-		ts = timestamps[i]
-
-		left_eye.set_data(lx, ly)
-		# right_eye.set_data(rx, ry)
-		
-		if show_pos:
-			lpostext.set_text('({0},{1})'.format( '%.2f' % (lx),'%.2f' % (ly)))
-			lpostext.set_position((lx-0.05,ly-0.05))
-
-		frameinfo.set_text("timestamp: {0} frame: {1}".format(ts, i))
-		return mplfig_to_npimage(fig)
-
-	animation = VideoClip(make_frame, duration=duration) # 3-second clip
-
-	# For the export, many options/formats/optimizations are supported
-	animation.write_videofile(videoname, fps=videofps) # export as video
-
-
-
 
 def create_highangle_video(timestamps, Lgaze_array, Rgaze_array, videoname = ''):
 	import matplotlib
@@ -1303,6 +1076,25 @@ def movingaverage(array, samples):
     window = np.ones(int(samples))/float(samples)
     return np.convolve(array, window, 'valid')
 
+def find_nearest_above(array, value):
+	diff = array - value
+	mask = np.ma.less_equal(diff, 0)
+    # We need to mask the negative differences and zero
+    # since we are looking for values above
+	if np.all(mask):
+		return None, None # returns None if target is greater than any value
+	masked_diff = np.ma.masked_array(diff, mask)
+
+	idx = masked_diff.argmin()
+	val = array[idx]
+	
+	if val < value:		# if there's no value above
+		val = -1 		# use -1 for val
+		idx = 0 		# and 0 for idx
+
+
+	return val, idx
+
 if __name__ == '__main__':
 	"""
 	Usage: python read_data_and_create_html.py DIR_IN DIR_OUT fWeb_NAME fWeb_HEADER DATE_TIME_format extension
@@ -1323,8 +1115,6 @@ if __name__ == '__main__':
 	Tk().withdraw() 													# we don't want a full GUI, so keep the root window from appearing
 	datafileslist = askopenfilenames(title='Chose files to analyze') 	# show an "Open" dialog box and return the path to the selected file
 	# datafileslist = ["C:/Users/NuEye/Google Drive/NuEyeUPF/RubinLabs_Experiments/Experiment01 - Plaid/data/test.txt"]
-	# creategif(datafileslist = datafileslist)
-	# createmp4(datafileslist = datafileslist)
 	main(datafileslist = datafileslist, DIR_IN=DIR_IN, DIR_OUT = DIR_OUT, fWebName = fWeb_NAME, fWeb_HEADER = 'html_template.html')
 
 
