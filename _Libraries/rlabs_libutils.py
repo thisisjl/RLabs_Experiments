@@ -6,6 +6,18 @@ import os, stat                     # to create read-only file
 import numpy as np                  # for camera sin and cos
 from pyglet.window import key,mouse # for event handler
 
+# misc functions -------------------------------------------------------------------------------------------------
+def perm(x,n):
+    """
+    Combine each element of the array x
+    in tuples of length n
+    (with repetition).
+    """
+    from itertools import product       # cartesian product
+    combination = []                    # initialize array
+    for p in product(x, repeat = n):    # for each combination
+        combination.append(p)           # append to list
+    return combination                  # retun complete list
 
 # Data management functions and classes --------------------------------------------------------------------------
 
@@ -273,8 +285,6 @@ class MyWindow(pyglet.window.Window):
         if self.events != []:
             return self.events[-1]
 
-
-
 def my_dispatch_events(mywindow, event):
     """
     Appends each new event of an instance of the class 
@@ -350,9 +360,7 @@ def my_on_close(mywindow):
     mywindow.close()
 
 
-
 # Stimulus functions and classes -----------------------------------------------------------------------------------
-
 
 def drawpoints(vertices, color = (255,255,255), size = 1):
     n = len(vertices)/2                                     # number of points
