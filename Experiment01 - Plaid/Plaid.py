@@ -151,7 +151,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
             MyWin.flip()                                                    # flip window
 
 
-        # Start stimulus loop
+        # Start stimulus loop -------------------------------------------------------------------------------------------------------------
 
         # Initialize forced variables
         if forced:
@@ -227,13 +227,13 @@ def main(ExpName = 'Plaid', subjectname = ''):
 
         timeNow = time.time()
         
-        # Events ---------------------------------------------------------------------------------------------------
-        for e in MyWin.events:                                                  # get events from window
-            eventcount += 1                                                     # increase counter for each event
-            e.counter = eventcount                                              # copy counter
-            # events_struct.append(e)                                             # append to events_struct
+        # # Events ---------------------------------------------------------------------------------------------------
+        # for e in MyWin.events:                                                  # get events from window
+        #     eventcount += 1                                                     # increase counter for each event
+        #     e.counter = eventcount                                              # copy counter
+        #     # events_struct.append(e)                                             # append to events_struct
             
-            if testing_with_eyetracker: controller.myRecordEvent2(event = e)    # write event to eyetracker data file
+        #     # if testing_with_eyetracker: controller.myRecordEvent2(event = e)    # write event to eyetracker data file
         
         eventcount += 1
         events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = trial, eid = 'END'))
