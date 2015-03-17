@@ -1875,7 +1875,8 @@ class MyTobiiController:
                     ets = (e.timestamp - timeStampStartEventsPY) * 1000.0 + (timeStampStartEventsET - timeStampStart)/1000.0
 
                     # write events
-                    f.write('{0}\t{1}\t{2}\t{3}\t{4}'.format(ets,e.name, e.type, e.id, code))
+                    # f.write('{0}\t{1}\t{2}\t{3}\t{4}'.format(ets,e.name, e.type, e.id, code))
+                    f.write('{0}\t{1}\t{2}\t{3}\t{4}'.format((e.ETtime - timeStampStart)/1000.0,e.name, e.type, e.id, code))
 
 
                 else:                           # if there are no more events, fill rows with '-'
