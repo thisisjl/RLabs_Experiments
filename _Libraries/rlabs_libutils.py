@@ -359,6 +359,17 @@ def my_on_close(mywindow):
     mywindow.clear()
     mywindow.close()
 
+# events_handler example. It needs to be in the main function because 'events_struct' is used ----------------------
+events_handler = {
+    'on_mouse_press'    : lambda e: events_struct.append(e),
+    'on_mouse_release'  : lambda e: events_struct.append(e),
+}
+
+
+events_handler_with_ET = {                      # if using eyetracker, use this
+    'on_mouse_press'    : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),
+    'on_mouse_release'  : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),
+}
 
 # Stimulus functions and classes -----------------------------------------------------------------------------------
 
