@@ -69,8 +69,8 @@ def main(ExpName = 'Plaid', subjectname = ''):
     # Initialize variables for data file ----------------------------------------------------------------------
     
     # Name of the data files
-    eyetrackeroutput   = os.path.join('data',("Plaid_v19" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyet" + ".txt"))
-    filename_data      = os.path.join('data',("Plaid_v19" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "alldata" + ".txt"))
+    eyetrackeroutput   = os.path.join('data',("Plaid" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyet" + ".txt"))
+    filename_data      = os.path.join('data',("Plaid" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "alldata" + ".txt"))
    
     lastevent = LastEvent()                                                 # LastEvent() is defined in rlabs_libutils
     events_struct = []
@@ -85,16 +85,14 @@ def main(ExpName = 'Plaid', subjectname = ''):
     lbl_instr2 = pyglet.text.Label(text=textInstruc2, font_name='Times New Roman', font_size=24,
         color=(0, 0, 0, 255), x = MyWin.width/2, y = MyWin.height/2.4, anchor_x='center', anchor_y='center')
 
-    # events_handler ------------------------------------------------------------------------------------------------------------
+    # events_handler ---------------------------------------------------------------------------------------------------
     events_handler = {
         'on_mouse_press'    : lambda e: events_struct.append(e),
-        'on_mouse_release'  : lambda e: events_struct.append(e),
-    }
+        'on_mouse_release'  : lambda e: events_struct.append(e),}
 
-    MyWin.events_handler = events_handler
-
-
-
+    events_handler_with_ET = {                      # if using eyetracker, use this
+        'on_mouse_press'    : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),
+        'on_mouse_release'  : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),}
 
 
     # Initialize eyetracker communication ----------------------------------------------------------------------
@@ -106,13 +104,18 @@ def main(ExpName = 'Plaid', subjectname = ''):
         controller = MyTobiiController(datafilename=eyetrackeroutput)       # create controller
         controller.waitForFindEyeTracker()                                  # wait to find eyetracker
         controller.activate(controller.eyetrackers.keys()[0])               # activate eyetracker
-    
 
-    # Start trials ---------------------------------------------------------------------------------------------
-
-    if testing_with_eyetracker:
+        # (start trials)
         controller.startTracking()                                          # start the eye tracking recording
         time.sleep(0.2)                                                     # wait for the eytracker to warm up
+
+        MyWin.events_handler = events_handler_with_ET                       # set window events_handler with eye tracker
+
+    else:
+        MyWin.events_handler = events_handler                               # set window events_handler
+
+
+    # Start trials ---------------------------------------------------------------------------------------------
 
     MyWin.set_visible(True)                                                 # set window to visible
     MyWin.set_mouse_visible(False)                                          # set mouse to not visible
