@@ -256,7 +256,7 @@ class DataStruct():
 
 		pass
 
-def read_data(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1'], epsilon = 0.0123, plotrange = [-0.1,1.1], shiftval = 0.05):		
+def read_data(datastruct, datafile = '', right_keys = ['4'], left_keys = ['1'], epsilon = 0.0123, plotrange = [-0.1,1.1], shiftval = 0.05):		
 
 	# --------------
 	# Read data file
@@ -388,6 +388,205 @@ def read_data(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1'
 			datastruct.right_ts.append(item)
 
 	return datastruct
+
+def read_data2(datastruct, datafile = '', right_keys = ['4'], left_keys = ['1'], trial_code = ['8'], epsilon = 0.0123, plotrange = [-0.1,1.1], shiftval = 0.05):		
+
+	# Read data file
+	datastruct.filename = os.path.split(datafile)[1]
+	try:
+		data = np.genfromtxt(datafile, delimiter="\t", dtype=None, names=True)	# read data file
+	except ValueError:
+		print 'cannot read data file'
+		sys.exit()
+
+	# --------------------------------------------------------------------
+	# Determine if datafile contains eyetracker data or just input (mouse)
+	# with the number of elements in the header.
+	# --------------------------------------------------------------------
+	ncols = len(data.dtype.names) 			# get number of columns
+
+	et_data = True if ncols > 6 else False	# if ncols > 6, et_data is True, else is False
+
+
+	# ('Timestamp', 'LeftEyePosition3Dx', 'LeftEyePosition3Dy', 'LeftEyePosition3Dz', 'LeftEyePosition3DRelativex', 'LeftEyePosition3DRelativey', 'LeftEyePosition3DRelativez', 
+	# 'LeftGazePoint2Dx', 'LeftGazePoint2Dy', 'LeftGazePoint3Dx', 'LeftGazePoint3Dy', 'LeftGazePoint3Dz', 'LeftPupil', 'LeftValidity', 'RightEyePosition3Dx', 'RightEyePosition3Dy', 
+	# 'RightEyePosition3Dz', 'RightEyePosition3DRelativex', 'RightEyePosition3DRelativey', 'RightEyePosition3DRelativez', 'RightGazePoint2Dx', 'RightGazePoint2Dy', 'RightGazePoint3Dx', 
+	# 'RightGazePoint3Dy', 'RightGazePoint3Dz', 'RightPupil', 'RightValidity', 'Vergence', 'FixationDist', 'EventTimeStamp', 'EventName', 'EventType', 'EventId', 'Code')
+
+	
+	# -----------------------------------------
+	# Constants: indexes of colums in data file
+	# -----------------------------------------
+	idx_ets = numofcolumns - 4	# events time stamps 	
+	idx_enm = numofcolumns - 3 	# events name 			
+	idx_etp = numofcolumns - 2	# events type 			
+	idx_eid = numofcolumns - 1	# events id
+
+	# Read eyetracker data ---------------------------------------------------------------------------------------
+	if et_data:
+		datastruct.eyetrackerdata = True 											# indicate that datastruct contains eyetracker data
+
+		datastruct.timestamps 	= np.array(map(float, data['Timestamp']))			# get time stamps of the eye tracker data
+
+		datastruct.leftgazeX 	= np.array(map(float, data['LeftGazePoint2Dx']))	# get left gaze X data
+		datastruct.leftgazeY 	= np.array(map(float, data['LeftGazePoint2Dy']))	# get left gaze Y data
+		datastruct.rightgazeX 	= np.array(map(float, data['RightGazePoint2Dx']))	# get right gaze X data
+		datastruct.rightgazeY 	= np.array(map(float, data['RightGazePoint2Dy']))	# get right gaze Y data
+
+		# Map values outside of range to the boundaries
+		datastruct.leftgazeX[plotrange[0]  > datastruct.leftgazeX]  = plotrange[0]; datastruct.leftgazeX[plotrange[1] < datastruct.leftgazeX] = plotrange[1]
+		datastruct.leftgazeY[plotrange[0]  > datastruct.leftgazeY]  = plotrange[0]-shiftval; datastruct.leftgazeY[plotrange[1] < datastruct.leftgazeY] = plotrange[1]-shiftval
+		datastruct.rightgazeX[plotrange[0] > datastruct.rightgazeX] = plotrange[0]; datastruct.rightgazeX[plotrange[1] < datastruct.rightgazeX] = plotrange[1]
+		datastruct.rightgazeY[plotrange[0] > datastruct.rightgazeY] = plotrange[0]; datastruct.rightgazeY[plotrange[1] < datastruct.rightgazeY] = plotrange[1]
+
+		# Tobii gives data from 0 to 1, we want it from -1 to 1:
+		datastruct.leftgazeX 	= 2 * datastruct.leftgazeX 	- 1
+		datastruct.leftgazeY 	= 2 * datastruct.leftgazeY 	- 1
+		datastruct.rightgazeX 	= 2 * datastruct.rightgazeX - 1
+		datastruct.rightgazeY 	= 2 * datastruct.rightgazeY - 1
+
+
+
+	# Read events data --------------------------------------------------------------------------------------------
+
+	# Percepts: A_on, A_off, B_on, B_off
+
+	ets = data['EventTimeStamp'][data['EventTimeStamp']!='-'].astype(np.float) 			# get event time stamps that are not '-'
+
+	Trial_on  = ets[data['Code'] ==  trial_code] 						# get timestamp of trials start
+	Trial_off = ets[data['Code'] == -trial_code] 						# get timestamp of trials end
+
+	A_on  	  = ets[data['Code'] ==  left_keys] 						# get timestamp of percept A on (LEFT press)
+	A_off 	  = ets[data['Code'] == -left_keys] 						# get timestamp of percept A off (LEFT release)
+
+	B_on  	  = ets[data['Code'] ==  right_keys] 						# get timestamp of percept B on (RIGHT press)
+	B_off 	  = ets[data['Code'] == -right_keys] 						# get timestamp of percept B off (RIGHT release)
+
+	datastruct.numtrials = len(Trial_on) 								# compute number of trials
+
+	# datastruct
+	datastruct.trial_ts = np.empty((Trial_on.size + Trial_off.size,), dtype=Trial_on.dtype)
+	datastruct.trial_ts[0::2] = Trial_on
+	datastruct.trial_ts[1::2] = Trial_off
+
+	# Check input events -----------------------------------------------------------------------------
+
+	# Get input in each trial
+	x, y, z = 2, 0, datastruct.numtrials 													# size of matrix
+	datastruct.A_trial = [[[0 for k in xrange(x)] for j in xrange(y)] for i in xrange(z)]	# matrix for A percept of each trial
+	datastruct.B_trial = [[[0 for k in xrange(x)] for j in xrange(y)] for i in xrange(z)]	# matrix for B percept of each trial
+
+	it = 0 																# iterator
+	for trial in range(datastruct.numtrials): 							# for each trial
+		start = datastruct.trial_ts[it]									# start of trial value
+		end   = datastruct.trial_ts[it+1]								# end of trial value
+
+		lp = [i for i in A_on if start<i<end]							# get A_on in trial
+
+		for press in lp:												# for each A_on
+			val, idx_start = find_nearest_above(A_off, press)			# look for the nearest above A_off
+			
+			if val is not None:
+				release = np.minimum(end,val)							# compare nearest above to end of trial, get minimum
+			else:
+				release = end
+
+			datastruct.left_trial[trial].append([press, release]) 		# add press and release times to matrix
+
+		rp = [i for i in right_press if start<i<end]					# get left presses in trial
+
+		for press in rp:												# for each right press
+			val, idx_start = find_nearest_above(right_relea, press)		# look for the nearest above right release
+			
+			if val is not None:
+				release = np.minimum(end,val)							# compare nearest above to end of trial, get minimum
+			else:
+				release = end
+			datastruct.right_trial[trial].append([press, release])		# add press and release times to matrix
+
+		it += 2 														# increase iterator
+
+		for item in datastruct.left_trial[trial]:
+			datastruct.left_ts.append(item)
+		for item in datastruct.right_trial[trial]:
+			datastruct.right_ts.append(item)
+
+	
+	left_press = np.zeros(0)
+	left_relea = np.zeros(0)
+	right_press = np.zeros(0)
+	right_relea = np.zeros(0)
+
+	# get valid values (ignore cells that contain '-')
+	ets = [x for x in data[1:,idx_ets] if x != '-']						# get event time stamps
+
+	for it in range(1,len(ets)+1):										# for each event
+		ts = ets[it-1].astype(np.float)									# get time stamp
+					 													# and see its type.
+		if data[it, idx_enm] == 'TrialEvent':							# if it is a trial event,
+			datastruct.trial_ts.append(ts) 								# append the time stamp
+
+		if data[it, idx_enm] == 'InputEvent':							# for each input event	
+			in_name = data[it, idx_enm].astype('str')					# get input type
+			in_type = data[it, idx_etp].astype('str')					# get input id
+			in_id	= data[it, idx_eid].astype('str')					# get input value
+
+			if 'DW' in in_type and in_id in left_keys:					# Add time stamps
+				left_press = np.append(left_press, ts)					# of left buttons
+			if 'UP' in in_type and in_id in left_keys:					# 
+				left_relea = np.append(left_relea, ts)					#
+
+			if 'DW' in in_type and in_id in right_keys:					# Add time stamps
+				right_press = np.append(right_press, ts)				# of right buttons
+			if 'UP' in in_type and in_id in right_keys:					#
+				right_relea = np.append(right_relea, ts)				#
+
+	datastruct.numtrials = len(datastruct.trial_ts)/2 					# compute number of trials
+
+	# Check input events -----------------------------------------------------------------------------
+
+	# ## Get input in each trial
+	x, y, z = 2, 0, datastruct.numtrials 														# size of matrix
+	datastruct.left_trial = [[[0 for k in xrange(x)] for j in xrange(y)] for i in xrange(z)]	# matrix for left input of each trial
+	datastruct.right_trial = [[[0 for k in xrange(x)] for j in xrange(y)] for i in xrange(z)]	# matrix for right input of each trial
+
+	it = 0 																# iterator
+	for trial in range(datastruct.numtrials): 							# for each trial
+		start = datastruct.trial_ts[it]									# start of trial value
+		end   = datastruct.trial_ts[it+1]								# end of trial value
+
+		lp = [i for i in left_press if start<i<end]						# get left presses in trial
+
+		for press in lp:												# for each left press
+			val, idx_start = find_nearest_above(left_relea, press)		# look for the nearest above left release
+			
+			if val is not None:
+				release = np.minimum(end,val)							# compare nearest above to end of trial, get minimum
+			else:
+				release = end
+
+			datastruct.left_trial[trial].append([press, release]) 		# add press and release times to matrix
+
+		rp = [i for i in right_press if start<i<end]					# get left presses in trial
+
+		for press in rp:												# for each right press
+			val, idx_start = find_nearest_above(right_relea, press)		# look for the nearest above right release
+			
+			if val is not None:
+				release = np.minimum(end,val)							# compare nearest above to end of trial, get minimum
+			else:
+				release = end
+			datastruct.right_trial[trial].append([press, release])		# add press and release times to matrix
+
+		it += 2 														# increase iterator
+
+		for item in datastruct.left_trial[trial]:
+			datastruct.left_ts.append(item)
+		for item in datastruct.right_trial[trial]:
+			datastruct.right_ts.append(item)
+
+	return datastruct
+
 
 def bokeh_plot_gaze(figure, timestamps, gazeX, gazeY, label1 = '', label2 = '',trial_ts = [], X_color = (1.0, 0., 0.), Y_color = (1.0, 0., 0.), shiftval = 0.05, 
 	plotrange = [-0.1,1.1], plotinput = 0, xaxislabel = '', yaxislabel = ''):
