@@ -256,39 +256,42 @@ class DataStruct():
 
 		pass
 
-def read_data(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1'], epsilon = 0.0123, plotrange = [-0.1,1.1], shiftval = 0.05):
-	###########################################
-	# Constants: indexes of colums in data file
-	###########################################
-	idx_tms = 0		# index for time stamps
-	idx_lgX = 7		# index for left gaze X
-	idx_lgY = 8 	# index for left gaze Y
-	idx_rgX = 20 	# index for right gaze X
-	idx_rgY = 21 	# index for right gaze Y
+def read_data(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1'], epsilon = 0.0123, plotrange = [-0.1,1.1], shiftval = 0.05):		
 
-	#######################################
+	# --------------
 	# Read data file
-	#######################################
+	# --------------
 	datastruct.filename = os.path.split(datafile)[1]
 	try:
 		data = np.genfromtxt(datafile, delimiter="\t", dtype=None, usecols=np.arange(0,33))	# read data file
 	except ValueError:
 		data = np.genfromtxt(datafile, delimiter="\t", dtype=None, usecols=np.arange(0,6))	# read data file
 
-	#######################################
-	# Determine if datafile contains
-	# eyetracker data or just input (mouse)
-	#######################################
+	# --------------------------------------------------------------------
+	# Determine if datafile contains eyetracker data or just input (mouse)
+	# --------------------------------------------------------------------
 	numofcolumns  = np.shape(data)[1]			# get number of columns
+
+	# -----------------------------------------
+	# Constants: indexes of colums in data file
+	# -----------------------------------------
+	idx_tms = 0					# ET time stamps 		
+	idx_lgX = 7					# left gaze X
+	idx_lgY = 8 				# left gaze Y
+	idx_rgX = 20 				# right gaze X
+	idx_rgY = 21 				# right gaze Y
+	idx_ets = numofcolumns - 4	# events time stamps 	
+	idx_enm = numofcolumns - 3 	# events name 			
+	idx_etp = numofcolumns - 2	# events type 			
+	idx_eid = numofcolumns - 1	# events id
+
 
 	if numofcolumns > 6: 													# eyetracker and input data
 		
-		######################
-		# Read eyetracker data
-		######################
+		# Read eyetracker data -----------------------------------------------------------------------------------
+
 		datastruct.timestamps = np.array(map(float, data[1:,idx_tms]))		# get time stamps of the eye tracker data
 
-		# eyetracker data
 		datastruct.leftgazeX 	= np.array(map(float, data[1:, idx_lgX]))	# get left gaze X data
 		datastruct.leftgazeY 	= np.array(map(float, data[1:, idx_lgY]))	# get left gaze Y data
 		datastruct.rightgazeX 	= np.array(map(float, data[1:, idx_rgX]))	# get right gaze X data
@@ -306,25 +309,9 @@ def read_data(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1'
 		datastruct.rightgazeX 	= 2 * datastruct.rightgazeX - 1
 		datastruct.rightgazeY 	= 2 * datastruct.rightgazeY - 1
 
-	######################
-	# Read input data
-	######################
 	
-	# Constants: indexes of colums for events
-	# idx_ets = numofcolumns - 6	# events time stamps 	index
-	# idx_enm = numofcolumns - 5 	# events name 			index
-	# idx_etp = numofcolumns - 4	# events type 			index
-	# idx_eid = numofcolumns - 3	# events id 			index
-	# idx_evl = numofcolumns - 2	# events code 			index
-	# idx_ect = numofcolumns - 1	# events counter		index
-
-	idx_ets = numofcolumns - 4	# events time stamps 	index
-	idx_enm = numofcolumns - 3 	# events name 			index
-	idx_etp = numofcolumns - 2	# events type 			index
-	idx_eid = numofcolumns - 1	# events id 			index
-	# idx_evl = numofcolumns - 2	# events code 			index
-	# idx_ect = numofcolumns - 1	# events counter		index
-
+	# Read input data --------------------------------------------------------------------------------------------
+	
 	left_press = np.zeros(0)
 	left_relea = np.zeros(0)
 	right_press = np.zeros(0)
@@ -333,17 +320,12 @@ def read_data(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1'
 	# get valid values (ignore cells that contain '-')
 	ets = [x for x in data[1:,idx_ets] if x != '-']						# get event time stamps
 
-	for it in range(1,len(ets)+1):											# for each event
+	for it in range(1,len(ets)+1):										# for each event
 		ts = ets[it-1].astype(np.float)									# get time stamp
 					 													# and see its type.
 		if data[it, idx_enm] == 'TrialEvent':							# if it is a trial event,
 			datastruct.trial_ts.append(ts) 								# append the time stamp
 
-		# if data[it, idx_etp] == 'InfoEvent':							# If there's an InfoEvent
-		# 	if data[it, idx_ed] == 'ExpName':							# and ExpName
-		# 		datastruct.expname = data[it, idx_evl]					# get experiment name
-		# 	if data[it, idx_ed] == 'SubjectName':						# or SubjectName
-		# 		datastruct.subjectname = data[it, idx_evl]				# get subject name
 
 		if data[it, idx_enm] == 'InputEvent':							# for each input event	
 			in_type = data[it, idx_enm].astype('str')					# get input type
@@ -363,42 +345,42 @@ def read_data(datastruct, datafile = '', right_keys  = ['4'], left_keys   = ['1'
 
 	datastruct.numtrials = len(datastruct.trial_ts)/2 					# compute number of trials
 
-	# Check input events
+	# Check input events -----------------------------------------------------------------------------
 
 	# ## Get input in each trial
 	x, y, z = 2, 0, datastruct.numtrials 														# size of matrix
 	datastruct.left_trial = [[[0 for k in xrange(x)] for j in xrange(y)] for i in xrange(z)]	# matrix for left input of each trial
 	datastruct.right_trial = [[[0 for k in xrange(x)] for j in xrange(y)] for i in xrange(z)]	# matrix for right input of each trial
 
-	it = 0 															# iterator
-	for trial in range(datastruct.numtrials): 						# for each trial
-		start = datastruct.trial_ts[it]								# start of trial value
-		end   = datastruct.trial_ts[it+1]							# end of trial value
+	it = 0 																# iterator
+	for trial in range(datastruct.numtrials): 							# for each trial
+		start = datastruct.trial_ts[it]									# start of trial value
+		end   = datastruct.trial_ts[it+1]								# end of trial value
 
-		lp = [i for i in left_press if start<i<end]					# get left presses in trial
+		lp = [i for i in left_press if start<i<end]						# get left presses in trial
 
-		for press in lp:											# for each left press
-			val, idx_start = find_nearest_above(left_relea, press)	# look for the nearest above left release
+		for press in lp:												# for each left press
+			val, idx_start = find_nearest_above(left_relea, press)		# look for the nearest above left release
 			
 			if val is not None:
-				release = np.minimum(end,val)						# compare nearest above to end of trial, get minimum
+				release = np.minimum(end,val)							# compare nearest above to end of trial, get minimum
 			else:
 				release = end
 
-			datastruct.left_trial[trial].append([press, release]) 	# add press and release times to matrix
+			datastruct.left_trial[trial].append([press, release]) 		# add press and release times to matrix
 
-		rp = [i for i in right_press if start<i<end]				# get left presses in trial
+		rp = [i for i in right_press if start<i<end]					# get left presses in trial
 
-		for press in rp:											# for each right press
-			val, idx_start = find_nearest_above(right_relea, press)	# look for the nearest above right release
+		for press in rp:												# for each right press
+			val, idx_start = find_nearest_above(right_relea, press)		# look for the nearest above right release
 			
 			if val is not None:
-				release = np.minimum(end,val)						# compare nearest above to end of trial, get minimum
+				release = np.minimum(end,val)							# compare nearest above to end of trial, get minimum
 			else:
 				release = end
-			datastruct.right_trial[trial].append([press, release])	# add press and release times to matrix
+			datastruct.right_trial[trial].append([press, release])		# add press and release times to matrix
 
-		it += 2 													# increase iterator
+		it += 2 														# increase iterator
 
 		for item in datastruct.left_trial[trial]:
 			datastruct.left_ts.append(item)
