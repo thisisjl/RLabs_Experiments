@@ -1,12 +1,13 @@
-import math 						# for the circle
-from pyglet.gl import *				# for the circle
-import time 						# for the update method of the gratings
-import csv          				# for reading the forced transition file
+import math                         # for the circle
+from pyglet.gl import *             # for the circle
+import time                         # for the update method of the gratings
+import csv                          # for reading the forced transition file
 import os, stat                     # to create read-only file
+import numpy as np                  # for camera sin and cos
+from pyglet.window import key,mouse # for event handler
 
-########################################
-## Data management functions and classes
-########################################
+
+# Data management functions and classes --------------------------------------------------------------------------
 
 class EventItem():
     def __init__(self, name = '', counter = '', timestamp = '', etype = '', eid = '', ETtime = ''):
@@ -29,49 +30,49 @@ class DataStruct(object):
         self.trial_index_array   = []
 
 class LastEvent():
-	def __init__(self):
-		self.type 	 = []
-		self.id 	 = []
-		self.counter = []
+    def __init__(self):
+        self.type    = []
+        self.id      = []
+        self.counter = []
 
-	def reset_values(self):
-		self.type 	 = []
-		self.id 	 = []
-		self.counter = []
+    def reset_values(self):
+        self.type    = []
+        self.id      = []
+        self.counter = []
 
 def save_data_to_arrays(lastevent, data_struct, trial, timeNow):
-	"""
-	Appends each new event of an instance of the class 
-	LastEvent() to the correspondent array of an instance 
-	of the the class LastEvent()
-	
-	arguments
-		- lastevent: 	instance of LastEvent class
-		- data_struct: 	instance of DataStruct class
-		- trial:		number of the current trial
-		- timeNow:		call to time.time() 
-		
-	returns
-		Nothing -- data_struct will be updated
+    """
+    Appends each new event of an instance of the class 
+    LastEvent() to the correspondent array of an instance 
+    of the the class LastEvent()
+    
+    arguments
+        - lastevent:    instance of LastEvent class
+        - data_struct:  instance of DataStruct class
+        - trial:        number of the current trial
+        - timeNow:      call to time.time() 
+        
+    returns
+        Nothing -- data_struct will be updated
 
-	"""
+    """
     # add event data to arrays
-	data_struct.eventsCounter[0] += 1
-	data_struct.event_counter_array.append(data_struct.eventsCounter[0])
-	data_struct.time_array.append(timeNow)
-	data_struct.event_type_array.append(lastevent.type) 
-	data_struct.ID_array.append(lastevent.id)
-	data_struct.trial_index_array.append(trial)        
+    data_struct.eventsCounter[0] += 1
+    data_struct.event_counter_array.append(data_struct.eventsCounter[0])
+    data_struct.time_array.append(timeNow)
+    data_struct.event_type_array.append(lastevent.type) 
+    data_struct.ID_array.append(lastevent.id)
+    data_struct.trial_index_array.append(trial)        
 
 def save_raw_data(rawdata_filename, data_struct):
-	# """
-	# Save contents of data_struct to output file
-	# arguments
-	# 	- rawdata_filename: name of output file
-	# 	- data_struct: 		instance of DataStruct class
-		
-	# returns
-	# 	Nothing --
+    # """
+    # Save contents of data_struct to output file
+    # arguments
+    #   - rawdata_filename: name of output file
+    #   - data_struct:      instance of DataStruct class
+        
+    # returns
+    #   Nothing --
     #"""
     timeStampStart = 0#data_struct.time_array[0]
 
@@ -88,60 +89,60 @@ def save_raw_data(rawdata_filename, data_struct):
     pass
 
 def save_data_formatted(data_namefile, data_struct, right_keys, left_keys):
-	# """
-	# Save contents of data_struct to output file in HARDCODED format.
-	
-	# Format is:
-	# 1 	- right key down (pressed)
-	# 2	- right key up (released)
-	# -1	- left  key down (pressed)
-	# -2	- left key up (released)
-	
-	# arguments
-	# 	- rawdata_filename: 	name of output file
-	# 	- data_struct: 			instance of DataStruct class
-	# 	- right_keys:			array with ascii codes for right keys
-	# 	- left_keys:			array with ascii codes for left keys
-	# returns
-	# 	Nothing --
-	# """
+    # """
+    # Save contents of data_struct to output file in HARDCODED format.
+    
+    # Format is:
+    # 1     - right key down (pressed)
+    # 2 - right key up (released)
+    # -1    - left  key down (pressed)
+    # -2    - left key up (released)
+    
+    # arguments
+    #   - rawdata_filename:     name of output file
+    #   - data_struct:          instance of DataStruct class
+    #   - right_keys:           array with ascii codes for right keys
+    #   - left_keys:            array with ascii codes for left keys
+    # returns
+    #   Nothing --
+    # """
 
     timeStampStart = 0#data_struct.time_array[0]
 
     length = len(data_struct.event_counter_array)
     with open(data_namefile, 'w' ) as txtfile:
         
-    	for i in xrange(0,length,1): # equal to for(i = 1, i <length, < i++)
+        for i in xrange(0,length,1): # equal to for(i = 1, i <length, < i++)
             
-    		# this will look at the last two characters of the current event_type_array and will determine if it is up or down
-    		isdown  = (data_struct.event_type_array[i][len(data_struct.event_type_array[i])-2:len(data_struct.event_type_array[i])] == "DW")
-    		isup    = (data_struct.event_type_array[i][len(data_struct.event_type_array[i])-2:len(data_struct.event_type_array[i])] == "UP")
+            # this will look at the last two characters of the current event_type_array and will determine if it is up or down
+            isdown  = (data_struct.event_type_array[i][len(data_struct.event_type_array[i])-2:len(data_struct.event_type_array[i])] == "DW")
+            isup    = (data_struct.event_type_array[i][len(data_struct.event_type_array[i])-2:len(data_struct.event_type_array[i])] == "UP")
             
             
-    		if   (data_struct.ID_array[i] in right_keys) and (isdown):
-    			code = 1
-    			pass
+            if   (data_struct.ID_array[i] in right_keys) and (isdown):
+                code = 1
+                pass
             
-    		elif (data_struct.ID_array[i] in right_keys) and (isup):
-    			code = 2
+            elif (data_struct.ID_array[i] in right_keys) and (isup):
+                code = 2
             
-    		elif (data_struct.ID_array[i] in left_keys) and (isdown):
-    			code = -1
-    			pass
+            elif (data_struct.ID_array[i] in left_keys) and (isdown):
+                code = -1
+                pass
             
-    		elif (data_struct.ID_array[i] in left_keys) and (isup):
-    			code = -2
+            elif (data_struct.ID_array[i] in left_keys) and (isup):
+                code = -2
             
-    		else: # key not in right and left arrays
-    			code = 999 
+            else: # key not in right and left arrays
+                code = 999 
             
 
             # data file
             # ToDo: put a column for number of trials too
-    		txtfile.write(str(data_struct.event_counter_array[i]) +'\t'+ str(data_struct.trial_index_array[i]) +'\t'+ str((data_struct.time_array[i]-timeStampStart)) +'\t'+ str(code) +'\n')
+            txtfile.write(str(data_struct.event_counter_array[i]) +'\t'+ str(data_struct.trial_index_array[i]) +'\t'+ str((data_struct.time_array[i]-timeStampStart)) +'\t'+ str(code) +'\n')
  
     os.chmod(data_namefile,stat.S_IREAD) # make file read only
-	# print("formatted data saved")
+    # print("formatted data saved")
  
     pass
 
@@ -209,9 +210,7 @@ def create_unique_name(subject_info):
 
     return out_file_name    
 
-########################################
-## 
-########################################
+# -------------------------------------------------------------------------------------------------------------------
 
 class MyWindow(pyglet.window.Window): 
     """
@@ -225,28 +224,44 @@ class MyWindow(pyglet.window.Window):
         super(MyWindow, self).__init__(config = config, fullscreen = fullscreen, screen = screen, visible = visible) 
 
         self.events = []
+        self.events_handler = None
 
     def on_mouse_press(self, x, y, button, modifiers):
-        self.events.append(EventItem(name = 'InputEvent', timestamp = time.time(), etype = 'Mouse_DW', eid = button))
-        # print 'InputEvent', time.time(), 'Mouse_DW', button
-        # self.events.append({'type':'MOUSEDOWN', 'button': button, 'pos': (x,y), 'time': time.time()})
+        e = EventItem(name = 'InputEvent', timestamp = time.time(), etype = 'Mouse_DW', eid = button)
+        self.events.append(e)
+        
+        if self.events_handler:
+            # handler = self.events_handler.get((button,'PRESS'), lambda: None)(x,y)
+            handler = self.events_handler.get('on_mouse_press', lambda: None)(e)
+            # handler()
 
     def on_mouse_release(self, x, y, button, modifiers):
-        self.events.append(EventItem(name = 'InputEvent', timestamp = time.time(), etype = 'Mouse_UP', eid = button))
-        # print 'InputEvent', time.time(), 'Mouse_UP', button
-        # self.events.append({'type':'MOUSEUP', 'button': button, 'pos': (x,y), 'time': time.time()})
+        e = EventItem(name = 'InputEvent', timestamp = time.time(), etype = 'Mouse_UP', eid = button)
+        self.events.append(e)
+        
+        if self.events_handler:
+            # handler = self.events_handler.get((button,'RELEASE'), lambda: None)(x,y)
+            handler = self.events_handler.get('on_mouse_release', lambda: None)(e)
+            # handler()
 
     def on_key_press(self, symbol, modifiers):
-        self.events.append(EventItem(name = 'InputEvent', timestamp = time.time(), etype = 'Key_DW', eid = symbol))
-        # print 'InputEvent', time.time(), 'Mouse_DW', button
-        # self.events.append({'type':'KEYDOWN', 'symbol': symbol, 'time': time.time()})
+        e = EventItem(name = 'InputEvent', timestamp = time.time(), etype = 'Key_DW', eid = symbol)
+        self.events.append(e)
 
         if symbol == pyglet.window.key.ESCAPE:
             super(MyWindow, self).on_close()
 
+        if self.events_handler:
+            handler = self.events_handler.get((symbol,'PRESS'), lambda: None)
+            handler()
+
     def on_key_release(self, symbol, modifiers):
-        self.events.append(EventItem(name = 'InputEvent', timestamp = time.time(), etype = 'Key_UP', eid = symbol))
-        # self.events.append({'type':'KEYUP', 'symbol': symbol, 'time': time.time()})
+        e = EventItem(name = 'InputEvent', timestamp = time.time(), etype = 'Key_UP', eid = symbol)
+        self.events.append(e)
+
+        if self.events_handler:
+            handler = self.events_handler.get((symbol,'RELEASE'), lambda: None)
+            handler()
 
     def reset_events(self):
         self.events = []
@@ -261,49 +276,49 @@ class MyWindow(pyglet.window.Window):
 
 
 def my_dispatch_events(mywindow, event):
-	"""
-	Appends each new event of an instance of the class 
-	LastEvent() to the correspondent array of an instance 
-	of the the class LastEvent()
-	
-	arguments
-		- mywindow: instance of a pyglet Window class
-		- event: instance of LastEvent class
-		
-	returns
-		- event: event will be updated
+    """
+    Appends each new event of an instance of the class 
+    LastEvent() to the correspondent array of an instance 
+    of the the class LastEvent()
+    
+    arguments
+        - mywindow: instance of a pyglet Window class
+        - event: instance of LastEvent class
+        
+    returns
+        - event: event will be updated
 
-	"""
-	@mywindow.event
-	def on_key_press(symbol, modifiers): 
-		event.type       = "Key_DW"
-		event.id         = symbol
+    """
+    @mywindow.event
+    def on_key_press(symbol, modifiers): 
+        event.type       = "Key_DW"
+        event.id         = symbol
         # event.counter    += 1
 
-	@mywindow.event
-	def on_key_release(symbol, modifiers):
-		event.type       = "Key_UP"
-		event.id         = symbol
+    @mywindow.event
+    def on_key_release(symbol, modifiers):
+        event.type       = "Key_UP"
+        event.id         = symbol
         # event.counter    += 1
 
-	@mywindow.event
-	def on_mouse_press(x, y, button, modifiers):
-		event.type       = "Mouse_DW"
-		event.id         = button
+    @mywindow.event
+    def on_mouse_press(x, y, button, modifiers):
+        event.type       = "Mouse_DW"
+        event.id         = button
         # event.counter    += 1
 
-	@mywindow.event
-	def on_mouse_release(x, y, button, modifiers):
-		event.type       = "Mouse_UP"
-		event.id         = button
+    @mywindow.event
+    def on_mouse_release(x, y, button, modifiers):
+        event.type       = "Mouse_UP"
+        event.id         = button
         # event.counter    += 1
 
     
-	@mywindow.event
-	def on_close():
-		# The closing of the window is taken care in the while loop
-		pass
-	return event
+    @mywindow.event
+    def on_close():
+        # The closing of the window is taken care in the while loop
+        pass
+    return event
 
 def wait_for_go_function(mywindow, event, expected_type = 'Mouse_UP', expected_id = 2):
     
@@ -323,7 +338,7 @@ def wait_for_go_function(mywindow, event, expected_type = 'Mouse_UP', expected_i
     if (event.type == expected_type and event.id == expected_id):
         wait_for_go = 1
 
-	event.reset_values()
+    event.reset_values()
             
     return wait_for_go
     pass    
@@ -335,9 +350,9 @@ def my_on_close(mywindow):
     mywindow.close()
 
 
-########################################
-## Stimulus functions and classes
-########################################
+
+# Stimulus functions and classes -----------------------------------------------------------------------------------
+
 
 def drawpoints(vertices, color = (255,255,255), size = 1):
     n = len(vertices)/2                                     # number of points
@@ -515,34 +530,34 @@ class mycoords():
         self.x = x + window.width/2
         self.y = y + window.height/2
 
-########################################
-## Forced mode functions
-########################################
+
+# Forced mode functions --------------------------------------------------------------------------------------------
+
 def read_forced_transitions(transfilename='datatestN_NR_5_trans.txt'):
-	transfilename = 'datatestN_NR_5_trans.txt'
+    transfilename = 'datatestN_NR_5_trans.txt'
     #forced = 1
-	deltaXaux1_ini = 0
-	deltaXaux2_ini = 0
-	deltaX1 = 0.01
-	deltaX2 = 0.01
-	# transfilename = 'datatestN_NR_5_trans.txt'
-	# transfilename_full = os.path.join(application_path, transfilename)	# Full path name of the transition file
-	# 5.1 - Read file with transition time stamps (for forced mode)
-	transTimeL = []
-	transTimeR = []
+    deltaXaux1_ini = 0
+    deltaXaux2_ini = 0
+    deltaX1 = 0.01
+    deltaX2 = 0.01
+    # transfilename = 'datatestN_NR_5_trans.txt'
+    # transfilename_full = os.path.join(application_path, transfilename)    # Full path name of the transition file
+    # 5.1 - Read file with transition time stamps (for forced mode)
+    transTimeL = []
+    transTimeR = []
     
-	try:                                                            # try/except is used here to handle errors such 
-		with open(transfilename, 'r') as f:                 # as the transition file name is wrong
+    try:                                                            # try/except is used here to handle errors such 
+        with open(transfilename, 'r') as f:                 # as the transition file name is wrong
         #with open(transfilename) as f:
         #with open('trans.txt') as f: 
-			reader=csv.reader(f,delimiter='\t')                     # reader is a csv class to parse data files
+            reader=csv.reader(f,delimiter='\t')                     # reader is a csv class to parse data files
         
-			for L_item,R_item in reader:                            #L_item and R_item are the time stamps
+            for L_item,R_item in reader:                            #L_item and R_item are the time stamps
             #for R_item,L_item in reader:                            #L_item and R_item are the time stamps
                 #L_array.append(float(L_item))                              # Append time stamps to array
                 #R_array.append(float(R_item))
-				transTimeL.append(float(L_item))                              # Append time stamps to array
-				transTimeR.append(float(R_item))
+                transTimeL.append(float(L_item))                              # Append time stamps to array
+                transTimeR.append(float(R_item))
         
         #L_array.append(timeTrialMax)                                # Append total duration of trial at the end?
         #R_array.append(timeTrialMax)
@@ -553,15 +568,15 @@ def read_forced_transitions(transfilename='datatestN_NR_5_trans.txt'):
         
         
         
-	except EnvironmentError:
+    except EnvironmentError:
         #print srt(transfilename)+' could not be opened'
-		print "transition file could not be opened"
-		sys.exit()
+        print "transition file could not be opened"
+        sys.exit()
     
-	return transTimeL,transTimeR       
+    return transTimeL,transTimeR       
 
 def compute_forced_values(i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2, timeRamp, timeStartTrial,timeNow, transTimeL, transTimeR, deltaX1=0.01, deltaX2=0.01, deltaXaux1_ini=0, deltaXaux2_ini=0):
-	# Apply forced mode changes to the stereo
+    # Apply forced mode changes to the stereo
     # Moving the Depth
     scale = 500
 
@@ -603,9 +618,8 @@ def compute_forced_values(i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1
     return stereo1, stereo2, i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2
 
 
-########################################
-## Camera (from http://tartley.com/?p=378)
-########################################
+# Camera (from http://tartley.com/?p=378) ---------------------------------------------------------------------------
+
 """
 Camera tracks a position, orientation and zoom level, and applies openGL
 transforms so that subsequent renders are drawn at the correct place, size
@@ -633,6 +647,8 @@ class Camera(object):
             angle = 0
         self.angle = angle
         self.target = Target(self)
+
+
 
 
     def zoom(self, factor):
@@ -675,7 +691,7 @@ class Camera(object):
         gluLookAt(
             self.x, self.y, +1.0,
             self.x, self.y, -1.0,
-            sin(self.angle), cos(self.angle), 0.0)
+            np.sin(self.angle), np.cos(self.angle), 0.0)
 
 
     def hud_mode(self, width, height):
@@ -689,9 +705,8 @@ class Camera(object):
 
 
 
-########################################
-## Not used
-########################################
+# Not used -----------------------------------------------------------------------------------
+
 class Aperture():
     def __init__(self, color, numTheta, x0_pix, y0_pix, radius_pix):
         self.color      = color
@@ -725,7 +740,3 @@ class Aperture():
 
 
 
-# if __name__ == '__main__':
-# 	lastevent = LastEvent()
-# 	lastevent.reset_values()
-#     # main()
