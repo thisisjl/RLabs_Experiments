@@ -40,29 +40,28 @@ def main(datafileslist = '', DIR_IN='', DIR_OUT='', fWebName='', fWeb_HEADER='ht
 
 		Tmax = ds.trial_ts[-1] + 3000										# get ending time of last trial
 	
-		#-------------------------------
-		# Plot input only (not used now)
-		#-------------------------------
+		# Plot input only (not used now) -----------------------------------------------------------------------------------------------------
 		if 0:
 	
 			bokehfig = figure(title = 'Input time stamps')
 			plot = bokeh_plotTC(bokehfig, ds.A_ts, Tmax, YvalsA, A_color, change_axis=1, label = 'Left input')		# plot TC. left press
-			plot = bokeh_plotTC(bokehfig, ds.B_ts, Tmax, YvalsB, B_color, change_axis=1, label = 'Right input')	# plot TC. left press
+			plot = bokeh_plotTC(bokehfig, ds.B_ts, Tmax, YvalsB, B_color, change_axis=1, label = 'Right input')		# plot TC. left press
 			
 			bokehfig.xaxis.axis_label='Time (ms)'
 
 
-		#----------------------------------------------------------
-		# Plot X and Y gaze data over time stamps of all experiment
-		#----------------------------------------------------------
-
-		## plot X coordinate for both eyes -----------------------------------------------------------------------------------------------------
+		# Plot X and Y gaze data over time stamps of all experiment ---------------------------------------------------------------------------
+		# Plot X coordinate for both eyes ------------------------------------------------------------------------------------------------
 
 		bokehfig = figure(title = 'X coordinates. Right eye shifted {0}'.format(shiftval))
-		bokeh_plot_gaze(bokehfig, ds.timestamps, ds.leftgazeX, ds.rightgazeX, trial_ts = ds.trial_ts, label1 = 'left eye', label2 = 'right eye', 
-		X_color = A_color, Y_color = B_color, shiftval = shiftval, plotrange = plotrange)
 
-		plot = bokeh_plotTC(bokehfig, ds.A_ts, Tmax, YvalsA, A_color, change_axis=1, label = 'Left input')		# plot TC. left press
+		bokeh_plot_gaze(bokehfig, ds.timestamps, ds.leftgazeX,  label = 'left eye',  marker = 'x', gaze_color = A_color, plotrange = plotrange)
+		bokeh_plot_gaze(bokehfig, ds.timestamps, ds.rightgazeX, label = 'right eye', marker = 'o', gaze_color = B_color, plotrange = plotrange)
+
+		for event in ds.trial_ts:																			# for each event time stamp
+		 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
+
+		plot = bokeh_plotTC(bokehfig, ds.A_ts, Tmax, YvalsA, A_color, change_axis=1, label = 'Left input')	# plot TC. left press
 		plot = bokeh_plotTC(bokehfig, ds.B_ts, Tmax, YvalsB, B_color, change_axis=1, label = 'Right input')	# plot TC. left press
 		
 		bokehfig.xaxis.axis_label='Time (ms)'
@@ -80,8 +79,12 @@ def main(datafileslist = '', DIR_IN='', DIR_OUT='', fWebName='', fWeb_HEADER='ht
 		## plot Y coordinate for both eyes -----------------------------------------------------------------------------------------------------
 
 		bokehfig = figure(title = 'Y coordinates. Right eye shifted {0}'.format(shiftval))
-		bokeh_plot_gaze(bokehfig, ds.timestamps, ds.leftgazeY, ds.rightgazeY, trial_ts = ds.trial_ts, label1 = 'left eye', label2 = 'right eye', 
-		X_color = A_color, Y_color = B_color, shiftval = shiftval, plotrange = plotrange)
+		
+		bokeh_plot_gaze(bokehfig, ds.timestamps, ds.leftgazeY,  label = 'left eye',  marker = 'x', gaze_color = A_color, plotrange = plotrange)
+		bokeh_plot_gaze(bokehfig, ds.timestamps, ds.rightgazeY, label = 'right eye', marker = 'o', gaze_color = B_color, plotrange = plotrange)
+
+		for event in ds.trial_ts:																			# for each event time stamp
+		 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
 
 		plot = bokeh_plotTC(bokehfig, ds.A_ts, Tmax, YvalsA, A_color, change_axis=1, label = 'Left input')		# plot TC. left press
 		plot = bokeh_plotTC(bokehfig, ds.B_ts, Tmax, YvalsB, B_color, change_axis=1, label = 'Right input')	# plot TC. left press
@@ -122,11 +125,22 @@ def main(datafileslist = '', DIR_IN='', DIR_OUT='', fWebName='', fWeb_HEADER='ht
 
 				trial_ts = [start, end]
 
+				ts  = ds.timestamps[idx_start:idx_end]
+				lgX = ds.leftgazeX[idx_start:idx_end]
+				lgY = ds.leftgazeY[idx_start:idx_end]
+
+				rgX = ds.rightgazeX[idx_start:idx_end]
+				rgY = ds.rightgazeY[idx_start:idx_end]
+
 				## plot X coordinate for both eyes -----------------------------------------------------------------------------------------------------
 
 				bokehfig = figure(title = 'Trial {0}. X coordinate. Right eye shifted {1}'.format(trial+1,shiftval))
-				bokeh_plot_gaze(bokehfig, ds.timestamps[idx_start:idx_end], ds.leftgazeX[idx_start:idx_end], ds.rightgazeX[idx_start:idx_end], 
-					trial_ts = trial_ts, label1 = 'left eye', label2 = 'right eye', X_color = A_color, Y_color = B_color, shiftval = shiftval, plotrange = plotrange)
+
+				bokeh_plot_gaze(bokehfig, ts, lgX, label = 'left eye',  marker = 'x', gaze_color = A_color, plotrange = plotrange)
+				bokeh_plot_gaze(bokehfig, ts, rgX, label = 'right eye', marker = 'o', gaze_color = B_color, plotrange = plotrange)
+
+				for event in trial_ts:																				# for each event time stamp
+				 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
 
 				plot = bokeh_plotTC(bokehfig, ds.A_trial[trial], Tmax, YvalsA, A_color, change_axis=1, label = 'Left input')		# plot TC. left press
 				plot = bokeh_plotTC(bokehfig, ds.B_trial[trial], Tmax, YvalsB, B_color, change_axis=1, label = 'Right input')		# plot TC. left press
@@ -140,8 +154,12 @@ def main(datafileslist = '', DIR_IN='', DIR_OUT='', fWebName='', fWeb_HEADER='ht
 				## plot Y coordinate for both eyes -----------------------------------------------------------------------------------------------------
 				
 				bokehfig = figure(title = 'Trial {0}. Y coordinate. Right eye shifted {1}'.format(trial+1,shiftval))
-				bokeh_plot_gaze(bokehfig, ds.timestamps[idx_start:idx_end], ds.leftgazeY[idx_start:idx_end], ds.rightgazeY[idx_start:idx_end], 
-					trial_ts = trial_ts, label1 = 'left eye', label2 = 'right eye', X_color = A_color, Y_color = B_color, shiftval = shiftval, plotrange = plotrange)
+				
+				bokeh_plot_gaze(bokehfig, ts, lgY, label = 'left eye',  marker = 'x', gaze_color = A_color, plotrange = plotrange)
+				bokeh_plot_gaze(bokehfig, ts, rgY, label = 'right eye', marker = 'o', gaze_color = B_color, plotrange = plotrange)
+
+				for event in trial_ts:																				# for each event time stamp
+				 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
 
 				plot = bokeh_plotTC(bokehfig, ds.A_trial[trial], Tmax, YvalsA, A_color, change_axis=1, label = 'Left input')		# plot TC. left press
 				plot = bokeh_plotTC(bokehfig, ds.B_trial[trial], Tmax, YvalsB, B_color, change_axis=1, label = 'Right input')		# plot TC. left press
@@ -369,21 +387,12 @@ class DataStruct():
 			for item in self.B_trial[trial]: 													# [[on_1, off_2], [on_2, off_2] ...]
 				self.B_ts.append(item) 															# 
 
-def bokeh_plot_gaze(figure, timestamps, gazeX, gazeY, label1 = '', label2 = '',trial_ts = [], X_color = (1.0, 0., 0.), Y_color = (1.0, 0., 0.), shiftval = 0.05, 
-	plotrange = [-0.1,1.1], plotinput = 0, xaxislabel = '', yaxislabel = ''):
+def bokeh_plot_gaze(figure, timestamps, gaze, label = '', marker = 'x', trial_ts = [], gaze_color = (1.0, 0., 0.), plotrange = [-0.1,1.1]):
 
-	figure.scatter(timestamps,gazeX,marker='x',color=rgb2hex(X_color),legend=label1,facecolors='none', edgecolors=rgb2hex(X_color))		# plot
-	figure.scatter(timestamps,gazeY,color=rgb2hex(Y_color),legend=label2,facecolors='none', edgecolors=rgb2hex(Y_color))				# plot
+	figure.scatter(timestamps,gaze, marker = marker, color=rgb2hex(gaze_color), legend=label, facecolors='none', edgecolors=rgb2hex(gaze_color))
 
-	for event in trial_ts:																			# for each event time stamp
-		figure.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))	# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
-
-	# figure.set_xlabel(xaxislabel)											# label for X axis
-	# figure.set_ylabel(yaxislabel)											# label for Y axis
-	# figure.legend(loc='best')												# set the place of the legend	
-
-	# figure.set_ylim([plotrange[0],plotrange[1]+shiftval])
-	
+	# for event in trial_ts:																			# for each event time stamp
+	# 	figure.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))	# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
 
 	return figure
 
