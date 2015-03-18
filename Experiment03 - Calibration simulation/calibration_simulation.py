@@ -17,9 +17,10 @@ import itertools                                                            # to
 def main(
     ExpName = 'calibration_simulation', 
     subjectname = '', 
-    testing_with_eyetracker = 1,
+    testing_with_eyetracker = 0,
     npoints = 5,
-    random_calibration_points = 1
+    random_calibration_points = 1,
+    time_point = 2
     ):
 
     # compute target point coordinates: 5, 9, 13 or 25 points
@@ -107,9 +108,8 @@ def main(
 
     # CALIBRATION LOOP ----------------------------------------------------------------------------------------------------------------------------
 
-    timeStart = time.time()    
-
     for point in points:                                                    # for each point
+        timeStart = time.time()
 
         p_scaled = []
         p_scaled.append(point[0] * MyWin.width)                             # range horizontal coordinate to pyglet window
@@ -119,7 +119,7 @@ def main(
         events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeStart, etype = point, eid = 'START'))
         if testing_with_eyetracker: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = time.time(), etype = '{0} START'.format(point), eid = timeStart))
                    
-        while not MyWin.has_exit:                                           # show point
+        while (time.time() - timeStart) < time_point and not MyWin.has_exit:# show point
 
             glClearColor(fg_color[0],fg_color[1],fg_color[2],1)             # set background color
             MyWin.clear()                                                   # clear window
