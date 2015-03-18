@@ -17,8 +17,8 @@ import itertools                                                            # to
 def main(
     ExpName = 'calibration_simulation', 
     subjectname = '', 
-    testing_with_eyetracker = 0,
-    npoints = 25,
+    testing_with_eyetracker = 1,
+    npoints = 5,
     random_calibration_points = 1
     ):
 
@@ -28,7 +28,7 @@ def main(
     else:                                   # from one array,
         array = [0.1, 0.3, 0.5, 0.7, 0.9]   # but I don't know it
 
-    points = perm(2, array)
+    points = perm(array,2)
 
     if npoints in (5,13): points = points[::2]
 
@@ -50,8 +50,8 @@ def main(
     #-----------------------------------------------------
     
     # Name of the data files
-    eyetrackeroutput   = os.path.join('data',("Plaid_v19" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyet" + ".txt"))
-    filename_data      = os.path.join('data',("Plaid_v19" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "alldata" + ".txt"))
+    eyetrackeroutput   = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyet" + ".txt"))
+    filename_data      = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "alldata" + ".txt"))
   
     lastevent = LastEvent()                                                 # LastEvent() is defined in rlabs_libutils
     events_struct = []
@@ -64,20 +64,32 @@ def main(
         x = MyWin.width/2, y = MyWin.height/2, anchor_x='center', anchor_y='center')
 
 
+    # events_handler ---------------------------------------------------------------------------------------------------
+    events_handler = {
+        'on_mouse_press'    : lambda e: events_struct.append(e),
+        'on_mouse_release'  : lambda e: events_struct.append(e),}
 
+    events_handler_with_ET = {                      # if using eyetracker, use this
+        'on_mouse_press'    : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),
+        'on_mouse_release'  : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),}
+    
+    # Initialize eyetracker communication ----------------------------------------------------------------------
     if testing_with_eyetracker:
-        #--------------------------------------------  
         # Create an EyetrackerBrowser and display it
-        #-------------------------------------------- 
         eb = EyetrackerBrowser()
         eb.main()
 
-        #-------------------------------------------
         # Initialize controller (MyTobiiController)
-        #-------------------------------------------
         controller = MyTobiiController(datafilename=eyetrackeroutput)       # create controller
         controller.waitForFindEyeTracker()                                  # wait to find eyetracker
         controller.activate(controller.eyetrackers.keys()[0])               # activate eyetracker
+        controller.startTracking()                                          # start the eye tracking recording
+        time.sleep(0.2)                                                     # wait for the eytracker to warm up
+
+        MyWin.events_handler = events_handler_with_ET                       # set window events_handler with eye tracker
+
+    else:
+        MyWin.events_handler = events_handler                               # set window events_handler
     
 
 
@@ -95,11 +107,6 @@ def main(
 
     # CALIBRATION LOOP ----------------------------------------------------------------------------------------------------------------------------
 
-    if testing_with_eyetracker:
-        controller.startTracking()                                          # start the eye tracking recording
-        time.sleep(0.2)                                                     # wait for the eytracker to warm up
-
-
     timeStart = time.time()    
 
     for point in points:                                                    # for each point
@@ -110,7 +117,7 @@ def main(
 
         eventcount += 1
         events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeStart, etype = point, eid = 'START'))
-        if testing_with_eyetracker: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = time.time(), etype = 'point {0} START'.format(p_scaled), eid = timeStart))
+        if testing_with_eyetracker: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = time.time(), etype = '{0} START'.format(point), eid = timeStart))
                    
         while not MyWin.has_exit:                                           # show point
 
@@ -136,12 +143,12 @@ def main(
         timeNow = time.time()
         
         # events
-        for e in MyWin.events:                                                  # get events from window
-            eventcount += 1                                                     # increase counter for each event
-            e.counter = eventcount                                              # copy counter
-            events_struct.append(e)                                             # append to events_struct
+        # for e in MyWin.events:                                                  # get events from window
+        #     eventcount += 1                                                     # increase counter for each event
+        #     e.counter = eventcount                                              # copy counter
+        #     events_struct.append(e)                                             # append to events_struct
             
-            if testing_with_eyetracker: controller.myRecordEvent2(event = e)    # write event to eyetracker data file
+        #     if testing_with_eyetracker: controller.myRecordEvent2(event = e)    # write event to eyetracker data file
         
         eventcount += 1
         events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = point, eid = 'END'))
