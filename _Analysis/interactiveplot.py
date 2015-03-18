@@ -21,25 +21,19 @@ from bokeh.plotting import figure, output_file, show, VBox
 def main(datafileslist = '', DIR_IN='', DIR_OUT='', fWebName='', fWeb_HEADER='html_template.html', DATE_TIME_format="%Y-%m-%d_%H.%M", input_extension = '*.txt',
 	A_color = (1.0, 0., 0.), B_color = (0., 1.0, 0.), YvalsA=[0.80, 0.90, 0, 1], YvalsB=[0.75, 0.85, 0, 1],
 	apply_fade = 1, fade_sec = 0.5, samplingfreq = 120.0, shiftval = 0.05, color_shift = [-0.3,0,0], plotrange = [-1.1,1.1], forshow0_forsave1 = 0,
-	createvideoYN = 0, create_highangle_videoYN = 0, videofortrials = (0,-1)):
+	createvideoYN = 0, create_highangle_videoYN = 0, videofortrials = (0,-1), epsilon = 0.0123, A_code = 1, B_code = 4, trial_code = 8):
 
-	#-------------------------
 	# Scale Yvals to plotrange
-	#-------------------------
 	YvalsA = np.array(YvalsA) * plotrange[1]
 	YvalsB = np.array(YvalsB) * plotrange[1]
 
-	#------------------------------------------
-	# From the list of datafiles, read data and
-	# use bokeh to generate javascript plots, 
-	# then, create html with bokeh's plots.
-	#------------------------------------------
+	# From the list of datafiles, read data and use bokeh to generate javascript plots, then create html with bokeh's plots.
 	for datafile in datafileslist:											# for each data file
 		print 'datafile used: {0}\n'.format(os.path.split(datafile)[1])		# print the name of the current data file 
 
-		ds = DataStruct2(datafile, 											#
-		A_code = 1, B_code = 4, trial_code = 8, 							#
-		epsilon = 0.0123, plotrange = plotrange, shiftval = 0.05)			# create new DataStruct instance
+		ds = DataStruct(datafile, 											# create new DataStruct instance
+		A_code = A_code, B_code = B_code, trial_code = trial_code,			#
+		epsilon = epsilon, plotrange = plotrange, shiftval = shiftval)		# 
 
 		mycontainer = [html_container() for k in range(ds.numtrials + 2)] 	# container for html and javascript plot codes
 		cit = 0 															# container iterator
@@ -230,7 +224,7 @@ def main(datafileslist = '', DIR_IN='', DIR_OUT='', fWebName='', fWeb_HEADER='ht
 
 	pass
 
-class DataStruct2():
+class DataStruct():
 	def __init__(self, datafile, A_code = 1, B_code = 4, trial_code = 8, epsilon = 0.0123, plotrange = [-1.1,1.1], shiftval = 0.0):
 		
 		self.filenamefp 	= datafile 		# full path of data file
