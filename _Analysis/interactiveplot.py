@@ -32,13 +32,14 @@ def main(datafileslist = '', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_
 		print 'datafile used: {0}\n'.format(os.path.split(datafile)[1])		# print the name of the current data file 
 
 		ds = DataStruct(datafile, 											# create new DataStruct instance
-		A_code = A_code, B_code = B_code, trial_code = trial_code,			#
-		epsilon = epsilon, plotrange = plotrange, shiftval = shiftval)		# 
+		A_code = A_code, B_code = B_code, trial_code = trial_code,			# codes for percepts and trial
+		epsilon = epsilon, plotrange = plotrange, shiftval = shiftval)		# other parameters
 
 		mycontainer = [html_container() for k in range(ds.numtrials + 2)] 	# container for html and javascript plot codes
 		cit = 0 															# container iterator
 
 		Tmax = ds.trial_ts[-1] + 3000										# get ending time of last trial
+
 	
 		# Plot input only (not used now) ------------------------------------------------------------------------------------------------------
 		if not ds.eyetrackerdata:
@@ -371,6 +372,21 @@ class DataStruct():
 			for item in self.B_trial[trial]: 													# [[on_1, off_2], [on_2, off_2] ...]
 				self.B_ts.append(item) 															# 
 
+class html_container():
+	def __init__(self):
+		self.scriptX = []
+		self.divX = []
+
+		self.scriptY = []
+		self.divY = []
+
+		self.XYvideolink = []	# relative path to the x,y gaze video
+		self.HAvideolink = []	# relative path to the high angle video
+
+
+	def function(self):
+		pass
+
 def bokeh_plot_gaze(figure, timestamps, gaze, label = '', marker = 'x', trial_ts = [], gaze_color = (1.0, 0., 0.), plotrange = [-0.1,1.1]):
 
 	figure.scatter(timestamps,gaze, marker = marker, color=rgb2hex(gaze_color), legend=label, facecolors='none', edgecolors=rgb2hex(gaze_color))
@@ -412,6 +428,18 @@ def bokeh_plotTC(figure, time_stamps, time_max, Y_vals, color, change_axis = 0, 
 
 	return figure
 
+def bokeh_histogram(figure, percept_timestamps, binw, fil_color = "#036564", line_color="#033649"):
+	# 	Create a histogram:
+	# - figure: 			bokeh figure
+	# - percept_timestamps: list of lists containing percept time values as [[on_0 off_0] [on_1 off_1] ... ]
+	# - binw: 				number of bins for the histogram
+	percept_duration = [x[1] - x[0] for x in percept_timestamps]													# compute duration of each percept
+	hist, edges = np.histogram(percept_duration, density=True, bins=binw) 											# create histogram
+	figure.quad(top=histA, bottom=0, left=edges[:-1], right=edges[1:], fill_color=fil_color, line_color=line_color) # plot histogram
+
+	return figure	
+
+
 def rgb2hex(color):
 
 	if max(color) <= 1:
@@ -422,21 +450,6 @@ def rgb2hex(color):
 	b = max(0, min(color[2] , 255))
 
 	return "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
-
-class html_container():
-	def __init__(self):
-		self.scriptX = []
-		self.divX = []
-
-		self.scriptY = []
-		self.divY = []
-
-		self.XYvideolink = []	# relative path to the x,y gaze video
-		self.HAvideolink = []	# relative path to the high angle video
-
-
-	def function(self):
-		pass
 
 def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEADER = ''):
 	videowidth, videoheight = 800,600
@@ -715,9 +728,8 @@ if __name__ == '__main__':
 		pass
 	
 	## Create GUI to open files
-	Tk().withdraw() 													# we don't want a full GUI, so keep the root window from appearing
-	datafileslist = askopenfilenames(title='Chose files to analyze') 	# show an "Open" dialog box and return the path to the selected file
-	
-	# datafileslist = ['C:/Users/NuEye/Google Drive/NuEyeUPF/RubinLabs_Experiments/Experiment03 - Calibration simulation/data/calibration_simulation-15.03.18_15.32_jl_5points_chinrest_eyet.txt']
+	# Tk().withdraw() 													# we don't want a full GUI, so keep the root window from appearing
+	# datafileslist = askopenfilenames(title='Chose files to analyze') 	# show an "Open" dialog box and return the path to the selected file
 
+	datafileslist = ['C:/Users/NuEye/Google Drive/NuEyeUPF/RubinLabs_Experiments/Experiment01 - Plaid/data/Plaid_v19-15.03.09_17.28_JL1_newdata_eyet.txt']
 	main(datafileslist = datafileslist, fWeb_HEADER = 'html_template.html')
