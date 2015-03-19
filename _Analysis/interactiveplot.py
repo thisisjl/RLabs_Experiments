@@ -374,11 +374,14 @@ class DataStruct():
 
 class html_container():
 	def __init__(self):
-		self.scriptX = []
-		self.divX = []
+		self.scriptX = []		# javascript code for X gaze bokeh's plot
+		self.divX 	 = []		# html div that references self.scriptX
 
-		self.scriptY = []
-		self.divY = []
+		self.scriptY = []		# javascript code for Y gaze bokeh's plot
+		self.divY 	 = []		# html div that references self.scriptX
+
+		self.hist_script = []	# javascript code for histogram bokeh's plot
+		self.hist_div	 = []	# html div that references self.hist_script
 
 		self.XYvideolink = []	# relative path to the x,y gaze video
 		self.HAvideolink = []	# relative path to the high angle video
