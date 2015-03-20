@@ -236,11 +236,14 @@ class DataStruct():
 		self.numtrials 		= 0				# number of trials in data file
 
 		# eyetracker data
-		self.timestamps = [] 				# eyetracker time stamps
-		self.leftgazeX  = [] 				# 
-		self.leftgazeY  = [] 				# 
-		self.rightgazeX = [] 				# 
-		self.rightgazeY = [] 				# 
+		self.timestamps 	= []			# eyetracker time stamps
+		self.leftgazeX  	= []			# 
+		self.leftgazeY  	= []			# 
+		self.rightgazeX 	= []			# 
+		self.rightgazeY 	= []			# 
+		self.leftvalidity 	= []			#
+		self.rightvalidity 	= []			#
+
 
 		self.trial_ts 	= [] 				# time stamps for trials
 
@@ -282,33 +285,8 @@ class DataStruct():
 
 		et_data = True if ncols > 6 else False	# if ncols > 6, et_data is True, else is False
 
-		# Read eyetracker data ---------------------------------------------------------------------------------------
-		if et_data:
-			self.eyetrackerdata = True 															# indicate that datastruct contains eyetracker data
-
-			self.timestamps 	= np.array(map(float, data['Timestamp']))						# get time stamps of the eye tracker data
-
-			self.leftgazeX 		= np.array(map(float, data['LeftGazePoint2Dx']))				# get left gaze X data
-			self.leftgazeY 		= np.array(map(float, data['LeftGazePoint2Dy']))				# get left gaze Y data
-			self.rightgazeX 	= np.array(map(float, data['RightGazePoint2Dx']))				# get right gaze X data
-			self.rightgazeY 	= np.array(map(float, data['RightGazePoint2Dy']))				# get right gaze Y data
-
-			# Tobii gives data from 0 to 1, we want it from -1 to 1:
-			self.leftgazeX 		= 2 * self.leftgazeX 	- 1
-			self.leftgazeY 		= 2 * self.leftgazeY 	- 1
-			self.rightgazeX 	= 2 * self.rightgazeX - 1
-			self.rightgazeY 	= 2 * self.rightgazeY - 1
-
-			# Map values outside of range to the boundaries
-			self.leftgazeX[self.plotrange[0]  > self.leftgazeX]  = self.plotrange[0]; self.leftgazeX[self.plotrange[1] < self.leftgazeX] = self.plotrange[1]
-			self.leftgazeY[self.plotrange[0]  > self.leftgazeY]  = self.plotrange[0]-self.shiftval; self.leftgazeY[self.plotrange[1] < self.leftgazeY] = self.plotrange[1]-self.shiftval
-			self.rightgazeX[self.plotrange[0] > self.rightgazeX] = self.plotrange[0]; self.rightgazeX[self.plotrange[1] < self.rightgazeX] = self.plotrange[1]
-			self.rightgazeY[self.plotrange[0] > self.rightgazeY] = self.plotrange[0]; self.rightgazeY[self.plotrange[1] < self.rightgazeY] = self.plotrange[1]
-
-
+		
 		# Read events data --------------------------------------------------------------------------------------------
-
-		# Percepts: A_on, A_off, B_on, B_off
 
 		ets 	  = data['EventTimeStamp'][data['EventTimeStamp']!='-'].astype(np.float) 		# event time stamp: filter out values with '-' and convert str to float
 		ecode	  = data['Code'][data['Code'] != '-'].astype(np.float)							# event code: filter out values with '-' and convert to float
@@ -371,6 +349,56 @@ class DataStruct():
 				self.A_ts.append(item) 															# time staps in the following way:
 			for item in self.B_trial[trial]: 													# [[on_1, off_2], [on_2, off_2] ...]
 				self.B_ts.append(item) 															# 
+
+		# Read eyetracker data ---------------------------------------------------------------------------------------
+		if et_data:
+			self.eyetrackerdata = True 															# indicate that datastruct contains eyetracker data
+
+			self.timestamps 	= np.array(map(float, data['Timestamp']))						# get time stamps of the eye tracker data
+
+			self.leftgazeX 		= np.array(map(float, data['LeftGazePoint2Dx']))				# get left gaze X data
+			self.leftgazeY 		= np.array(map(float, data['LeftGazePoint2Dy']))				# get left gaze Y data
+			self.leftvalidity 	= np.array(map(float, data['LeftValidity']))					# get left gaze validity
+			
+			self.rightgazeX 	= np.array(map(float, data['RightGazePoint2Dx']))				# get right gaze X data
+			self.rightgazeY 	= np.array(map(float, data['RightGazePoint2Dy']))				# get right gaze Y data
+			self.rightvalidity 	= np.array(map(float, data['RightValidity']))					# get right gaze validity
+
+			# Tobii gives data from 0 to 1, we want it from -1 to 1:
+			self.leftgazeX 		= 2 * self.leftgazeX 	- 1
+			self.leftgazeY 		= 2 * self.leftgazeY 	- 1
+			self.rightgazeX 	= 2 * self.rightgazeX - 1
+			self.rightgazeY 	= 2 * self.rightgazeY - 1
+
+			# Map values outside of range to the boundaries
+			self.leftgazeX[self.plotrange[0]  > self.leftgazeX]  = self.plotrange[0]; self.leftgazeX[self.plotrange[1] < self.leftgazeX] = self.plotrange[1]
+			self.leftgazeY[self.plotrange[0]  > self.leftgazeY]  = self.plotrange[0]-self.shiftval; self.leftgazeY[self.plotrange[1] < self.leftgazeY] = self.plotrange[1]-self.shiftval
+			self.rightgazeX[self.plotrange[0] > self.rightgazeX] = self.plotrange[0]; self.rightgazeX[self.plotrange[1] < self.rightgazeX] = self.plotrange[1]
+			self.rightgazeY[self.plotrange[0] > self.rightgazeY] = self.plotrange[0]; self.rightgazeY[self.plotrange[1] < self.rightgazeY] = self.plotrange[1]
+
+			# compute percentage of validity
+			self.dataloss = []
+			
+			it = 0
+			for trial in range(self.numtrials): 												# for each trial
+				start = self.trial_ts[it]														# timestamp start of trial
+				end   = self.trial_ts[it+1]														# timestamp end of trial
+
+				# get row index
+				val, idx_start = find_nearest_above(self.timestamps, start)
+				val, idx_end   = find_nearest_above(self.timestamps, end)
+
+				nsamples = idx_end - idx_start
+
+				lv_trial = 100 * (self.leftvalidity[idx_start:idx_end] == 4).sum()/float(nsamples) 	# left eye:  % of lost data
+				rv_trial = 100 * (self.leftvalidity[idx_start:idx_end] == 4).sum()/float(nsamples)	# right eye: % of lost data
+
+				self.dataloss.append([lv_trial, rv_trial])
+
+				print 'For trial {0}, {1} % of data was lost'.format(trial+1, "%.1f" % lv_trial)	# (e.g. validity equal to 4)
+
+				it += 1 
+			# sys.exit()
 
 class html_container():
 	def __init__(self):
