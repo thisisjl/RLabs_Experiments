@@ -69,13 +69,9 @@ def main(ExpName = 'Plaid', subjectname = ''):
     # Initialize variables for data file ----------------------------------------------------------------------
     
     # Name of the data files
-    eyetrackeroutput   = os.path.join('data',("Plaid" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyet" + ".txt"))
-    filename_data      = os.path.join('data',("Plaid" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "alldata" + ".txt"))
+    eyetrackeroutput   = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyet" + ".txt"))
+    filename_data      = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "alldata" + ".txt"))
    
-    lastevent = LastEvent()                                                 # LastEvent() is defined in rlabs_libutils
-    events_struct = []
-    eventcount = 0
-
     # 3.4 - Initialize text to be shown at startup (not whown right now)
     textInstruc = "Continually report the motion of the grating in front.\nPress the left mouse button for left-ward motion.\nPress the right mouse button for right-ward motion\n\nClick mouse-wheel to start"
     lbl_instr = pyglet.text.Label(text=textInstruc, font_name='Times New Roman', font_size=36,
@@ -85,14 +81,18 @@ def main(ExpName = 'Plaid', subjectname = ''):
     lbl_instr2 = pyglet.text.Label(text=textInstruc2, font_name='Times New Roman', font_size=24,
         color=(0, 0, 0, 255), x = MyWin.width/2, y = MyWin.height/2.4, anchor_x='center', anchor_y='center')
 
-    # events_handler ---------------------------------------------------------------------------------------------------
-    events_handler = {
-        'on_mouse_press'    : lambda e: events_struct.append(e),
-        'on_mouse_release'  : lambda e: events_struct.append(e),}
+    # handling events ---------------------------------------------------------------------------------------------------
+    
+    events_struct = []                                                      # list that contains event that the event handler sends.
+    eventcount = 0                                                          # counter of the events
 
-    events_handler_with_ET = {                      # if using eyetracker, use this
-        'on_mouse_press'    : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),
-        'on_mouse_release'  : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),}
+    events_handler = {                                                      # events handler (it needs to be set to window)
+        'on_mouse_press'    : lambda e: events_struct.append(e),            # append on_mouse_press event to events_struct
+        'on_mouse_release'  : lambda e: events_struct.append(e),}           # append on_mouse_release event to events_struct
+
+    events_handler_with_ET = {                                                                              # if using eyetracker, this will add
+        'on_mouse_press'    : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),    # to events_struct and also it will 
+        'on_mouse_release'  : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),}   # call MyRecordEvent2 with the event
 
 
     # Initialize eyetracker communication ----------------------------------------------------------------------
@@ -265,10 +265,10 @@ def main(ExpName = 'Plaid', subjectname = ''):
 if __name__ == '__main__':
     print 'running Plaid'
 
-    if len(sys.argv) > 1:                           # optional: add a subject name
-        subjectname = sys.argv[1]                   # run as python Plaid_v19 subjectname
-    else:
-        subjectname = 'defaultsubjectname'
+    if len(sys.argv) > 1:                           # optional: to add a subject name
+        subjectname = sys.argv[1]                   # run as python Plaid subjectname
+    else:                                           # if no subject name specified
+        subjectname = 'defaultsubjectname'          # this will be used
 
     fps = pyglet.clock.ClockDisplay(color=(1,1,1,1)) # show frames per second
     main(subjectname = subjectname)
