@@ -22,13 +22,14 @@ def perm(x,n):
 # Data management functions and classes --------------------------------------------------------------------------
 
 class EventItem():
-    def __init__(self, name = '', counter = '', timestamp = '', etype = '', eid = '', ETtime = ''):
+    def __init__(self, name = '', counter = '', timestamp = '', etype = '', eid = '', ETtime = '', code = ''):
         self.name       = name
         self.counter    = counter
         self.timestamp  = timestamp
         self.type       = etype
         self.id         = eid
         self.ETtime     = ETtime # time of the eyetracker
+        self.code       = code
         
 class DataStruct(object):
     
@@ -284,6 +285,9 @@ class MyWindow(pyglet.window.Window):
     def get_last_event(self):
         if self.events != []:
             return self.events[-1]
+        else:
+            # return EventItem(name = '-', timestamp = time.time(), etype = '-', eid = '-')
+            return
 
 def my_dispatch_events(mywindow, event):
     """
