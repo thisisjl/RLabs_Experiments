@@ -391,7 +391,7 @@ class DataStruct():
 				nsamples = idx_end - idx_start
 
 				lv_trial = 100 * (self.leftvalidity[idx_start:idx_end] == 4).sum()/float(nsamples) 	# left eye:  % of lost data
-				rv_trial = 100 * (self.leftvalidity[idx_start:idx_end] == 4).sum()/float(nsamples)	# right eye: % of lost data
+				rv_trial = 100 * (self.rightvalidity[idx_start:idx_end] == 4).sum()/float(nsamples)	# right eye: % of lost data
 
 				self.dataloss.append([lv_trial, rv_trial])
 
