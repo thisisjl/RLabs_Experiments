@@ -6,7 +6,7 @@ sys.path.append(lib_path)
 from rlabs_libtobii import EyetrackerBrowser, MyTobiiController             # this is OUR library for the tobii eyetracker
 from rlabs_libutils import *
 
-from pyglet.window import Window
+from pyglet.window import Window, mouse
 from pyglet.gl import *                                                     # to change the color of the background
 from pyglet import clock
 
@@ -123,7 +123,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
     
     for trial_counter in range(numtrials):                                  # for each trial 
 
-        # Prepare variables before stimulus loop
+        # Prepare variables before stimulus loop ------------------------------------------------------------------
         
         trial = trials_array[trial_counter]
 
@@ -134,22 +134,26 @@ def main(ExpName = 'Plaid', subjectname = ''):
         grating21 = Grating(MyWin, mycoords(0,0, MyWin).x + stereo2, mycoords(0,0, MyWin).y, red_color, orientation2[trial], mylambda2[trial], duty_cycle2, apertRad_pix, speed2)
         grating22 = Grating(MyWin, mycoords(0,0, MyWin).x - stereo2, mycoords(0,0, MyWin).y, cyan_color, orientation2[trial], mylambda2[trial], duty_cycle2, apertRad_pix, speed2)
         
-        # Wait for go Loop
-        while not wait_for_go_function(MyWin,lastevent) and not MyWin.has_exit:
+        # Wait for go Loop ---------------------------------------------------------------------------------------------
+        wait = True                                                         # wait for go condition: wait
+        while wait and not MyWin.has_exit:
             glClearColor(fg_color[0],fg_color[1],fg_color[2],1)             # set background color
             MyWin.clear()                                                   # clear window
+            MyWin.dispatch_events()                                         # dispatch window events (very important call)
             
             if trial_counter == 0:                                          # if first trial,
-                lbl_instr.draw()                                            # show instructions
-            
-            else:                                                           # for the rest show fixation point
-                lbl_instr2.draw()                                           # show instructions
-                if fixYN:
+                lbl_instr.draw()                                            # show instructions number 1
+            else:                                                           # for the rest
+                lbl_instr2.draw()                                           # show instructions number 2
+                if fixYN:                                                   # show fixation point
                     drawCircle(xcenter, ycenter, numTheta, FPsize * 4, surrp_color)
                     drawCircle(xcenter, ycenter, numTheta, FPsize, fixp_color)
-                
-            MyWin.flip()                                                    # flip window
 
+            last_event = MyWin.get_last_event()                                                 # get last event on MyWin
+            if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
+                wait = False                                                                    # do not wait, exit wait for go loop
+
+            MyWin.flip()                                                    # flip window
 
         # Start stimulus loop -------------------------------------------------------------------------------------------------------------
 
