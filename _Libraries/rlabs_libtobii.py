@@ -1124,7 +1124,7 @@ class EyetrackerBrowser:
 
 class MyTobiiController:
     
-    def __init__(self,datafilename='eyetrackeroutputdatafile.txt', vergdfn = 'etoutwithverg.txt'):
+    def __init__(self,datafilename='eyetrackeroutputdatafile.txt'):
         
         """Initializes TobiiController instance
         
@@ -1136,7 +1136,8 @@ class MyTobiiController:
         """
         
         self.filename = datafilename
-        self.filenamev= vergdfn
+
+        self.codes = [1, 4, 8, 999]
         
         # eye tracking
         self.eyetracker = None
@@ -1154,9 +1155,6 @@ class MyTobiiController:
         self.mainloop_thread = tobii.eye_tracking_io.mainloop.MainloopThread()
         self.browser = tobii.eye_tracking_io.browsing.EyetrackerBrowser(self.mainloop_thread, lambda t, n, i: self.on_eyetracker_browser_event(t, n, i))
         self.mainloop_thread.start()        # SDK's example Eyetracker browser does not start this mainloop
-
-
-
 
     def waitForFindEyeTracker(self):
         
@@ -1214,10 +1212,8 @@ class MyTobiiController:
             self.eyetrackers[eyetracker_info.product_id] = eyetracker_info
         return False
 
-
-    ############################################################################
-    # activation methods
-    ############################################################################
+    
+    # activation methods ---------------------------------------------------------------------
 
     def activate(self,eyetracker):
         
@@ -1244,8 +1240,6 @@ class MyTobiiController:
         while self.eyetracker==None:
             pass
         self.syncmanager = tobii.eye_tracking_io.time.sync.SyncManager(self.clock,eyetracker_info,self.mainloop_thread)
-
-
 
     def on_eyetracker_created(self, error, eyetracker, eyetracker_info):
         
@@ -1344,6 +1338,8 @@ class MyTobiiController:
         # self.flushData()
         # self.write_eyetracker_data_file()
         # self.write_vergence_data_file()
+        # self.compute_event_code()
+        # compute_validity_percentage()
         self.write_eyetracker_data_file2()
         self.gazeData = []
         self.eventData = []
@@ -1365,9 +1361,7 @@ class MyTobiiController:
         self.gazeData.append(gaze)
 
 
-    ############################################################################
-    # calibration methods (we do not use these at the moment)
-    ############################################################################
+    # calibration methods (we do not use these at the moment) ------------------------------
 
     def performCalibration(self):
         print 'in performCalibration'
@@ -1396,9 +1390,7 @@ class MyTobiiController:
         # return False
 
 
-    ############################################################################
-    # get data methods
-    ############################################################################
+    # get data methods ---------------------------------------------------------------------
 
     def getGazePosition(self,gaze):
         
@@ -1442,9 +1434,8 @@ class MyTobiiController:
         else:
             return self.getGazePosition(self.gazeData[-1])
 
-    ############################################################################
-    # write data methods
-    ############################################################################
+    
+    # write data methods ---------------------------------------------------------------------
 
     def OLD_write_eyetracker_data_file(self):
         # def write_eyetracker_data_file(self,filename='eyetrackeroutputdatafile.txt'):
@@ -1864,7 +1855,7 @@ class MyTobiiController:
                             code = -codes[0]
                         
                         else: # key not in right and left arrays
-                            code = codes[2]
+                            code = codes[3]
 
                     elif e.name == 'TrialEvent':
                         # code = 8 if e.id == 'START' else -8
@@ -1891,11 +1882,118 @@ class MyTobiiController:
         pass
 
 
+    def write_eyetracker_data_file3(self):
+        """
+        Uses the complete GazeData array from tobii.controller.
+        Based on the libtobii.TobiiController's flushData() method
+        """
+        import itertools
+        self.filename33 = '_eyetrackeroutput.txt'
+        right_keys  = [4, 109, 110, 106] # right click, M, N, J                 # array with ascii codes for right keys
+        left_keys   = [1, 122, 120, 115] # left click, Z, X, S                  # array with ascii codes for left keys
+        codes = [1, 4, 8, 999]
+
+        if self.gazeData == []:
+            print 'gazeData is empty'
+            return
+
+        # fields in header
+        fields = ['Timestamp','LeftEyePosition3D.x','LeftEyePosition3D.y','LeftEyePosition3D.z',
+                    'LeftEyePosition3DRelative.x','LeftEyePosition3DRelative.y','LeftEyePosition3DRelative.z',
+                    'LeftGazePoint2D.x','LeftGazePoint2D.y','LeftGazePoint3D.x','LeftGazePoint3D.y',
+                    'LeftGazePoint3D.z','LeftPupil','LeftValidity','RightEyePosition3D.x','RightEyePosition3D.y',
+                    'RightEyePosition3D.z','RightEyePosition3DRelative.x','RightEyePosition3DRelative.y',
+                    'RightEyePosition3DRelative.z','RightGazePoint2D.x','RightGazePoint2D.y','RightGazePoint3D.x',
+                    'RightGazePoint3D.y','RightGazePoint3D.z','RightPupil','RightValidity', 
+                    'Vergence','FixationDist','EventTimeStamp','EventName','EventType', 'EventId', 'Code'] # these last line is added (see OLD_write_eyetracker_data_file)
+
+        timeStampStart = self.gazeData[0].Timestamp                     # time of the first "eye" event
+
+        timeStampStartEventsET = self.input_events[0].ETtime            # ET time, c
+        timeStampStartEventsPY = self.input_events[0].timestamp         # PY time, a    
+
+        formatstr = '%.1f'+'\t'+'%s'                                    # format for events
 
 
-    ############################################################################
-    # 
-    ############################################################################
+        with open(self.filename, 'a' ) as f:                            # open or create text file 'filename' to append             
+            f.write('\t'.join(fields)+'\n')                             # write header. Separate the fields into tabs
+
+            # for g in GazeData:
+            for g, e in itertools.izip_longest(self.gazeData,self.input_events):
+
+                # compute vergence
+                SL = float(g.LeftGazePoint2D.x)
+                SR = float(g.RightGazePoint2D.x)
+                verg, fixdist = self.calcVerg(SL, SR)
+
+                # write timestamp and gaze position for both eyes to the datafile
+                f.write('%.1f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%d\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%d\t%.4f\t%.4f\t'%(
+
+                                    (g.Timestamp-timeStampStart)/1000.0,
+
+                                    g.LeftEyePosition3D.x,
+                                    g.LeftEyePosition3D.y,
+                                    g.LeftEyePosition3D.z,
+
+                                    g.LeftEyePosition3DRelative.x,  
+                                    g.LeftEyePosition3DRelative.y,
+                                    g.LeftEyePosition3DRelative.z,
+
+                                    g.LeftGazePoint2D.x,
+                                    g.LeftGazePoint2D.y,
+
+                                    g.LeftGazePoint3D.x,
+                                    g.LeftGazePoint3D.y,
+                                    g.LeftGazePoint3D.z,
+
+                                    g.LeftPupil,
+
+                                    g.LeftValidity,
+
+                                    g.RightEyePosition3D.x,
+                                    g.RightEyePosition3D.y,
+                                    g.RightEyePosition3D.z,
+
+                                    g.RightEyePosition3DRelative.x,
+                                    g.RightEyePosition3DRelative.y,
+                                    g.RightEyePosition3DRelative.z,
+
+                                    g.RightGazePoint2D.x,
+                                    g.RightGazePoint2D.y,
+
+                                    g.RightGazePoint3D.x,
+                                    g.RightGazePoint3D.y,
+                                    g.RightGazePoint3D.z,
+
+                                    g.RightPupil,           
+
+                                    g.RightValidity,
+
+                                    verg,
+                                    fixdist,
+
+
+
+                                    )
+                )
+
+                # write events:
+                if e is not None:                   
+                    # write events
+                    f.write('{0}\t{1}\t{2}\t{3}\t{4}'.format((e.ETtime - timeStampStart)/1000.0,e.name, e.type, e.id, e.code))
+                else:                               # if there are no more events, fill rows with '-'
+                    f.write('-\t-\t-\t-\t-')        # because the method that reads the data needs itto be uniform
+
+                f.write('\n')
+
+        
+        os.chmod(self.filename,stat.S_IREAD)        # make file read only
+
+
+        pass
+
+
+    # Events functions ---------------------------------------------------------------------
 
     def recordEvent(self,event):
         
@@ -1914,7 +2012,6 @@ class MyTobiiController:
         
         t = self.syncmanager.convert_from_local_to_remote(self.clock.get_time())
         self.eventData.append((t,event))
-
 
     def myRecordEvent(self, name = '', lastevent = None, intype = '', inid = ''):
         t = self.syncmanager.convert_from_local_to_remote(self.clock.get_time())
@@ -1940,16 +2037,73 @@ class MyTobiiController:
         else:
             self.input_event.append(EventItem(name = 'otherEvent', timestamp = t, etype = 'None', eid = 'None'))
     
-
     def myRecordEvent2(self, event = None):
         t = self.syncmanager.convert_from_local_to_remote(self.clock.get_time())
         # t = self.syncmanager.convert_from_local_to_remote(event.timestamp)
         event.ETtime = t
         self.input_events.append(event)
 
-    ############################################################################
-    # My calibration methods
-    ############################################################################
+    def compute_event_code(self):
+        for e in self.input_events:
+            # compute code
+            if e.name == 'InputEvent':
+
+                isdown  = 'DW' in e.type
+                isup    = 'UP' in e.type
+                               
+                if   (e.id in right_keys) and (isdown):
+                    e.code = self.codes[1]
+                    pass
+                
+                elif (e.id in right_keys) and (isup):
+                    e.code = -self.codes[1]
+                
+                elif (e.id in left_keys) and (isdown):
+                    e.code = self.codes[0]
+                    pass
+                
+                elif (e.id in left_keys) and (isup):
+                    e.code = -self.codes[0]
+                
+                else: # key not in right and left arrays
+                    e.code = self.codes[3]
+
+            elif e.name == 'TrialEvent':
+                # code = 8 if e.id == 'START' else -8
+                e.code = 8 if 'START' in e.type else -8
+            pass
+
+        pass
+
+    def compute_validity_percentage(self):
+        
+        # from input_events get trial events
+        trial_ts        = [e.ETtime for e in self.input_events if e.code in (8, -8)]
+        et_ts           = [g.Timestamp for g in self.gazeData]
+        leftvalidity    = [g.LeftValidity for g in self.gazeData]
+        rightvalidity   = [g.RightValidity for g in self.gazeData]
+
+        it = 0
+        for trial in range(len(trial_timestamps)/2):                                   # for each trial
+            start = trial_ts[it]                                                       # timestamp start of trial
+            end   = trial_ts[it+1]                                                     # timestamp end of trial
+
+            # get row index
+            val, idx_start = find_nearest_above(et_ts, start)
+            val, idx_end   = find_nearest_above(et_ts, end)
+
+            nsamples = idx_end - idx_start
+
+            lv_trial = 100 * (leftvalidity[idx_start:idx_end] == 4).sum()/float(nsamples)  # left eye:  % of lost data
+            rv_trial = 100 * (rightvalidity[idx_start:idx_end] == 4).sum()/float(nsamples)  # right eye: % of lost data
+
+            print 'For trial {0}, {1} % of data was lost'.format(trial+1, "%.1f" % lv_trial)    # (e.g. validity equal to 4)
+
+            it += 1 
+
+    
+    # My calibration methods ---------------------------------------------------------------------
+    
     def runCalibration(self):
         # if self.verbose: print 'mycalibration - run'
 
@@ -2098,8 +2252,6 @@ class MyTobiiController:
         pass
 
     def on_start_calibration(self,*args,**kwargs):
-    #ioHub.print2err('on_start_calibration: ',args,kwargs)
-        pass
     
     def on_add_calibration_point(self,*args,**kwargs):
         pass
