@@ -69,8 +69,8 @@ def main(ExpName = 'Plaid', subjectname = ''):
     # Initialize variables for data file ----------------------------------------------------------------------
     
     # Name of the data files
-    eyetrackeroutput   = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyet" + ".txt"))
-    filename_data      = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "alldata" + ".txt"))
+    eyetrackeroutput   = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyetracker_data" + ".txt"))
+    filename_data      = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "button_press_data" + ".txt"))
    
     # 3.4 - Initialize text to be shown at startup (not whown right now)
     textInstruc = "Continually report the motion of the grating in front.\nPress the left mouse button for left-ward motion.\nPress the right mouse button for right-ward motion\n\nClick mouse-wheel to start"
@@ -219,6 +219,8 @@ def main(ExpName = 'Plaid', subjectname = ''):
             if fixYN:
                 drawCircle(xcenter, ycenter, numTheta, FPsize * 4, surrp_color)
                 drawCircle(xcenter, ycenter, numTheta, FPsize, fixp_color)
+
+            draw_cross(xcenter, ycenter, length1 = 50, length2 = 50)
 
             fps.draw()
 
