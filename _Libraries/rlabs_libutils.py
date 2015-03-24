@@ -376,6 +376,16 @@ events_handler_with_ET = {                      # if using eyetracker, use this
 }
 
 # Stimulus functions and classes -----------------------------------------------------------------------------------
+def draw_cross(x, y, length1 = 100, length2 = 100, color = (255,255,255), line_width = 1):
+    center = x, y
+    vertices = center[0] - length1/2, center[1], center[0] + length1/2, \
+        center[1], center[0], center[1] + length2/2, center[0], center[1] - length2/2       # compute vertices given the center
+    n = len(vertices)/2                                                                     # number of points
+    pyglet.gl.glLineWidth(line_width)                                                       # set lines width
+    pyglet.graphics.draw(n, pyglet.gl.GL_LINES,                                             # draw lines
+        ('v2f', vertices),
+        ('c3B', color * n),
+        )
 
 def drawpoints(vertices, color = (255,255,255), size = 1):
     n = len(vertices)/2                                     # number of points
