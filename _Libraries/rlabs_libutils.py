@@ -24,21 +24,21 @@ def merge_dicts(*dict_args):
     Given any number of dicts, shallow copy and merge into a new dict,
     precedence goes to key value pairs in latter dicts.
     '''
-    result = {}
+    out = {}
     for dictionary in dict_args:
-        result.update(dictionary)
-    return result
+        out.update(dictionary)
+    return out
 
 def merge_dicts_ordered(*dict_args):
     '''
-    Given any number of dicts, shallow copy and merge into a new dict,
+    Given any number of dicts, shallow copy and merge into a new OrderedDict,
     precedence goes to key value pairs in latter dicts.
     '''
     from collections import OrderedDict
-    result = OrderedDict()
+    out = OrderedDict()
     for dictionary in dict_args:
-        result.update(dictionary)
-    return result
+        out.update(dictionary)
+    return out
 
 def find_nearest_above(array, value):
     diff = array - value
