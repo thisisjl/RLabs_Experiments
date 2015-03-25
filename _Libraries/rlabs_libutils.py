@@ -19,6 +19,46 @@ def perm(x,n):
         combination.append(p)           # append to list
     return combination                  # retun complete list
 
+def merge_dicts(*dict_args):
+    '''
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    '''
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
+
+def merge_dicts_ordered(*dict_args):
+    '''
+    Given any number of dicts, shallow copy and merge into a new dict,
+    precedence goes to key value pairs in latter dicts.
+    '''
+    from collections import OrderedDict
+    result = OrderedDict()
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
+
+def find_nearest_above(array, value):
+    diff = array - value
+    mask = np.ma.less_equal(diff, 0)
+    # We need to mask the negative differences and zero
+    # since we are looking for values above
+    if np.all(mask):
+        return None, None # returns None if target is greater than any value
+    masked_diff = np.ma.masked_array(diff, mask)
+
+    idx = masked_diff.argmin()
+    val = array[idx]
+    
+    if val < value:     # if there's no value above
+        val = -1        # use -1 for val
+        idx = 0         # and 0 for idx
+
+
+    return val, idx
+
 # Data management functions and classes --------------------------------------------------------------------------
 
 class EventItem():
@@ -204,6 +244,78 @@ def write_data_file(data_namefile, data_struct, right_keys = [4], left_keys = [1
 
 
     pass
+
+def write_data_file_with_parameters(data_namefile, data_struct, parameters, right_keys = [4], left_keys = [1]):
+    """ write data file including events (mouse, trials) and configuration and trials parameters"""
+    from itertools import izip_longest                                  # import itertools to iterate over two variables
+
+    ntrials = parameters['number of trials']                            # get number of trials
+    timeStampStart = data_struct[0].timestamp                           # get time stamp of the start of trial 1
+
+    fields = ['Timestamp', 'EventName', 'EventType', 'EventID',         # create header
+    'EventCode', 'EventCount', 'Parameters']
+
+    for n in range(ntrials):                                            # for each trial
+        fields.append('Value for trial {0}'.format(n+1))                # add field in header 
+   
+    with open(data_namefile, 'w' ) as f:                                # open or create text file 'data_namefile' to write
+        f.write('\t'.join(fields)+'\n')                                 # write header. Separate the fields with tabs
+
+        for e, b in izip_longest(data_struct, parameters.items()):      # iterate over data_struct and parameters until longest is over
+        
+            if e is not None:                                           # if event in data_struct is not None
+                e = compute_event_code(e)                               # compute code for each one
+                f.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t'.format(        # and write it in data file
+                    e.timestamp - timeStampStart, e.name,               
+                    e.type, e.id, e.code, e.counter))
+            else:                                                       # if event is None (because there are more parameters)
+                f.write('-\t-\t-\t-\t-\t-\t')                           # fill rows with '-'
+
+            if b is not None:                                           # if b (each pair of (key, value) in parameters dict) is not None
+                k, v = b[0], b[1]                                       # get k and v (key and value)
+           
+                f.write('{0}'.format(k))                                # write key (name of parameter)
+                if type(v) in (int, float, str) or 'color' in k:        # If it is a config parameter,
+                    for i in range(ntrials):                            # write it (value will repeat
+                        f.write('\t{0}'.format(v))                      # for each trial column).
+                else:                                                   # If it is a trial parameter
+                    for i in range(ntrials):                            # write the value
+                        f.write('\t{0}'.format(v[i]))                   # for each trial.
+            else:                                                       # if there are more events than parameters
+                f.write('-\t'*(ntrials+1))                              # fill columns with '-'
+
+            f.write('\n')                                               # new line
+        
+    os.chmod(data_namefile,stat.S_IREAD)                                # make file read only
+
+def compute_event_code(e, codes = [1, 4, 8, 999], downcode = 'DW', upcode = 'UP', right_keys  = [4, 109, 110, 106], left_keys   = [1, 122, 120, 115]):
+    if e.name == 'InputEvent':
+
+        isdown  = downcode  in e.type
+        isup    = upcode    in e.type
+                       
+        if   (e.id in right_keys) and (isdown):
+            e.code = codes[1]
+            pass
+        
+        elif (e.id in right_keys) and (isup):
+            e.code = -codes[1]
+        
+        elif (e.id in left_keys) and (isdown):
+            e.code = codes[0]
+            pass
+        
+        elif (e.id in left_keys) and (isup):
+            e.code = -codes[0]
+        
+        else: # key not in right and left arrays
+            e.code = codes[3]
+
+    elif e.name == 'TrialEvent':
+        e.code = 8 if 'START' in e.id else -8
+    pass
+
+    return e
 
 
 def create_unique_name(subject_info):
