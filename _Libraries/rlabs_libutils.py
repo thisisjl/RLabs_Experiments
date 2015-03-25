@@ -306,19 +306,17 @@ def compute_event_code(e, codes = [1, 4, 8, 999], downcode = 'DW', upcode = 'UP'
 
     if e.name == 'InputEvent':
 
-        isdown  = downcode  in e.type
-        isup    = upcode    in e.type
+        isdown  = downcode  in e.type           
+        isup    = upcode    in e.type           
                        
-        if   (e.id in right_keys) and (isdown):
-            e.code = codes[1]
-            pass
+        if   (e.id in right_keys) and (isdown): 
+            e.code = codes[1]                   
         
         elif (e.id in right_keys) and (isup):
             e.code = -codes[1]
         
         elif (e.id in left_keys) and (isdown):
             e.code = codes[0]
-            pass
         
         elif (e.id in left_keys) and (isup):
             e.code = -codes[0]
@@ -328,7 +326,6 @@ def compute_event_code(e, codes = [1, 4, 8, 999], downcode = 'DW', upcode = 'UP'
 
     elif e.name == 'TrialEvent':
         e.code = 8 if 'START' in e.id else -8
-    pass
 
     return e
 
