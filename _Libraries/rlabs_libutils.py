@@ -289,6 +289,21 @@ def write_data_file_with_parameters(data_namefile, data_struct, parameters, righ
     os.chmod(data_namefile,stat.S_IREAD)                                # make file read only
 
 def compute_event_code(e, codes = [1, 4, 8, 999], downcode = 'DW', upcode = 'UP', right_keys  = [4, 109, 110, 106], left_keys   = [1, 122, 120, 115]):
+    """
+    Compute code that will be later used in data analysis.
+    
+    Legend:
+    event:                code
+    LEFT  mouse press:    1
+    LEFT  mouse release: -1
+    RIGHT mouse press:    4
+    RIGHT mouse release: -4
+    Trial start:          8
+    Trial end:           -8
+
+    event not expected:  999
+    """
+
     if e.name == 'InputEvent':
 
         isdown  = downcode  in e.type
