@@ -281,9 +281,7 @@ class DataStruct():
 		# Determine if datafile contains eyetracker data or just input (mouse)
 		# with the number of elements in the header.
 		# --------------------------------------------------------------------
-		ncols = len(data.dtype.names) 			# get number of columns
-
-		et_data = True if ncols > 6 else False	# if ncols > 6, et_data is True, else is False
+		et_data = True if 'LeftGazePoint2Dx' in data.dtype.names else False						# if LeftGazePoint2Dx in header, et_data is True, else is False
 
 		
 		# Read events data --------------------------------------------------------------------------------------------
@@ -469,7 +467,6 @@ def bokeh_histogram(figure, percept_timestamps, binw, fil_color = "#036564", lin
 	figure.quad(top=histA, bottom=0, left=edges[:-1], right=edges[1:], fill_color=fil_color, line_color=line_color) # plot histogram
 
 	return figure	
-
 
 def rgb2hex(color):
 
