@@ -27,7 +27,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
     # config_name_full = os.path.join(application_path, config_name)  # Full path name of the config file
     # trials_name_full = os.path.join(application_path, trials_name)  # Full path name of the trials file
 
-    from config_file import (aperture_color,numTheta,apertureDiv,               # import config parameters
+    from config_file import (aperture_color,apertureDiv,               # import config parameters
         red_color, cyan_color, stereo1, stereo2, fixp_color, surrp_color, 
         time_fixp, framerate, FPsize, fg_color, aperture_switch, forced,aperture_radius,
         testing_with_eyetracker, randomize_trials, fixationpoint)
@@ -44,7 +44,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
     # store parameters in dictionary to write them in data files (I might change it later)
     config_parameters = OrderedDict(
         [('aperture yes/no', aperture_switch), ('aperture color', aperture_color), ('aperture division', apertureDiv), 
-        ('num theta', numTheta), ('red color', red_color), ('cyan_color', cyan_color), ('fixation point color', fixp_color), 
+        ('red color', red_color), ('cyan_color', cyan_color), ('fixation point color', fixp_color), 
         ('stereo1', stereo1), ('stereo2', stereo2), ('protection zone color', surrp_color), ('eyetracker yes/no', testing_with_eyetracker), 
         ('randomize trials', randomize_trials), ('type of fixation point', fixationpoint), ('framerate', framerate), ('fixation point size', FPsize), 
         ('foreground color', fg_color), ('forced mode yes/no', forced), ('aperture radius (not used now)', aperture_radius), 
@@ -231,7 +231,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
 
             glEnable(GL_BLEND)
             
-            drawAperture(xcenter, ycenter, apertRad_pix, aperture_color, numTheta)
+            drawAperture(xcenter, ycenter, apertRad_pix, aperture_color)
 
             grating11.draw()
             grating12.draw()
