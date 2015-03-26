@@ -166,11 +166,10 @@ def main(ExpName = 'Plaid', subjectname = ''):
             else:                                                           # for the rest
                 lbl_instr2.draw()                                           # show instructions number 2
                 if fixationpoint == 'Circle with protection zone':
-                    drawCircle(xcenter, ycenter, numTheta, FPsize * 4, surrp_color)
-                    drawCircle(xcenter, ycenter, numTheta, FPsize, fixp_color)
+                    drawCircle(xcenter, ycenter, FPsize * 4, surrp_color)
+                    drawCircle(xcenter, ycenter, FPsize, fixp_color)
                 if fixationpoint == 'Circle without protection zone':
-                    # drawCircle(xcenter, ycenter, numTheta, FPsize * 4, surrp_color)
-                    drawCircle(xcenter, ycenter, numTheta, FPsize, fixp_color)
+                    drawCircle(xcenter, ycenter, FPsize, fixp_color)
                 if fixationpoint == 'Cross':
                     draw_cross(xcenter, ycenter, length1 = 50, length2 = 50)
 
@@ -242,11 +241,10 @@ def main(ExpName = 'Plaid', subjectname = ''):
             glDisable(GL_BLEND)
 
             if fixationpoint == 'Circle with protection zone':
-                drawCircle(xcenter, ycenter, numTheta, FPsize * 4, surrp_color)
-                drawCircle(xcenter, ycenter, numTheta, FPsize, fixp_color)
+                drawCircle(xcenter, ycenter, FPsize * 4, surrp_color)
+                drawCircle(xcenter, ycenter, FPsize, fixp_color)
             if fixationpoint == 'Circle without protection zone':
-                # drawCircle(xcenter, ycenter, numTheta, FPsize * 4, surrp_color)
-                drawCircle(xcenter, ycenter, numTheta, FPsize, fixp_color)
+                drawCircle(xcenter, ycenter, FPsize, fixp_color)
             if fixationpoint == 'Cross':
                 draw_cross(xcenter, ycenter, length1 = 50, length2 = 50)
 
@@ -283,7 +281,6 @@ def main(ExpName = 'Plaid', subjectname = ''):
         controller.stopTracking()                                               # stop eye tracking and write output file
         controller.destroy()                                                    # destroy controller
 
-    # write_data_file(filename_data, events_struct)                               # write data file, it has raw and formatted data
     write_data_file_with_parameters(filename_data, events_struct, parameters) # write data file, it has raw and formatted data
 
     MyWin.close()                                                               # close pyglet window
