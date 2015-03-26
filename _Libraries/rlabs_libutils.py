@@ -521,7 +521,7 @@ def drawpoints(vertices, color = (255,255,255), size = 1):
 
 def drawCircle(x, y, radius = 100, color = (1.0, 1.0, 1.0, 1.0)):
     '''draws a circle of radius r centered at (x, y)'''
-    draw_ring(x, y, 0, r, color)
+    draw_ring(x, y, 0, radius, color)
 
 def draw_ring(x, y, inner, outer, color=(1.0, 1.0, 1.0, 1.0)):
     '''
@@ -529,7 +529,7 @@ def draw_ring(x, y, inner, outer, color=(1.0, 1.0, 1.0, 1.0)):
     from http://py-fun.googlecode.com/svn-history/r10/trunk/toolbox/graphics2d.py
     '''
     glPushMatrix()
-    glColor4f(*color)
+    glColor3f(*color)
     glTranslatef(x, y, 0)
     q = gluNewQuadric()
     # a circle is written as a number of triangular slices; we use
