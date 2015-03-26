@@ -33,7 +33,10 @@ def main(datafileslist = '', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_
 
 		ds = DataStruct(datafile, 											# create new DataStruct instance
 		A_code = A_code, B_code = B_code, trial_code = trial_code,			# codes for percepts and trial
-		epsilon = epsilon, plotrange = plotrange, shiftval = shiftval)		# other parameters
+		epsilon = epsilon, plotrange = plotrange)							# other parameters
+
+		ds.rightgazeX += shiftval 											# apply shift
+		ds.rightgazeY += shiftval 											# apply shift
 
 		mycontainer = [html_container() for k in range(ds.numtrials + 2)] 	# container for html and javascript plot codes
 		cit = 0 															# container iterator
@@ -227,7 +230,7 @@ def main(datafileslist = '', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_
 	pass
 
 class DataStruct():
-	def __init__(self, datafile, A_code = 1, B_code = 4, trial_code = 8, epsilon = 0.0123, plotrange = [-1.1,1.1], shiftval = 0.0):
+	def __init__(self, datafile, A_code = 1, B_code = 4, trial_code = 8, epsilon = 0.0123, plotrange = [-1.1,1.1]):
 		
 		self.filenamefp 	= datafile 		# full path of data file
 		self.filename 		= '' 			# data filename 
@@ -258,7 +261,6 @@ class DataStruct():
 		self.trial_code = trial_code 		# code value for trials
 		self.epsilon 	= epsilon 			# epsilon
 		self.plotrange 	= plotrange 		# plotrange 
-		self.shiftval 	= shiftval 			# value to shift Y
 
 		self.read_data()					# read data
 
@@ -366,7 +368,7 @@ class DataStruct():
 
 			# Map values outside of range to the boundaries
 			self.leftgazeX[self.plotrange[0]  > self.leftgazeX]  = self.plotrange[0]; self.leftgazeX[self.plotrange[1] < self.leftgazeX] = self.plotrange[1]
-			self.leftgazeY[self.plotrange[0]  > self.leftgazeY]  = self.plotrange[0]+self.shiftval; self.leftgazeY[self.plotrange[1] < self.leftgazeY] = self.plotrange[1]+self.shiftval
+			self.leftgazeY[self.plotrange[0]  > self.leftgazeY]  = self.plotrange[0]; self.leftgazeY[self.plotrange[1] < self.leftgazeY] = self.plotrange[1]
 			self.rightgazeX[self.plotrange[0] > self.rightgazeX] = self.plotrange[0]; self.rightgazeX[self.plotrange[1] < self.rightgazeX] = self.plotrange[1]
 			self.rightgazeY[self.plotrange[0] > self.rightgazeY] = self.plotrange[0]; self.rightgazeY[self.plotrange[1] < self.rightgazeY] = self.plotrange[1]
 
