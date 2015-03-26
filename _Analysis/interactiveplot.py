@@ -59,8 +59,8 @@ def main(datafileslist = '', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_
 
 			bokehfig = figure(title = 'X coordinates. Right eye shifted {0}'.format(shiftval))
 
-			bokeh_plot_gaze(bokehfig, ds.timestamps, ds.leftgazeX,  label = 'left eye',  marker = 'x', gaze_color = A_color, plotrange = plotrange)
-			bokeh_plot_gaze(bokehfig, ds.timestamps, ds.rightgazeX, label = 'right eye', marker = 'o', gaze_color = B_color, plotrange = plotrange)
+			bokehfig.scatter(ds.timestamps,ds.leftgazeX,  marker = 'x', color=rgb2hex(A_color), legend='left eye')
+			bokehfig.scatter(ds.timestamps,ds.rightgazeX, marker = 'o', color=rgb2hex(B_color), legend='right eye')
 
 			for event in ds.trial_ts:																			# for each event time stamp
 			 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
@@ -84,8 +84,8 @@ def main(datafileslist = '', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_
 
 			bokehfig = figure(title = 'Y coordinates. Right eye shifted {0}'.format(shiftval))
 			
-			bokeh_plot_gaze(bokehfig, ds.timestamps, ds.leftgazeY,  label = 'left eye',  marker = 'x', gaze_color = A_color, plotrange = plotrange)
-			bokeh_plot_gaze(bokehfig, ds.timestamps, ds.rightgazeY, label = 'right eye', marker = 'o', gaze_color = B_color, plotrange = plotrange)
+			bokehfig.scatter(ds.timestamps,ds.leftgazeY,  marker = 'x', color=rgb2hex(A_color), legend='left eye')
+			bokehfig.scatter(ds.timestamps,ds.rightgazeY, marker = 'o', color=rgb2hex(B_color), legend='right eye')
 
 			for event in ds.trial_ts:																			# for each event time stamp
 			 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
@@ -134,9 +134,9 @@ def main(datafileslist = '', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_
 					## plot X coordinate for both eyes -----------------------------------------------------------------------------------------------------
 
 					bokehfig = figure(title = 'Trial {0}. X coordinate. Right eye shifted {1}'.format(trial+1,shiftval))
-
-					bokeh_plot_gaze(bokehfig, ts, lgX, label = 'left eye',  marker = 'x', gaze_color = A_color, plotrange = plotrange)
-					bokeh_plot_gaze(bokehfig, ts, rgX, label = 'right eye', marker = 'o', gaze_color = B_color, plotrange = plotrange)
+					
+					bokehfig.scatter(ts,lgX,  marker = 'x', color=rgb2hex(A_color), legend='left eye')
+					bokehfig.scatter(ts,rgX,  marker = 'o', color=rgb2hex(B_color), legend='right eye')
 
 					for event in trial_ts:																				# for each event time stamp
 					 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
@@ -154,8 +154,8 @@ def main(datafileslist = '', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_
 					
 					bokehfig = figure(title = 'Trial {0}. Y coordinate. Right eye shifted {1}'.format(trial+1,shiftval))
 					
-					bokeh_plot_gaze(bokehfig, ts, lgY, label = 'left eye',  marker = 'x', gaze_color = A_color, plotrange = plotrange)
-					bokeh_plot_gaze(bokehfig, ts, rgY, label = 'right eye', marker = 'o', gaze_color = B_color, plotrange = plotrange)
+					bokehfig.scatter(ts, lgY,  marker = 'x', color=rgb2hex(A_color), legend='left eye')
+					bokehfig.scatter(ts, rgY,  marker = 'o', color=rgb2hex(B_color), legend='right eye')
 
 					for event in trial_ts:																				# for each event time stamp
 					 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
@@ -269,7 +269,7 @@ class DataStruct():
 		pass
 
 	def read_data(self):
-		# Read data file
+		# Read data file --------------------------------------------------------------------------------------------
 		self.filename = os.path.split(self.filenamefp)[1] 										# get just data file name, not full path
 		try:
 			data = np.genfromtxt(self.filenamefp, delimiter="\t", dtype=None, names=True)		# read data file
@@ -277,10 +277,7 @@ class DataStruct():
 			print 'cannot read data file'
 			sys.exit()
 
-		# --------------------------------------------------------------------
-		# Determine if datafile contains eyetracker data or just input (mouse)
-		# with the number of elements in the header.
-		# --------------------------------------------------------------------
+		# Determine if datafile contains eyetracker data or just input (mouse) ----------------------------------------
 		et_data = True if 'LeftGazePoint2Dx' in data.dtype.names else False						# if LeftGazePoint2Dx in header, et_data is True, else is False
 
 		
@@ -305,7 +302,7 @@ class DataStruct():
 		self.trial_ts[0::2] = Trial_on 															# put Trial_on on even spaces 
 		self.trial_ts[1::2] = Trial_off 														# put Trial_off on odd spaces
 
-		# Check input events -----------------------------------------------------------------------------
+		# Check input events --------------------------------------------------------------------------------------------
 
 		# Get input in each trial
 		x, y, z = 2, 0, self.numtrials 															# size of percept matrix
@@ -415,15 +412,6 @@ class html_container():
 
 	def function(self):
 		pass
-
-def bokeh_plot_gaze(figure, timestamps, gaze, label = '', marker = 'x', trial_ts = [], gaze_color = (1.0, 0., 0.), plotrange = [-0.1,1.1]):
-
-	figure.scatter(timestamps,gaze, marker = marker, color=rgb2hex(gaze_color), legend=label, facecolors='none', edgecolors=rgb2hex(gaze_color))
-
-	# for event in trial_ts:																			# for each event time stamp
-	# 	figure.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))	# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
-
-	return figure
 
 def bokeh_plotTC(figure, time_stamps, time_max, Y_vals, color, change_axis = 0, label = ''):
 	"""
