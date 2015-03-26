@@ -56,7 +56,6 @@ def find_nearest_above(array, value):
         val = -1        # use -1 for val
         idx = 0         # and 0 for idx
 
-
     return val, idx
 
 # Data management functions and classes --------------------------------------------------------------------------
@@ -520,23 +519,27 @@ def drawpoints(vertices, color = (255,255,255), size = 1):
         ('c3B', color * n),
         )
 
-def drawCircle(x, y, numTheta = 90, radius = 100, circle_color = (0,0,0)):
+def drawCircle(x, y, radius = 100, color = (1.0, 1.0, 1.0, 1.0)):
+    '''draws a circle of radius r centered at (x, y)'''
+    draw_ring(x, y, 0, r, color)
 
-    deltaTheta = 2 * math.pi / numTheta
-
-    glColor3f( circle_color[0] , circle_color[1], circle_color[2])
-      
-    for i in range (0, numTheta):
-        cx1 = x + radius * math.sin(deltaTheta * i)
-        cy1 = y + radius * math.cos(deltaTheta * i)
-        cx2 = x + radius * math.sin(deltaTheta * (i+1))
-        cy2 = y + radius * math.cos(deltaTheta * (i+1))
-          
-        glBegin( GL_TRIANGLES )
-        glVertex2f(x, y )
-        glVertex2f(cx1 , cy1 )
-        glVertex2f(cx2 , cy2 )
-        glEnd()
+def draw_ring(x, y, inner, outer, color=(1.0, 1.0, 1.0, 1.0)):
+    '''
+    draws a ring of inner radius "inner" and outer radius "outer" centered at (x, y).
+    from http://py-fun.googlecode.com/svn-history/r10/trunk/toolbox/graphics2d.py
+    '''
+    glPushMatrix()
+    glColor4f(*color)
+    glTranslatef(x, y, 0)
+    q = gluNewQuadric()
+    # a circle is written as a number of triangular slices; we use
+    # a maximum of 360 which looked smooth even for a circle as
+    # large as 1500 px.
+    # Smaller circles can be drawn with fewer slices - the rule we
+    # use amount to approximately 1 slice per px on the circumference
+    slices = min(360, 6*outer)
+    gluDisk(q, inner, outer, slices, 1)
+    glPopMatrix()
 
 def drawGrating(x, y, fill_color, orientation, mylambda, duty_cycle, apertRad_pix):
      
@@ -576,7 +579,7 @@ def drawGrating(x, y, fill_color, orientation, mylambda, duty_cycle, apertRad_pi
     glLoadIdentity()
     pass
 
-def drawAperture(x0_pix, y0_pix, radius_pix, color, numTheta):
+def drawAperture(x0_pix, y0_pix, radius_pix, color):
 
     # Enable stencil
     glClearStencil(0x0)
@@ -587,7 +590,7 @@ def drawAperture(x0_pix, y0_pix, radius_pix, color, numTheta):
     glStencilFunc(GL_ALWAYS, 0x1, 0x1) #Always pass stencil functions test
     glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE) #Replace stencil value with reference value
     
-    drawCircle(x0_pix, y0_pix, numTheta, radius_pix, color)
+    drawCircle(x0_pix, y0_pix, radius_pix, color)
     pass
 
 class Grating():
@@ -890,7 +893,7 @@ class Aperture():
         glStencilFunc(GL_ALWAYS, 0x1, 0x1) #Always pass stencil functions test
         glStencilOp(GL_REPLACE, GL_REPLACE, GL_REPLACE) #Replace stencil value with reference value
         
-        drawCircle(x0_pix, y0_pix, numTheta, apertRad_pix, color)
+        drawCircle(x0_pix, y0_pix, apertRad_pix, color)
         pass
     
     pass
