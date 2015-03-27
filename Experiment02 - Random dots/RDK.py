@@ -11,6 +11,7 @@ from pyglet import clock
 
 import numpy as np
 import time
+from collections import OrderedDict
 
 def main(Tau = 100, CycleDur = 360, num_dots = 1, zDir = 1, TranspYN = 1, subjectname = 'None', testing_with_eyetracker = 1):
 	"""
@@ -39,16 +40,22 @@ def main(Tau = 100, CycleDur = 360, num_dots = 1, zDir = 1, TranspYN = 1, subjec
 	clock.set_fps_limit(framerate)                                          					# set limit for frames per second
 	fg_color = np.array([0.5, 0.5, 0.5])
 
-	
 	## random dots parameters
-	color 		= (255,255,255)																		# color of dots
+	color 		= (255,255,255)																	# color of dots
 	size_dot 	= 2 																			# size of the dots
-	fix_color 	= (0,0,0) 																	# color of fixation point
+	fix_color 	= (0,0,0) 																		# color of fixation point
 	fix_size 	= 10  																			# size of fixation point
 
 	## Compute parameters
 	R = win.height/2 #300 																		# radius of sphere
 	dOmega = 2 * np.pi / CycleDur 																# angular rotation per frame
+
+	parameters = OrderedDict(('number of dots',num_dots),('dot color',color), 					# create parameters dict
+		('dot size',size_dot), ('fixation point color',fix_color), 								# to pass to eyetracker
+		('fixation point size',fix_size),('fixation point size',fix_size),('sphere radius',R),
+		('dOmega',dOmega),('max dot lifetime',Tau),('Cycle duration',CycleDur),
+		('direction of rotation',zDir),('transparentYN',TranspYN),('subject name',subjectname),
+		('eyetracker',testing_with_eyetracker))
 
 	# uniformly distribute random dots on XY plane (regradless of shape)
 	x 	 = 2 * R * np.random.rand(num_dots) - R													# distribute dots between [-R,R]
@@ -86,15 +93,17 @@ def main(Tau = 100, CycleDur = 360, num_dots = 1, zDir = 1, TranspYN = 1, subjec
 
 	if testing_with_eyetracker:
 		# data files name:
-		eyetrackeroutput   = os.path.join('data',("Randomdots" + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyet" + ".txt"))
+		eyetrackeroutput   = os.path.join('data',("Randomdots" + "-" + time.strftime( 			# eyetracker data file name
+			"%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyet" + ".txt"))	#
 		eb = EyetrackerBrowser()																# Create an EyetrackerBrowser
 		eb.main()																				# display EyetrackerBrowser
 
-		controller = MyTobiiController(datafilename=eyetrackeroutput)       					# create Tobii controller
+		controller = MyTobiiController( 														# create Tobii controller
+			datafilename=eyetrackeroutput, 														# pass it data file name
+			parameters=parameters)       														# pass it parameters
 		controller.waitForFindEyeTracker()                                  					# wait to find eyetracker
 		controller.activate(controller.eyetrackers.keys()[0])               					# activate eyetracker
 
-	# if testing_with_eyetracker:
 		controller.startTracking()                                                              # start the eye tracking recording
 		time.sleep(0.2)                                                                         # wait for the eytracker to warm up
 		controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = 0, timestamp = time.time(), etype = '{0} START'.format(0), eid = time.time()))
@@ -104,7 +113,7 @@ def main(Tau = 100, CycleDur = 360, num_dots = 1, zDir = 1, TranspYN = 1, subjec
 	## Stimuli loop -----------------------------------------------------------------------------------------------------------------
 	win.set_visible(True)
 	while not win.has_exit:
-		glClearColor(fg_color[0],fg_color[1],fg_color[2],1)             # set background color
+		glClearColor(fg_color[0],fg_color[1],fg_color[2],1)             						# set background color
 		win.dispatch_events() 																	# dispatch window events (essential)
 		win.clear()																				# clear window
 
