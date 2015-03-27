@@ -50,12 +50,12 @@ def main(Tau = 100, CycleDur = 360, num_dots = 1, zDir = 1, TranspYN = 1, subjec
 	R = win.height/2 #300 																		# radius of sphere
 	dOmega = 2 * np.pi / CycleDur 																# angular rotation per frame
 
-	parameters = OrderedDict(('number of dots',num_dots),('dot color',color), 					# create parameters dict
-		('dot size',size_dot), ('fixation point color',fix_color), 								# to pass to eyetracker
+	parameters = OrderedDict((('number of trials', 1),('number of dots',num_dots),				# create parameters dict
+		('dot color',color),('dot size',size_dot), ('fixation point color',fix_color), 			# to pass to eyetracker
 		('fixation point size',fix_size),('fixation point size',fix_size),('sphere radius',R),
 		('dOmega',dOmega),('max dot lifetime',Tau),('Cycle duration',CycleDur),
 		('direction of rotation',zDir),('transparentYN',TranspYN),('subject name',subjectname),
-		('eyetracker',testing_with_eyetracker))
+		('eyetracker',testing_with_eyetracker)))
 
 	# uniformly distribute random dots on XY plane (regradless of shape)
 	x 	 = 2 * R * np.random.rand(num_dots) - R													# distribute dots between [-R,R]
@@ -106,7 +106,7 @@ def main(Tau = 100, CycleDur = 360, num_dots = 1, zDir = 1, TranspYN = 1, subjec
 
 		controller.startTracking()                                                              # start the eye tracking recording
 		time.sleep(0.2)                                                                         # wait for the eytracker to warm up
-		controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = 0, timestamp = time.time(), etype = '{0} START'.format(0), eid = time.time()))
+		controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = 0, timestamp = time.time(), etype = 0, eid = 'START'))
    
 
 
@@ -207,7 +207,7 @@ def main(Tau = 100, CycleDur = 360, num_dots = 1, zDir = 1, TranspYN = 1, subjec
 		win.flip() #--------------------------------------------------------------------------- # flip window (end of stimuli loop)
 
 	if testing_with_eyetracker:																	# Stop eyetracker processes
-		controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = 1, timestamp = time.time(), etype = '{0} END'.format(0), eid = time.time()))
+		controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = 1, timestamp = time.time(), etype = 0, eid = 'START'))
 		controller.stopTracking()                                           					# stop eye tracking and write output file
 		controller.destroy()                                                					# destroy controller
 
