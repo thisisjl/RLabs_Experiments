@@ -1124,7 +1124,7 @@ class EyetrackerBrowser:
 
 class MyTobiiController:
     
-    def __init__(self,datafilename='eyetrackeroutputdatafile.txt'):
+    def __init__(self,datafilename='eyetrackeroutputdatafile.txt', parameters = None):
         
         """Initializes TobiiController instance
         
@@ -1135,7 +1135,8 @@ class MyTobiiController:
         None
         """
         
-        self.filename = datafilename
+        self.filename   = datafilename
+        self.parameters = parameters
 
         self.codes = [1, 4, 8, 999]
         
@@ -1338,9 +1339,10 @@ class MyTobiiController:
         # self.flushData()
         # self.write_eyetracker_data_file()
         # self.write_vergence_data_file()
-        # self.compute_event_code()
-        # compute_validity_percentage()
-        self.write_eyetracker_data_file2()
+        self.compute_event_code()
+        # self.compute_validity_percentage()
+        # self.write_eyetracker_data_file2()
+        self.write_eyetracker_data_file3()
         self.gazeData = []
         self.eventData = []
 
@@ -1650,7 +1652,6 @@ class MyTobiiController:
             for g in self.gazeData:
                 SL = float(g.LeftGazePoint2D.x)
                 SR = float(g.RightGazePoint2D.x)
-                # sys.exit()
 
                 verg, fixdist = self.calcVerg(SL, SR)
 
@@ -1741,11 +1742,6 @@ class MyTobiiController:
         Based on the libtobii.TobiiController's flushData() method
         """
         import itertools
-        self.filename33 = '_eyetrackeroutput.txt'
-        right_keys  = [4, 109, 110, 106] # right click, M, N, J                 # array with ascii codes for right keys
-        left_keys   = [1, 122, 120, 115] # left click, Z, X, S                  # array with ascii codes for left keys
-        codes = [1, 4, 8, 999]
-
         if self.gazeData == []:
             print 'gazeData is empty'
             return
@@ -1887,15 +1883,14 @@ class MyTobiiController:
         Uses the complete GazeData array from tobii.controller.
         Based on the libtobii.TobiiController's flushData() method
         """
-        import itertools
-        self.filename33 = '_eyetrackeroutput.txt'
-        right_keys  = [4, 109, 110, 106] # right click, M, N, J                 # array with ascii codes for right keys
-        left_keys   = [1, 122, 120, 115] # left click, Z, X, S                  # array with ascii codes for left keys
-        codes = [1, 4, 8, 999]
+        import itertools                                                    # to iterate over multiple lists
 
         if self.gazeData == []:
             print 'gazeData is empty'
             return
+
+        timeStampStart = self.gazeData[0].Timestamp                         # time of the first "eye" event
+        ntrials = self.parameters['number of trials']                       # get number of trials
 
         # fields in header
         fields = ['Timestamp','LeftEyePosition3D.x','LeftEyePosition3D.y','LeftEyePosition3D.z',
@@ -1905,28 +1900,24 @@ class MyTobiiController:
                     'RightEyePosition3D.z','RightEyePosition3DRelative.x','RightEyePosition3DRelative.y',
                     'RightEyePosition3DRelative.z','RightGazePoint2D.x','RightGazePoint2D.y','RightGazePoint3D.x',
                     'RightGazePoint3D.y','RightGazePoint3D.z','RightPupil','RightValidity', 
-                    'Vergence','FixationDist','EventTimeStamp','EventName','EventType', 'EventId', 'Code'] # these last line is added (see OLD_write_eyetracker_data_file)
-
-        timeStampStart = self.gazeData[0].Timestamp                     # time of the first "eye" event
-
-        timeStampStartEventsET = self.input_events[0].ETtime            # ET time, c
-        timeStampStartEventsPY = self.input_events[0].timestamp         # PY time, a    
-
-        formatstr = '%.1f'+'\t'+'%s'                                    # format for events
+                    'Vergence','FixationDist','EventTimeStamp','EventName','EventType', 'EventId', 'Code',
+                    'Parameters'] # these last line is added (see OLD_write_eyetracker_data_file)
+        
+        for n in range(ntrials):                                            # for each trial
+            fields.append('Value for trial {0}'.format(n+1))                # add field in header 
 
 
-        with open(self.filename, 'a' ) as f:                            # open or create text file 'filename' to append             
-            f.write('\t'.join(fields)+'\n')                             # write header. Separate the fields into tabs
+        with open(self.filename, 'a' ) as f:                                # open or create text file 'filename' to append             
+            f.write('\t'.join(fields)+'\n')                                 # write header. Separate the fields into tabs
 
             # for g in GazeData:
-            for g, e in itertools.izip_longest(self.gazeData,self.input_events):
+            for g, e, p in itertools.izip_longest(self.gazeData,self.input_events, self.parameters.items()):
 
-                # compute vergence
-                SL = float(g.LeftGazePoint2D.x)
-                SR = float(g.RightGazePoint2D.x)
-                verg, fixdist = self.calcVerg(SL, SR)
+                SL = float(g.LeftGazePoint2D.x)                             # get X left gaze point 
+                SR = float(g.RightGazePoint2D.x)                            # get X right gaze point
+                verg, fixdist = self.calcVerg(SL, SR)                       # compute vergence and fixation distance
 
-                # write timestamp and gaze position for both eyes to the datafile
+                # write eyetracker data
                 f.write('%.1f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%d\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%d\t%.4f\t%.4f\t'%(
 
                                     (g.Timestamp-timeStampStart)/1000.0,
@@ -1977,17 +1968,30 @@ class MyTobiiController:
                                     )
                 )
 
-                # write events:
-                if e is not None:                   
-                    # write events
-                    f.write('{0}\t{1}\t{2}\t{3}\t{4}'.format((e.ETtime - timeStampStart)/1000.0,e.name, e.type, e.id, e.code))
-                else:                               # if there are no more events, fill rows with '-'
-                    f.write('-\t-\t-\t-\t-')        # because the method that reads the data needs itto be uniform
+                # write events
+                if e is not None:                                           # if event is not None,
+                    f.write('{0}\t{1}\t{2}\t{3}\t{4}\t'.format(             # write to file 
+                        (e.ETtime - timeStampStart)/1000.0,                 # its timestamp
+                        e.name, e.type, e.id, e.code))                      # name, type, id and code.
+                else:                                                       # if there are no more events, fill rows with '-'
+                    f.write('-\t-\t-\t-\t-\t')                              # because the method that reads the data needs it to be uniform
 
-                f.write('\n')
+                # write parameters
+                if p is not None:                                           # if p (each pair of (key, value) in parameters dict) is not None
+                    k, v = p[0], p[1]                                       # get k and v (key and value)
+                    f.write('{0}'.format(k))                                # write key (name of parameter)
+                    if type(v) in (int, float, str) or 'color' in k:        # If it is a config parameter,
+                        for i in range(ntrials):                            # write it (value will repeat
+                            f.write('\t{0}'.format(v))                      # for each trial column).
+                    else:                                                   # If it is a trial parameter
+                        for i in range(ntrials):                            # write the value
+                            f.write('\t{0}'.format(v[i]))                   # for each trial.
+                else:                                                       # when there are no more parameters
+                    f.write('-\t'*(ntrials+1))                              # fill columns with '-'
 
-        
-        os.chmod(self.filename,stat.S_IREAD)        # make file read only
+                f.write('\n')                                               # write end of line
+
+        os.chmod(self.filename,stat.S_IREAD)                                # make file read only
 
 
         pass
@@ -2044,6 +2048,8 @@ class MyTobiiController:
         self.input_events.append(event)
 
     def compute_event_code(self):
+        right_keys  = [4, 109, 110, 106]
+        left_keys   = [1, 122, 120, 115]
         for e in self.input_events:
             # compute code
             if e.name == 'InputEvent':
@@ -2070,7 +2076,7 @@ class MyTobiiController:
 
             elif e.name == 'TrialEvent':
                 # code = 8 if e.id == 'START' else -8
-                e.code = 8 if 'START' in e.type else -8
+                e.code = 8 if 'START' in e.id else -8
             pass
 
         pass
@@ -2084,7 +2090,7 @@ class MyTobiiController:
         rightvalidity   = [g.RightValidity for g in self.gazeData]
 
         it = 0
-        for trial in range(len(trial_timestamps)/2):                                   # for each trial
+        for trial in range(len(trial_ts)/2):                                   # for each trial
             start = trial_ts[it]                                                       # timestamp start of trial
             end   = trial_ts[it+1]                                                     # timestamp end of trial
 
@@ -2252,6 +2258,7 @@ class MyTobiiController:
         pass
 
     def on_start_calibration(self,*args,**kwargs):
+        pass
     
     def on_add_calibration_point(self,*args,**kwargs):
         pass
