@@ -1,6 +1,7 @@
 # screen_parameters
 xsize = 1366
 ysize = 768
+# monitor in sala G: Philips 109B2, resolution: 1280x960, width = 36.5cm, height = 27.5 cm
 
 framerate = 60.0 					# refresh rate
 
@@ -64,4 +65,4 @@ testing_with_eyetracker = 1
 randomize_trials = 0
 
 # Show fixationpoint?
-fixationpoint = 'Cross'#'No fixation point' #'Circle with protection zone', 'Circle without protection zone', 'Cross'
+fixationpoint = 'Circle with protection zone'#'No fixation point' #'Circle with protection zone', 'Circle without protection zone', 'Cross'
