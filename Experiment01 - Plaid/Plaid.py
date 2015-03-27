@@ -119,11 +119,11 @@ def main(ExpName = 'Plaid', subjectname = ''):
         eb.main()                                                           # and display it
 
         # Initialize controller (MyTobiiController)
-        controller = MyTobiiController(datafilename=eyetrackeroutput)       # create controller
+        controller = MyTobiiController(                                     # create controller
+            datafilename = eyetrackeroutput,                                # pass it the eyetracker data name
+            parameters = parameters)                                        # pass it the parameters
         controller.waitForFindEyeTracker()                                  # wait to find eyetracker
         controller.activate(controller.eyetrackers.keys()[0])               # activate eyetracker
-
-        # controller.set_exp_parameters(config_parameters, trial_parameters)  # set experiment parameters to save them in data file
 
         # (start trials)
         controller.startTracking()                                          # start the eye tracking recording
