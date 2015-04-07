@@ -16,7 +16,7 @@ from tkMessageBox import askquestion 		# ask new name
 from bokeh.resources import CDN
 from bokeh.embed import components, file_html
 from bokeh import mpl
-from bokeh.plotting import figure, output_file, show, VBox, reset_output
+from bokeh.plotting import figure, output_file, show, VBox, reset_output, xaxis
 
 def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TIME_format="%Y-%m-%d_%H.%M", input_extension='*.txt',
 	A_color=(1.0, 0., 0.), B_color=(0., 1.0, 0.), YvalsA=[0.80, 0.90, 0, 1], YvalsB=[0.75, 0.85, 0, 1],
@@ -154,7 +154,7 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 			bokehfig = figure(title = 'XY LEFT gaze')
 
 			bokehfig.scatter(ds.leftgazeX,ds.leftgazeY,marker = 'x', color=rgb2hex((1,0,0)), legend='left eye')
-			
+			xaxis().bounds = [-1, 1]
 			bokehfig.xaxis.axis_label='X'
 			bokehfig.yaxis.axis_label='Y'
 
@@ -286,7 +286,7 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 					bokehfig = figure(title = 'Trial {0}. XY LEFT gaze'.format(trial+1))
 
 					bokehfig.scatter(lgX,lgY,marker = 'x', color=rgb2hex((1,0,0)), legend='left eye')
-					
+					xaxis().bounds = [-1, 1]
 					bokehfig.xaxis.axis_label='X'
 					bokehfig.yaxis.axis_label='Y'
 
@@ -396,7 +396,8 @@ class DataStruct():
 		# Read data file --------------------------------------------------------------------------------------------
 		self.filename = os.path.split(self.filenamefp)[1] 										# get just data file name, not full path
 		try:
-			data = np.genfromtxt(self.filenamefp, delimiter="\t", dtype=None, names=True)		# read data file
+			data = np.genfromtxt(self.filenamefp, delimiter="\t",  								# read data file, dtype allows mixed types of data,
+			dtype=None, names=True, usecols = range(38))										# names reads first row as header, usecols will read just 38 columns
 		except ValueError:
 			print 'cannot read data file'
 			sys.exit()
@@ -506,6 +507,7 @@ class DataStruct():
 				# get row index
 				val, idx_start = find_nearest_above(self.timestamps, start)
 				val, idx_end   = find_nearest_above(self.timestamps, end)
+				if idx_end is None: idx_end = len(self.timestamps)-1
 
 				nsamples = idx_end - idx_start
 
