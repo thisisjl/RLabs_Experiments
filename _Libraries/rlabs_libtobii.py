@@ -662,6 +662,7 @@ class MyCalibration2:
             y = MyWin.height/2, multiline = True, width=600, anchor_x = "center", anchor_y = "center")
 
         MyWin.set_visible(True)
+        MyWin.set_mouse_visible(False)                                          # set mouse to not visible
 
 
         ######################################################
@@ -725,8 +726,8 @@ class MyCalibration2:
                 ######################################################  
                 ## Draw point
                 ######################################################
-                drawCircle(p_scaled[0], p_scaled[1], radius = 10, circle_color = (0,0,0))
-                drawCircle(p_scaled[0], p_scaled[1], radius = 3, circle_color = (1,1,1))
+                drawCircle(p_scaled[0], p_scaled[1], radius = 10, color = (0,0,0))
+                drawCircle(p_scaled[0], p_scaled[1], radius = 3, color = (1,1,1))
 
                 ######################################################  
                 ## Flip the window
