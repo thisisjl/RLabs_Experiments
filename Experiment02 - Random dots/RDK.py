@@ -13,7 +13,8 @@ import numpy as np
 import time
 from collections import OrderedDict
 
-def main(Tau = 100, CycleDur = 360, num_dots = 1, zDir = 1, TranspYN = 1, subjectname = 'None', testing_with_eyetracker = 1):
+def main(Tau = 100, CycleDur = 360, num_dots = 1000, zDir = 1, TranspYN = 1, subjectname = 'None', testing_with_eyetracker = 1,
+	timeCurrentTrial = 30):
 	"""
 	Usage: RDK_uniformXY(Tau,CycleDur,NumDots,zDir,TranspYN)
 		Tau: dot lifetime in frames 
@@ -55,7 +56,7 @@ def main(Tau = 100, CycleDur = 360, num_dots = 1, zDir = 1, TranspYN = 1, subjec
 		('fixation point size',fix_size),('fixation point size',fix_size),('sphere radius',R),
 		('dOmega',dOmega),('max dot lifetime',Tau),('Cycle duration',CycleDur),
 		('direction of rotation',zDir),('transparentYN',TranspYN),('subject name',subjectname),
-		('eyetracker',testing_with_eyetracker)))
+		('eyetracker',testing_with_eyetracker), ('duration of stimulus',timeCurrentTrial)))
 
 	# uniformly distribute random dots on XY plane (regradless of shape)
 	x 	 = 2 * R * np.random.rand(num_dots) - R													# distribute dots between [-R,R]
@@ -112,7 +113,9 @@ def main(Tau = 100, CycleDur = 360, num_dots = 1, zDir = 1, TranspYN = 1, subjec
 
 	## Stimuli loop -----------------------------------------------------------------------------------------------------------------
 	win.set_visible(True)
-	while not win.has_exit:
+	win.set_mouse_visible(False)                                          # set mouse to not visible
+	timeStart = time.time()
+	while (time.time() - timeStart) < timeCurrentTrial and not win.has_exit:
 		glClearColor(fg_color[0],fg_color[1],fg_color[2],1)             						# set background color
 		win.dispatch_events() 																	# dispatch window events (essential)
 		win.clear()																				# clear window
@@ -207,7 +210,7 @@ def main(Tau = 100, CycleDur = 360, num_dots = 1, zDir = 1, TranspYN = 1, subjec
 		win.flip() #--------------------------------------------------------------------------- # flip window (end of stimuli loop)
 
 	if testing_with_eyetracker:																	# Stop eyetracker processes
-		controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = 1, timestamp = time.time(), etype = 0, eid = 'START'))
+		controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = 1, timestamp = time.time(), etype = 0, eid = 'END'))
 		controller.stopTracking()                                           					# stop eye tracking and write output file
 		controller.destroy()                                                					# destroy controller
 
