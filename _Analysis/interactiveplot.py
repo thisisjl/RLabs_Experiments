@@ -916,8 +916,7 @@ if __name__ == '__main__':
 		pass
 	
 	## Create GUI to open files
-	Tk().withdraw() 													# we don't want a full GUI, so keep the root window from appearing
-	datafileslist = askopenfilenames(title='Chose files to analyze') 	# show an "Open" dialog box and return the path to the selected file
+	Tk().withdraw() 																	# we don't want a full GUI, so keep the root window from appearing
+	datafileslist = askopenfilenames(title='Chose files to analyze', initialdir = '..') # show an "Open" dialog box and return the path to the selected file
 
-	# datafileslist = ['C:/Users/NuEye/Google Drive/NuEyeUPF/RubinLabs_Experiments/Experiment01 - Plaid/data/Plaid_v19-15.03.09_17.28_JL1_newdata_eyet.txt']
 	main(datafileslist = datafileslist, fWeb_HEADER = 'html_template.html')
