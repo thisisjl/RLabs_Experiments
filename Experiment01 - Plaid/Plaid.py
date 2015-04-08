@@ -150,16 +150,17 @@ def main(ExpName = 'Plaid', subjectname = ''):
                 lbl_instr.draw()                                            # show instructions number 1
             else:                                                           # for the rest
                 lbl_instr2.draw()                                           # show instructions number 2
-                if cp['fixationpoint'] == 'Circle with protection zone':
-                    drawCircle(xcenter, ycenter, cp['FPsize'] * 4, cp['surrp_color'])
-                    drawCircle(xcenter, ycenter, cp['FPsize'], cp['fixp_color'])
-                if cp['fixationpoint'] == 'Circle without protection zone':
-                    drawCircle(xcenter, ycenter, cp['FPsize'], cp['fixp_color'])
-                if cp['fixationpoint'] == 'Cross':
+
+                if cp['fixationpoint'] == 1: #'Circle with protection zone':
+                    drawCircle(xcenter, ycenter, cp['fpsize'] * 4, cp['surrp_color'])
+                    drawCircle(xcenter, ycenter, cp['fpsize'], cp['fixp_color'])
+                if cp['fixationpoint'] == 2: #'Circle without protection zone':
+                    drawCircle(xcenter, ycenter, cp['fpsize'], cp['fixp_color'])
+                if cp['fixationpoint'] == 3: #'Cross':
                     draw_cross(xcenter, ycenter, length1 = 50, length2 = 50)
 
             last_event = MyWin.get_last_event()                                                 # get last event on MyWin
-            if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
+            if last_event and last_event.id == mouse.LEFT and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
                 wait = False                                                                    # do not wait, exit wait for go loop
 
             MyWin.flip()                                                    # flip window
@@ -225,12 +226,12 @@ def main(ExpName = 'Plaid', subjectname = ''):
             
             glDisable(GL_BLEND)
 
-            if cp['fixationpoint'] == 'Circle with protection zone':
-                drawCircle(xcenter, ycenter, cp['FPsize'] * 4, cp['surrp_color'])
-                drawCircle(xcenter, ycenter, cp['FPsize'], cp['fixp_color'])
-            if cp['fixationpoint'] == 'Circle without protection zone':
-                drawCircle(xcenter, ycenter, cp['FPsize'], cp['fixp_color'])
-            if cp['fixationpoint'] == 'Cross':
+            if cp['fixationpoint'] == 1: #'Circle with protection zone':
+                drawCircle(xcenter, ycenter, cp['fpsize'] * 4, cp['surrp_color'])
+                drawCircle(xcenter, ycenter, cp['fpsize'], cp['fixp_color'])
+            if cp['fixationpoint'] == 2: #'Circle without protection zone':
+                drawCircle(xcenter, ycenter, cp['fpsize'], cp['fixp_color'])
+            if cp['fixationpoint'] == 3: #'Cross':
                 draw_cross(xcenter, ycenter, length1 = 50, length2 = 50)
 
             fps.draw()
