@@ -92,6 +92,26 @@ class LastEvent():
         self.id      = []
         self.counter = []
 
+class FakeSecHead(object):
+    """ 
+    To read config files without sections 
+    using ConfigParser python module 
+    from: http://stackoverflow.com/questions/2819696/parsing-properties-file-in-python/2819788#2819788
+    """
+
+    def __init__(self, fp):
+        self.fp = fp
+        self.sechead = '[asection]\n'
+
+    def readline(self):
+        if self.sechead:
+            try: 
+                return self.sechead
+            finally: 
+                self.sechead = None
+        else: 
+            return self.fp.readline()
+
 def save_data_to_arrays(lastevent, data_struct, trial, timeNow):
     """
     Appends each new event of an instance of the class 
@@ -248,7 +268,7 @@ def write_data_file_with_parameters(data_namefile, data_struct, parameters, righ
     """ write data file including events (mouse, trials) and configuration and trials parameters"""
     from itertools import izip_longest                                  # import itertools to iterate over two variables
 
-    ntrials = parameters['number of trials']                            # get number of trials
+    ntrials = int(parameters['numtrials'])                              # get number of trials
     timeStampStart = data_struct[0].timestamp                           # get time stamp of the start of trial 1
 
     fields = ['Timestamp', 'EventName', 'EventType', 'EventID',         # create header
