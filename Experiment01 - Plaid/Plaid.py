@@ -13,6 +13,7 @@ from pyglet import clock
 import time                                                                 # for the while loop
 from numpy.random import permutation as np_permutation                      # for random trials
 from collections import OrderedDict
+import ConfigParser                                                         # read parameter files
 def main(ExpName = 'Plaid', subjectname = ''):
 
     # Load parameters ------------------------------------------------------------------------
@@ -27,39 +28,24 @@ def main(ExpName = 'Plaid', subjectname = ''):
     # config_name_full = os.path.join(application_path, config_name)  # Full path name of the config file
     # trials_name_full = os.path.join(application_path, trials_name)  # Full path name of the trials file
 
-    from config_file import (aperture_color,apertureDiv,               # import config parameters
-        red_color, cyan_color, stereo1, stereo2, fixp_color, surrp_color, 
-        time_fixp, framerate, FPsize, fg_color, aperture_switch, forced,aperture_radius,
-        testing_with_eyetracker, randomize_trials, fixationpoint)
+    cp = ConfigParser.SafeConfigParser()
+    cp.readfp(FakeSecHead(open('config_file.txt'))) 
+    cp = OrderedDict([(k,float(v) if len(v) < 7 else (map(float,v.split(',')))) for k,v in cp.items('asection')])
 
-    from trials_file import (numtrials,mylambda1, duty_cycle1, orientation1,    # import trials parameters
-        speed1, mylambda2, duty_cycle2, orientation2, speed2, timeCurrentTrial)
+    tp = ConfigParser.SafeConfigParser()
+    tp.readfp(FakeSecHead(open('trials_file.txt'))) 
+    tp = OrderedDict([(k,float(v) if len(v) < 5 else map(float,v.split(','))) for k,v in tp.items('asection')])
+
+    parameters = merge_dicts_ordered(cp, tp)
 
     # randomize trials
-    if randomize_trials:
-        trials_array = np_permutation(numtrials) # goes from 0 to numtrials in random order
+    numtrials = int(tp['numtrials'])
+    if cp['randomize_trials']:
+        trials_array = np_permutation(numtrials)    # goes from 0 to numtrials in random order
     else:
-        trials_array = range(numtrials) # no random
+        trials_array = range(numtrials)             # no random
 
-    # store parameters in dictionary to write them in data files (I might change it later)
-    config_parameters = OrderedDict(
-        [('aperture yes/no', aperture_switch), ('aperture color', aperture_color), ('aperture division', apertureDiv), 
-        ('red color', red_color), ('cyan_color', cyan_color), ('fixation point color', fixp_color), 
-        ('stereo1', stereo1), ('stereo2', stereo2), ('protection zone color', surrp_color), ('eyetracker yes/no', testing_with_eyetracker), 
-        ('randomize trials', randomize_trials), ('type of fixation point', fixationpoint), ('framerate', framerate), ('fixation point size', FPsize), 
-        ('foreground color', fg_color), ('forced mode yes/no', forced), ('aperture radius (not used now)', aperture_radius), 
-        ('Time fixation point (not used now)', time_fixp)])   
-
-    trial_parameters = OrderedDict(
-        [('number of trials', numtrials), ('grating1 wavelength', mylambda1), ('grating1 duty cycle', duty_cycle1), 
-        ('grating1 orientation', orientation1), ('grating1 speed', speed1), ('grating2 wavelength', mylambda2), 
-        ('grating2 duty cycle', duty_cycle2), ('grating2 orientation', orientation2), ('grating2 speed', speed2), 
-        ('time for each trial', timeCurrentTrial)])
-
-    parameters = merge_dicts_ordered(config_parameters, trial_parameters)
-
-
-    if forced:                                                                  # read forced transitions file
+    if cp['forced']:                                                                  # read forced transitions file
         transfilename = 'datatestN_NR_5_trans.txt'
         # transfilename_full = os.path.join(application_path, transfilename)      # Full path name of the transition file
         # transTimeL, transTimeR = read_forced_transitions(transfilename)
@@ -71,7 +57,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
 
     # Initialize pyglet window ------------------------------------------------------------------------        
     screens = pyglet.window.get_platform().get_default_display().get_screens()
-    if aperture_switch:
+    if cp['aperture_switch']:
         allowstencil = pyglet.gl.Config(stencil_size = 8, double_buffer=True)
         MyWin = MyWindow(config=allowstencil, fullscreen = True, screen = screens[0], visible = 0)
     else:
@@ -80,8 +66,8 @@ def main(ExpName = 'Plaid', subjectname = ''):
     xcenter = MyWin.width/2
     ycenter = MyWin.height/2
 
-    clock.set_fps_limit(framerate)                                          # set limit for frames per second
-    frameMs = 1000.0/framerate                                              # manual frame rate control: frameMs is the time in ms a frame will be displayed
+    clock.set_fps_limit(cp['framerate'])                                          # set limit for frames per second
+    frameMs = 1000.0/cp['framerate']                                              # manual frame rate control: frameMs is the time in ms a frame will be displayed
   
 
     # Initialize variables for data file ----------------------------------------------------------------------
@@ -114,7 +100,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
 
 
     # Initialize eyetracker communication ----------------------------------------------------------------------
-    if testing_with_eyetracker:
+    if cp['eyetracker']:
         eb = EyetrackerBrowser()                                            # Create an EyetrackerBrowser
         eb.main()                                                           # and display it
 
@@ -144,20 +130,19 @@ def main(ExpName = 'Plaid', subjectname = ''):
     for trial_counter in range(numtrials):                                  # for each trial 
 
         # Prepare variables before stimulus loop ------------------------------------------------------------------
-        
         trial = trials_array[trial_counter]
 
-        apertRad_pix = MyWin.height / apertureDiv
+        apertRad_pix = MyWin.height / cp['aperturediv']
         
-        grating11 = Grating(MyWin, mycoords(0,0, MyWin).x + stereo1, mycoords(0,0, MyWin).y, red_color, orientation1[trial], mylambda1[trial], duty_cycle1[trial], apertRad_pix, speed1[trial])
-        grating12 = Grating(MyWin, mycoords(0,0, MyWin).x - stereo1, mycoords(0,0, MyWin).y, cyan_color, orientation1[trial], mylambda1[trial], duty_cycle1[trial], apertRad_pix, speed1[trial])
-        grating21 = Grating(MyWin, mycoords(0,0, MyWin).x + stereo2, mycoords(0,0, MyWin).y, red_color, orientation2[trial], mylambda2[trial], duty_cycle2[trial], apertRad_pix, speed2[trial])
-        grating22 = Grating(MyWin, mycoords(0,0, MyWin).x - stereo2, mycoords(0,0, MyWin).y, cyan_color, orientation2[trial], mylambda2[trial], duty_cycle2[trial], apertRad_pix, speed2[trial])
+        grating11 = Grating(MyWin, mycoords(0,0, MyWin).x + cp['stereo1'], mycoords(0,0, MyWin).y, cp['red_color'],  tp['orientation1'][trial], tp['mylambda1'][trial], tp['duty_cycle1'][trial], apertRad_pix, tp['speed1'][trial])
+        grating12 = Grating(MyWin, mycoords(0,0, MyWin).x - cp['stereo1'], mycoords(0,0, MyWin).y, cp['cyan_color'], tp['orientation1'][trial], tp['mylambda1'][trial], tp['duty_cycle1'][trial], apertRad_pix, tp['speed1'][trial])
+        grating21 = Grating(MyWin, mycoords(0,0, MyWin).x + cp['stereo2'], mycoords(0,0, MyWin).y, cp['red_color'],  tp['orientation2'][trial], tp['mylambda2'][trial], tp['duty_cycle2'][trial], apertRad_pix, tp['speed2'][trial])
+        grating22 = Grating(MyWin, mycoords(0,0, MyWin).x - cp['stereo2'], mycoords(0,0, MyWin).y, cp['cyan_color'], tp['orientation2'][trial], tp['mylambda2'][trial], tp['duty_cycle2'][trial], apertRad_pix, tp['speed2'][trial])
         
         # Wait for go Loop ---------------------------------------------------------------------------------------------
         wait = True                                                         # wait for go condition: wait
         while wait and not MyWin.has_exit:
-            glClearColor(fg_color[0],fg_color[1],fg_color[2],1)             # set background color
+            glClearColor(cp['fg_color'][0],cp['fg_color'][1],cp['fg_color'][2],1)             # set background color
             MyWin.clear()                                                   # clear window
             MyWin.dispatch_events()                                         # dispatch window events (very important call)
             
@@ -165,12 +150,12 @@ def main(ExpName = 'Plaid', subjectname = ''):
                 lbl_instr.draw()                                            # show instructions number 1
             else:                                                           # for the rest
                 lbl_instr2.draw()                                           # show instructions number 2
-                if fixationpoint == 'Circle with protection zone':
-                    drawCircle(xcenter, ycenter, FPsize * 4, surrp_color)
-                    drawCircle(xcenter, ycenter, FPsize, fixp_color)
-                if fixationpoint == 'Circle without protection zone':
-                    drawCircle(xcenter, ycenter, FPsize, fixp_color)
-                if fixationpoint == 'Cross':
+                if cp['fixationpoint'] == 'Circle with protection zone':
+                    drawCircle(xcenter, ycenter, cp['FPsize'] * 4, cp['surrp_color'])
+                    drawCircle(xcenter, ycenter, cp['FPsize'], cp['fixp_color'])
+                if cp['fixationpoint'] == 'Circle without protection zone':
+                    drawCircle(xcenter, ycenter, cp['FPsize'], cp['fixp_color'])
+                if cp['fixationpoint'] == 'Cross':
                     draw_cross(xcenter, ycenter, length1 = 50, length2 = 50)
 
             last_event = MyWin.get_last_event()                                                 # get last event on MyWin
@@ -182,7 +167,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
         # Start stimulus loop -------------------------------------------------------------------------------------------------------------
 
         # Initialize forced variables
-        if forced:
+        if cp['forced']:
             i_R = 0
             i_L = 0
             Ron = 0
@@ -197,29 +182,29 @@ def main(ExpName = 'Plaid', subjectname = ''):
         
         eventcount += 1
         events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeStart, etype = trial, eid = 'START'))
-        if testing_with_eyetracker: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = time.time(), etype = trial, eid = 'START'))
+        if cp['eyetracker']: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = time.time(), etype = trial, eid = 'START'))
         
         MyWin.reset_events()
 
-        while (time.time() - timeStart) < timeCurrentTrial and not MyWin.has_exit:
+        while (time.time() - timeStart) < tp['timetrial'] and not MyWin.has_exit:
             
             timeNow = time.time()                                           # get current time
 
             startMs = clock.tick()                                          # manual frame rate control: time point when frame starts. Also needed to show fps
 
-            glClearColor(fg_color[0],fg_color[1],fg_color[2],1)             # set background color
+            glClearColor(cp['fg_color'][0],cp['fg_color'][1],cp['fg_color'][2],1)             # set background color
             MyWin.clear()                                                   # clear window
             MyWin.dispatch_events()                                         # dispatch window events (very important call)
 
             
             # Update position of objects ---------------------------------------------------------------------------------------------------
 
-            if forced:
+            if cp['forced']:
                 stereo1, stereo2, i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2 = compute_forced_values(
                     i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2, timeRamp, timeStart, timeNow, transTimeL, transTimeR)
             else:
-                stereo1 = stereo1
-                stereo2 = stereo2
+                stereo1 = cp['stereo1']
+                stereo2 = cp['stereo2']
 
             grating11.update_position(timeStart, stereo1)
             grating12.update_position(timeStart, stereo2)
@@ -231,7 +216,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
 
             glEnable(GL_BLEND)
             
-            drawAperture(xcenter, ycenter, apertRad_pix, aperture_color)
+            drawAperture(xcenter, ycenter, apertRad_pix, cp['aperture_color'])
 
             grating11.draw()
             grating12.draw()
@@ -240,12 +225,12 @@ def main(ExpName = 'Plaid', subjectname = ''):
             
             glDisable(GL_BLEND)
 
-            if fixationpoint == 'Circle with protection zone':
-                drawCircle(xcenter, ycenter, FPsize * 4, surrp_color)
-                drawCircle(xcenter, ycenter, FPsize, fixp_color)
-            if fixationpoint == 'Circle without protection zone':
-                drawCircle(xcenter, ycenter, FPsize, fixp_color)
-            if fixationpoint == 'Cross':
+            if cp['fixationpoint'] == 'Circle with protection zone':
+                drawCircle(xcenter, ycenter, cp['FPsize'] * 4, cp['surrp_color'])
+                drawCircle(xcenter, ycenter, cp['FPsize'], cp['fixp_color'])
+            if cp['fixationpoint'] == 'Circle without protection zone':
+                drawCircle(xcenter, ycenter, cp['FPsize'], cp['fixp_color'])
+            if cp['fixationpoint'] == 'Cross':
                 draw_cross(xcenter, ycenter, length1 = 50, length2 = 50)
 
             fps.draw()
@@ -265,11 +250,11 @@ def main(ExpName = 'Plaid', subjectname = ''):
         #     e.counter = eventcount                                              # copy counter
         #     # events_struct.append(e)                                             # append to events_struct
             
-        #     # if testing_with_eyetracker: controller.myRecordEvent2(event = e)    # write event to eyetracker data file
+        #     # if cp['eyetracker']: controller.myRecordEvent2(event = e)    # write event to eyetracker data file
         
         eventcount += 1
         events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = trial, eid = 'END'))
-        if testing_with_eyetracker: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = trial, eid ='END'))
+        if cp['eyetracker']: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = trial, eid ='END'))
 
 
         if MyWin.has_exit:                                                      # This breaks the For stimulus loop. 
@@ -277,7 +262,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
 
 
     # Stop eyetracker processes, save data and close pyglet window ------------------------------------------------------------------------
-    if testing_with_eyetracker:
+    if cp['eyetracker']:
         controller.stopTracking()                                               # stop eye tracking and write output file
         controller.destroy()                                                    # destroy controller
 
