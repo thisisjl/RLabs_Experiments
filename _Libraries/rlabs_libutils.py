@@ -557,7 +557,7 @@ def draw_ring(x, y, inner, outer, color=(1.0, 1.0, 1.0, 1.0)):
     # large as 1500 px.
     # Smaller circles can be drawn with fewer slices - the rule we
     # use amount to approximately 1 slice per px on the circumference
-    slices = min(360, 6*outer)
+    slices = int(min(360, 6*outer))
     gluDisk(q, inner, outer, slices, 1)
     glPopMatrix()
 
