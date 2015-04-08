@@ -1891,7 +1891,7 @@ class MyTobiiController:
             return
 
         timeStampStart = self.gazeData[0].Timestamp                         # time of the first "eye" event
-        ntrials = self.parameters['number of trials']                       # get number of trials
+        ntrials = int(self.parameters['numtrials'])                         # get number of trials
 
         # fields in header
         fields = ['Timestamp','LeftEyePosition3D.x','LeftEyePosition3D.y','LeftEyePosition3D.z',
