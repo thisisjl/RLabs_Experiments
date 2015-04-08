@@ -160,7 +160,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
                     draw_cross(xcenter, ycenter, length1 = 50, length2 = 50)
 
             last_event = MyWin.get_last_event()                                                 # get last event on MyWin
-            if last_event and last_event.id == mouse.LEFT and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
+            if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
                 wait = False                                                                    # do not wait, exit wait for go loop
 
             MyWin.flip()                                                    # flip window
