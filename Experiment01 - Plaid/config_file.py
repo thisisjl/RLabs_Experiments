@@ -65,4 +65,4 @@ testing_with_eyetracker = 1
 randomize_trials = 0
 
 # Show fixationpoint?
-fixationpoint = 'Circle with protection zone'#'No fixation point' #'Circle with protection zone', 'Circle without protection zone', 'Cross'
+fixationpoint = 'No fixation point'#'No fixation point' #'Circle with protection zone', 'Circle without protection zone', 'Cross'
