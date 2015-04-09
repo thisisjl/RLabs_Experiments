@@ -13,11 +13,17 @@ Each "Experiment" folder contains a different visual stimulus, which are:
 
 All three stimuli are written using the pyglet library (www.pyglet.org) and are prepared to work with a Tobii eyetracker.
 
-The folder "_Libraries" contains two libraries. "rlabs_libutils.py" contains common functions for all stimuli. "rlabs_libtobii.py" contains all the necessary functions to connect and commonicate with a Tobii eyetracker machine  (only Tobii X120 has been tested).
+The folder **_Libraries** contains two libraries. **rlabs_libutils.py** contains common functions for all stimuli. **rlabs_libtobii.py** contains all the necessary functions to connect and commonicate with a Tobii eyetracker machine  (only Tobii X120 has been tested).
 
-The folder "_Analysis" contains scripts to analyse and visualize eyetracker data and mouse press data.
+The folder **_Analysis** contains scripts to analyse and visualize eyetracker data and mouse press data.
 
-# Details
+# Details for Plaid stimulus
+**Execution**: python Plaid.py [optional name]. The optional name will be in the ouput data files, if no specified "defaultsubjectname" will be used.
+
+**Input**: config_file.txt, trials_file.txt (written in INI format, read using Python's ConfigParser module (https://docs.python.org/2/library/configparser.html))
+
+**Output**: file for button presses data and, if used, eyetracker data.
+
 # Motivation
 # To do
 # Short instructions
