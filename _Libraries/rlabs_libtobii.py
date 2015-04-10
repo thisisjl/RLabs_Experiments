@@ -400,7 +400,7 @@ class Calibration:
         if keyname == 'space':
             self.add_point()                                # this should change
 
-class MyCalibration2:
+class MyCalibration:
 
     def runCalibration(self, eyetracker):
 
@@ -806,14 +806,7 @@ class EyetrackerBrowser:
     def on_calib_button_clicked(self, button):
         # Start the calibration procedure
         if self.eyetracker is not None:
-            # self.calibration = Calibration()
-            # self.calibration.run(self.eyetracker, lambda status, message: glib_idle_add(self.on_calib_done, status, message))
-
-            # self.calibration = MyCalibration(verbose=1)
-            # self.calibration.run(self.eyetracker, lambda status, message: glib_idle_add(self.on_calib_done, status, message))
-            # self.calibration.run(self.eyetracker, lambda status, message: self.on_calib_done(status, message))
-
-            self.calibration = MyCalibration2()
+            self.calibration = MyCalibration()
             if self.calibration.runCalibration(self.eyetracker):
                 self.on_calib_done(1, '')
             else:
