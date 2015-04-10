@@ -18,21 +18,15 @@ def main(
     ExpName = 'calibration_simulation', 
     subjectname = '', 
     testing_with_eyetracker = 0,
-    npoints = 5,
+    npoints = 25,
     random_calibration_points = 1,
     time_point = 2
     ):
 
     # compute target point coordinates: 5, 9, 13 or 25 points
-    if npoints in (9,5):                    # I'm sure there's a way
-        array = [0.1, 0.5, 0.9]             # to compute all points
-    else:                                   # from one array,
-        array = [0.1, 0.3, 0.5, 0.7, 0.9]   # but I don't know it
-
+    array = [0.1, 0.5, 0.9] if npoints in (9,5) else [0.1, 0.3, 0.5, 0.7, 0.9]
     points = perm(array,2)
-
     if npoints in (5,13): points = points[::2]
-
     if random_calibration_points: shuffle(points)
     
 
@@ -133,8 +127,8 @@ def main(
                     break
 
             # Draw target point
-            drawCircle(p_scaled[0], p_scaled[1], radius = 10, circle_color = (0,0,0))
-            drawCircle(p_scaled[0], p_scaled[1], radius = 2, circle_color = (1,1,1))
+            drawCircle(p_scaled[0], p_scaled[1], radius = 10, color = (0,0,0))
+            drawCircle(p_scaled[0], p_scaled[1], radius = 2, color = (1,1,1))
 
             MyWin.flip()                                                    # flip window
 
