@@ -414,7 +414,6 @@ class MyCalibration:
         
         MyWin = Window(fullscreen=True, visible = 0)
        
-        lastevent = LastEvent()                                             # LastEvent() is defined in rlabs_libutils
         win_size = MyWin.get_size()
 
         p = Point2D()
@@ -429,89 +428,76 @@ class MyCalibration:
             y = MyWin.height/2, multiline = True, width=600, anchor_x = "center", anchor_y = "center")
 
         MyWin.set_visible(True)
-        MyWin.set_mouse_visible(False)                                          # set mouse to not visible
+        MyWin.set_mouse_visible(False)                                                              # set mouse to not visible
 
         # Wait for go Loop ---------------------------------------------------------------------------------------------
-        wait = True                                                         # wait for go condition: wait
+        wait = True                                                                                 # wait for go condition: wait
         while wait and not MyWin.has_exit:
-            MyWin.clear()                                                   # clear window
-            MyWin.dispatch_events()                                         # dispatch window events (very important call)
+            MyWin.clear()                                                                           # clear window
+            MyWin.dispatch_events()                                                                 # dispatch window events (very important call)
 
-            last_event = MyWin.get_last_event()                                                 # get last event on MyWin
-            if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
+            last_event = MyWin.get_last_event()                                                     # get last event on MyWin
+            if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':      # if id and type match to the release of middle button,
                 continue_calibration = True
-                wait = False                                                                    # do not wait, exit wait for go loop
-            if last_event and last_event.id == key.ESCAPE and last_event.type == 'Key_UP':      # if id and type match to the release of escape key,
-                continue_calibration = False                                                    # do not continue to calibration
-                wait = False                                                                    # do not wait, exit wait for go loop
+                wait = False                                                                        # do not wait, exit wait for go loop
+            if last_event and last_event.id == key.ESCAPE and last_event.type == 'Key_UP':          # if id and type match to the release of escape key,
+                continue_calibration = False                                                        # do not continue to calibration
+                wait = False                                                                        # do not wait, exit wait for go loop
 
-            mylabel.draw()                                                  # show message
-            MyWin.flip()                                                    # flip window
+            mylabel.draw()                                                                          # show message
+            MyWin.flip()                                                                            # flip window
 
-
-
-        if not continue_calibration: 
+        if not continue_calibration:                                                                # if escape was pressed,
             print 'continue calibration is false'
-            return False                           # escape was pressed, exit calibration
+            return False                                                                            # exit calibration
 
-        ######################################################
-        ## CALIBRATION LOOP
-        ######################################################
-        self.eyetracker.StartCalibration(self.on_start_calibration)                                     # start calibration
+        # CALIBRATION LOOP -------------------------------------------------------------------------
+        self.eyetracker.StartCalibration(self.on_start_calibration)                                 # start calibration
 
-        for point in points:                                                    # for each point
+        for point in points:                                                                        # for each point
 
             p_scaled = []
-            p_scaled.append(point[0] * MyWin.width)                             # range horizontal coordinate to pyglet window
-            p_scaled.append(MyWin.height - point[1] * MyWin.height)             # range vertical coordinate to pyglet window
+            p_scaled.append(point[0] * MyWin.width)                                                 # range horizontal coordinate to pyglet window
+            p_scaled.append(MyWin.height - point[1] * MyWin.height)                                 # range vertical coordinate to pyglet window
                        
-            while not MyWin.has_exit:                                           # show point
+            while not MyWin.has_exit:                                                               # show point
 
-                glClearColor(fg_color[0],fg_color[1],fg_color[2],1)             # set background color
-                MyWin.clear()                                                   # clear window
-                MyWin.dispatch_events()                                         # dispatch window events (very important call)
+                glClearColor(fg_color[0],fg_color[1],fg_color[2],1)                                 # set background color
+                MyWin.clear()                                                                       # clear window
+                MyWin.dispatch_events()                                                             # dispatch window events (very important call)
 
-                ######################################################
-                ## CHECK INPUT
-                ######################################################
+                ## Check events (mouse input)
                 last_event = win.get_last_event()                                                   # get last event on MyWin
                 if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
-                    win.reset_last_event()
-                    break
+                    win.reset_last_event()                                                          # reset last_event
+                    break                                                                           # break while loop (move point to new location)
 
-                ######################################################  
-                ## Draw point
-                ######################################################
+                # Draw point
                 drawCircle(p_scaled[0], p_scaled[1], radius = 10, color = (0,0,0))
                 drawCircle(p_scaled[0], p_scaled[1], radius = 3, color = (1,1,1))
 
-                ######################################################  
-                ## Flip the window
-                ######################################################
-                MyWin.flip()                                                    # flip window
+                # Flip the window
+                MyWin.flip()                                                                        # flip window
 
 
-            ######################################################  
-            ## Add point to eyetracker (point not scaled)
-            ######################################################
+            # Add point to eyetracker (point not scaled) ------------------------------------------
             p.x, p.y = point
-            self.eyetracker.AddCalibrationPoint(p,self.on_add_calibration_point)                     # add calibration point to eyetracker
+            self.eyetracker.AddCalibrationPoint(p,self.on_add_calibration_point)                    # add calibration point to eyetracker
             time.sleep(0.5)            
-
             
-            self.point_index += 1
-            if self.point_index == len(points):                                                           # if last points
+            self.point_index += 1                                                                   # increase point iterator
+            if self.point_index == len(points):                                                     # if last points
                 calibration_sequence_completed=True                                                 # end calibration
             
-            if MyWin.has_exit:                                                   # This breaks the For stimulus loop. 
+            if MyWin.has_exit:                                                                      # This breaks the For stimulus loop. 
                 break
 
         if calibration_sequence_completed:
-            self.eyetracker.ComputeCalibration(self.on_compute_calibration)                             # compute calibration
+            self.eyetracker.ComputeCalibration(self.on_compute_calibration)                         # compute calibration
 
-        self.eyetracker.StopCalibration(None)
+        self.eyetracker.StopCalibration(None)                                                       # stop calibration
 
-        MyWin.close()
+        MyWin.close()                                                                               # close window
 
         if self._lastCalibrationOK is True:
             # reset_calibration = self.show_calibration(MyWin)
@@ -528,8 +514,6 @@ class MyCalibration:
             pass
 
         pass
-
-
 
     def on_start_calibration(self,*args,**kwargs):
         #ioHub.print2err('on_start_calibration: ',args,kwargs)
