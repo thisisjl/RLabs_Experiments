@@ -31,7 +31,7 @@ import math
 
 from random import shuffle                                      # for calibration points
 from rlabs_libutils import *
-from pyglet.window import Window
+from pyglet.window import Window, mouse, key
 import pyglet
 
 import sys
@@ -409,8 +409,6 @@ class MyCalibration:
         self._lastCalibration=None
         self.point_index = 0
 
-        
-
         self.eyetracker = eyetracker
         calibration_sequence_completed=False        
         
@@ -426,41 +424,32 @@ class MyCalibration:
         fg_color = (0.88,0.88,0.88)
 
 
-        instuction_text="Press SPACE to Start Calibration; ESCAPE to Exit."
+        instuction_text="Press mouse MIDDLE button to Start Calibration; ESCAPE to Exit."
         mylabel = pyglet.text.Label(instuction_text, font_name = 'Arial', font_size = 36, x = MyWin.width/2, 
             y = MyWin.height/2, multiline = True, width=600, anchor_x = "center", anchor_y = "center")
 
         MyWin.set_visible(True)
         MyWin.set_mouse_visible(False)                                          # set mouse to not visible
 
-
-        ######################################################
-        ## SHOW WELCOME FOR CALIBRATION
-        ######################################################
-        while not MyWin.has_exit:                                           # Show welcome text for calibration
-            
-            ## CHECK INPUT
-            lastevent = my_dispatch_events(MyWin, lastevent)                # my_dispatch_events is defined in rlabs_libutils
-            if lastevent.type != []:                                        # check if last event is SPACE or ...
-                if lastevent.id == 32 and lastevent.type == "Key_UP":       # if it is space, break while loop
-                    lastevent.reset_values()                                # reset values of event
-
-                    continue_calibration = True
-
-                    break
-
-                if lastevent.id == 27 and lastevent.type == "Key_UP":       # if it is escape, return false
-                    lastevent.reset_values()                                # reset values of event
-                    continue_calibration = False
-                
-            
-            ## DISPLAY TEXT
+        # Wait for go Loop ---------------------------------------------------------------------------------------------
+        wait = True                                                         # wait for go condition: wait
+        while wait and not MyWin.has_exit:
             MyWin.clear()                                                   # clear window
             MyWin.dispatch_events()                                         # dispatch window events (very important call)
+
+            last_event = MyWin.get_last_event()                                                 # get last event on MyWin
+            if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
+                continue_calibration = True
+                wait = False                                                                    # do not wait, exit wait for go loop
+            if last_event and last_event.id == key.ESCAPE and last_event.type == 'Key_UP':      # if id and type match to the release of escape key,
+                continue_calibration = False                                                    # do not continue to calibration
+                wait = False                                                                    # do not wait, exit wait for go loop
+
+
             mylabel.draw()                                                  # show message
             MyWin.flip()                                                    # flip window
 
-            pass
+
 
         if not continue_calibration: 
             print 'continue calibration is false'
