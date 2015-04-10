@@ -627,7 +627,6 @@ class MyCalibration:
 class MyCalibration2:
 
     def runCalibration(self, eyetracker):
-        # if self.verbose: print 'mycalibration - run'
 
         self._lastCalibrationOK=False
         self._lastCalibrationReturnCode=0
@@ -638,15 +637,9 @@ class MyCalibration2:
 
         self.eyetracker = eyetracker
         calibration_sequence_completed=False        
-        # if hasattr(self.eyetracker,'ClearCalibration'):
-        #     print 'clear previous calibration'
-        #     self.eyetracker.ClearCalibration()
-
         
         MyWin = Window(fullscreen=True, visible = 0)
-
-        # self.on_calib_done = on_calib_done
-        
+       
         lastevent = LastEvent()                                             # LastEvent() is defined in rlabs_libutils
         win_size = MyWin.get_size()
 
@@ -734,7 +727,6 @@ class MyCalibration2:
                 ######################################################
                 MyWin.flip()                                                    # flip window
 
-                pass
 
             ######################################################  
             ## Add point to eyetracker (point not scaled)
@@ -755,12 +747,10 @@ class MyCalibration2:
             self.eyetracker.ComputeCalibration(self.on_compute_calibration)                             # compute calibration
 
         self.eyetracker.StopCalibration(None)
-        print 'calibration done'
 
         MyWin.close()
 
         if self._lastCalibrationOK is True:
-            print '_lastCalibrationOK is True'
             # reset_calibration = self.show_calibration(MyWin)
             # self._tobii.GetCalibration(self.on_calibration_result)
             # calibration_result = self.eyetracker.GetCalibration(self.on_calibration_result)
@@ -776,21 +766,17 @@ class MyCalibration2:
         if reset_calibration:
             pass
 
-        # MyWin.close()
-
         pass
 
 
 
     def on_start_calibration(self,*args,**kwargs):
-    #ioHub.print2err('on_start_calibration: ',args,kwargs)
-        pass
+        #ioHub.print2err('on_start_calibration: ',args,kwargs)
     
     def on_add_calibration_point(self,*args,**kwargs):
         pass
 
     def on_compute_calibration(self,*args,**kwargs):
-        print 'on compute calibration'
         self._lastCalibrationReturnCode=args[0]
         if self._lastCalibrationReturnCode!=0:
             print2err("ERROR: Tobii Calibration Calculation Failed. Error code: {0}".format(self._lastCalibrationReturnCode))
