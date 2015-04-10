@@ -381,7 +381,9 @@ class MyWindow(pyglet.window.Window):
 
         self.events = []
         self.events_handler = None
+
         self.last_event = None
+        self.prev_events_len = None
 
     def on_mouse_press(self, x, y, button, modifiers):
         e = EventItem(name = 'InputEvent', timestamp = time.time(), etype = 'Mouse_DW', eid = button)
@@ -427,14 +429,15 @@ class MyWindow(pyglet.window.Window):
         self.clear()
 
     def get_last_event(self):
-        if self.events != []:
-            self.last_event = self.events[-1]
-            return self.last_event
+        if self.events != [] and not len(self.events) == self.prev_events_len:      # if events is not empty and there's not the same number of events since last reset,
+            self.last_event = self.events[-1]                                       # get last event
+            return self.last_event                                                  # return last event
         else:
-            # return EventItem(name = '-', timestamp = time.time(), etype = '-', eid = '-')
             return
-    def reset_last_event(self):
-        self.last_event = None
+    
+    def reset_last_event(self):             
+        self.prev_events_len = len(self.events)     # get length of events array, to compare when getting last event again
+        self.last_event = None                      # set last_event to None
 
 def my_dispatch_events(mywindow, event):
     """
