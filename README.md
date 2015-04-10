@@ -1,4 +1,4 @@
-# RLabs Experiments 
+﻿# RLabs Experiments 
 Date started: April 2014
 Date ended: ACTIVE
 
@@ -16,6 +16,17 @@ All three stimuli are written using the pyglet library (www.pyglet.org) and are 
 The folder **_Libraries** contains two libraries. **rlabs_libutils.py** contains common functions for all stimuli. **rlabs_libtobii.py** contains all the necessary functions to connect and commonicate with a Tobii eyetracker machine  (only Tobii X120 has been tested).
 
 The folder **_Analysis** contains scripts to analyse and visualize eyetracker data and mouse press data.
+
+# Required libraries
+- Pyglet (http://www.pyglet.org/)
+	- Installed using Python's pip: pip install pyglet
+- Numpy (http://www.numpy.org/)
+	- Installed the wheel file (numpy‑1.9.2+mkl‑cp27‑none‑win32.whl) from http://www.lfd.uci.edu/~gohlke/pythonlibs/#numpy and using pip install numpy‑1.9.2+mkl‑cp27‑none‑win32.whl
+- tobii SDK Python module (http://www.tobii.com/en/eye-tracking-research/global/landingpages/analysis-sdk-30/)
+	- SDK version used: tobii-analytics-sdk-3.0.83-win-Win32
+	- From the download, copy contents of SDK/Python27/Modules to Python/Lib/site-packages folder in your hard drive.
+- Pygtk (www.pygtk.org)
+	- Install all-in-one version from http://ftp.gnome.org/pub/GNOME/binaries/win32/pygtk/2.24/
 
 # Details for Plaid stimulus
 **Execution**: python Plaid.py [optional name]. The optional name will be in the ouput data files, if no specified "defaultsubjectname" will be used.
@@ -37,4 +48,3 @@ The folder **_Analysis** contains scripts to analyse and visualize eyetracker da
 # Motivation
 # To do
 # Short instructions
-# Required libraries
