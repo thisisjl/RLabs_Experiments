@@ -445,7 +445,6 @@ class MyCalibration:
                 continue_calibration = False                                                    # do not continue to calibration
                 wait = False                                                                    # do not wait, exit wait for go loop
 
-
             mylabel.draw()                                                  # show message
             MyWin.flip()                                                    # flip window
 
@@ -475,11 +474,10 @@ class MyCalibration:
                 ######################################################
                 ## CHECK INPUT
                 ######################################################
-                lastevent = my_dispatch_events(MyWin, lastevent)                # my_dispatch_events is defined in rlabs_libutils
-                if lastevent.type != []:                                        # check if last event is SPACE BAR or ...
-                    if lastevent.id == 32 and lastevent.type == "Key_UP":       # if it is space
-                        lastevent.reset_values()                                # reset values of event
-                        break
+                last_event = win.get_last_event()                                                   # get last event on MyWin
+                if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
+                    win.reset_last_event()
+                    break
 
                 ######################################################  
                 ## Draw point
@@ -525,8 +523,6 @@ class MyCalibration:
         if self._lastCalibrationOK is False:
             print '_lastCalibrationOK is False'
             return False
-            pass
-
 
         if reset_calibration:
             pass
@@ -537,6 +533,7 @@ class MyCalibration:
 
     def on_start_calibration(self,*args,**kwargs):
         #ioHub.print2err('on_start_calibration: ',args,kwargs)
+        pass
     
     def on_add_calibration_point(self,*args,**kwargs):
         pass
