@@ -402,7 +402,7 @@ class Calibration:
 
 class MyCalibration:
 
-    def runCalibration(self, eyetracker):
+    def runCalibration(self, eyetracker, npoints = 5, random_calibration_points = 1,):
 
         self._lastCalibrationOK=False
         self._lastCalibrationReturnCode=0
@@ -413,21 +413,22 @@ class MyCalibration:
         calibration_sequence_completed=False        
         
         MyWin = Window(fullscreen=True, visible = 0)
+
+        instuction_text="Press mouse MIDDLE button to Start Calibration; ESCAPE to Exit."           # instructions to show before calibration
+        mylabel = pyglet.text.Label(instuction_text, font_name = 'Times New Roman', font_size = 36, # create label that contain instructions
+            color=(0, 0, 0, 255), x = MyWin.width/2, y = MyWin.height/2, multiline = True,          
+            width=600, anchor_x = "center", anchor_y = "center")                                    
        
-        win_size = MyWin.get_size()
+        fg_color = (0.88,0.88,0.88)                                                                 # background color
 
-        p = Point2D()
-        points = [(0.1,0.1), (0.9,0.1) , (0.5,0.5), (0.1,0.9), (0.9,0.9)]
-        shuffle(points)
-
-        fg_color = (0.88,0.88,0.88)
-
-
-        instuction_text="Press mouse MIDDLE button to Start Calibration; ESCAPE to Exit."
-        mylabel = pyglet.text.Label(instuction_text, font_name = 'Arial', font_size = 36, x = MyWin.width/2, 
-            y = MyWin.height/2, multiline = True, width=600, anchor_x = "center", anchor_y = "center")
-
-        MyWin.set_visible(True)
+        # compute target point coordinates: 5, 9, 13 or 25 points ----------------------------------
+        tparray = [0.1, 0.5, 0.9] if npoints in (9,5) else [0.1, 0.3, 0.5, 0.7, 0.9]                # using a different array if 5-9 or 13-25 points
+        points = perm(tparray,2)                                                                    # combine tparray to compute position of target points
+        if npoints in (5,13): points = points[::2]                                                  # if 5 or 13 points, only use even elements
+        if random_calibration_points: shuffle(points)                                               # if random points, shuffle
+        p = Point2D()                                                                               # Tobii expects positin in Point2D() format
+        
+        MyWin.set_visible(True)                                                                     # set window to visible
         MyWin.set_mouse_visible(False)                                                              # set mouse to not visible
 
         # Wait for go Loop ---------------------------------------------------------------------------------------------
@@ -492,6 +493,7 @@ class MyCalibration:
             if MyWin.has_exit:                                                                      # This breaks the For stimulus loop. 
                 break
 
+        # calibration completed -------------------------------------------------------------------
         if calibration_sequence_completed:
             self.eyetracker.ComputeCalibration(self.on_compute_calibration)                         # compute calibration
 
