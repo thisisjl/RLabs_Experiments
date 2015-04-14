@@ -484,6 +484,9 @@ class DataStruct():
 			self.rightgazeY 	= np.array(map(float, data['RightGazePoint2Dy']))				# get right gaze Y data
 			self.rightvalidity 	= np.array(map(float, data['RightValidity']))					# get right gaze validity
 
+			self.vergence 		= np.array(map(float, data['Vergence']))						# get vergence
+			self.FixationDist 	= np.array(map(float, data['FixationDist']))					# get fixation distance
+
 			# Tobii gives data from 0 to 1, we want it from -1 to 1:
 			self.leftgazeX 		= 2 * self.leftgazeX 	- 1
 			self.leftgazeY 		= 2 * self.leftgazeY 	- 1
