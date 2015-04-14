@@ -39,7 +39,6 @@ def main(ExpName = 'Plaid', subjectname = ''):
     parameters = merge_dicts_ordered(cp, tp)
 
     # randomize trials ?
-    
     numtrials = int(tp['numtrials'])                                                        # get number of trials
     trials_array = np_permutation(numtrials) if cp['randomize_trials'] else range(numtrials)# randomize trials or not
 
