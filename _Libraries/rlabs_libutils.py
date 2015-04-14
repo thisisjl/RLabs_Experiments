@@ -780,7 +780,7 @@ def compute_forced_values(i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1
     return stereo1, stereo2, i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2
 
 class Forced_struct():
-    def __init__(transfilename = 'forcedtransitions.txt', timeRamp = 0.5, scale = 500):
+    def __init__(self, transfilename = 'forcedtransitions.txt', timeRamp = 0.5, scale = 500):
         self.transfilename = transfilename                              # get transitions file name
         self.timeRamp = timeRamp                                        # get stereo speeed
         self.scale = scale
@@ -817,7 +817,7 @@ class Forced_struct():
             print '{0} could not be opened'.format(self.transfilename)  # print error
             sys.exit()                                                  # exit python
 
-    def reset_forced_variables(self):
+    def reset_forced_values(self):
         self.i_R = 0
         self.i_L = 0
         self.Ron = 0
