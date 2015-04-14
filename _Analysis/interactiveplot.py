@@ -695,24 +695,31 @@ def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEAD
 	fWebID.write(fWeb_HEADER)										# add header
 	for i in range(len(cont)):										# for each element in container
 		script = cont[i].scriptX									# get script for X coordinates
+		fWebID.write('\n<!-- Script for X coordinates -->') 		# write comment in html
 		fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
 
 		script = cont[i].scriptXvel									# get script for X velocity
+		fWebID.write('\n<!-- Script for X velocity -->')	 		# write comment in html
 		fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
 
 		script = cont[i].scriptY									# get script for Y coordinates
+		fWebID.write('\n<!-- Script for Y coordinates -->') 		# write comment in html
 		fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
 
 		script = cont[i].scriptYvel									# get script for Y velocity
+		fWebID.write('\n<!-- Script for Y velocity -->')	 		# write comment in html
 		fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
 
 		script = cont[i].scriptXY									# get script for XY gaze
+		fWebID.write('\n<!-- Script for XY plot -->')		 		# write comment in html
 		fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
 
 		script = cont[i].verg_script								# get script for vergence
+		fWebID.write('\n<!-- Script for vergence plot -->') 		# write comment in html
 		fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
 
 		script = cont[i].fixd_script								# get script for fixation distance
+		fWebID.write('\n<!-- Script for fixation distance plot -->')# write comment in html
 		fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
 
 
@@ -726,6 +733,7 @@ def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEAD
 	
 	
 	# Write X gaze data in a row -------------------------------------------------------------------------------
+	fWebID.write('\n<!-- Div for X gaze plot -->')		 			# write comment in html
 	fWebID.write('\n\t\t\t<tr>') 									# create new row (plots in different colums)
 	for i in range(len(cont)):										# for each element in container
 		divX = cont[i].divX											# get div for X coordinates
@@ -738,6 +746,7 @@ def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEAD
 	fWebID.write('\n\t\t\t</tr>') 									# close row tag
 
 	# Write X velocity in a row ------------------------------------------------------------------------------------
+	fWebID.write('\n<!-- Div for X velocity plot -->')	 			# write comment in html
 	fWebID.write('\n\t\t\t<tr>') 									# create new row
 	for i in range(len(cont)):										# for each element in container
 		divXvel = cont[i].divXvel									# get div for X coordinates
@@ -748,6 +757,7 @@ def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEAD
 		fWebID.write('\n\t\t\t\t</td>')								# close cell tag
 
 	# Write Y gaze data in a row -----------------------------------------------------------------------------------
+	fWebID.write('\n<!-- Div for Y gaze plot -->')		 			# write comment in html
 	fWebID.write('\n\t\t\t<tr>') 									# create new row tag
 	for i in range(len(cont)):										# for each element in container
 		divY = cont[i].divY											# get div for Y coordinates
@@ -760,6 +770,7 @@ def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEAD
 	fWebID.write('\n\t\t\t</tr>') 									# close row tag
 
 	# Write Y velocity in a row ------------------------------------------------------------------------------------
+	fWebID.write('\n<!-- Div for Y velocity plot -->')	 			# write comment in html
 	fWebID.write('\n\t\t\t<tr>') 									# create new row
 	for i in range(len(cont)):										# for each element in container
 		divYvel = cont[i].divYvel									# get div for X coordinates
@@ -771,6 +782,7 @@ def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEAD
 
 
 	# # Write XY gaze data in a row -------------------------------------------------------------------------------
+	fWebID.write('\n<!-- Div for XY gaze plot -->')	 				# write comment in html
 	fWebID.write('\n\t\t\t<tr>') 									# create new row (plots in different colums)
 	for i in range(len(cont)):										# for each element in container
 		divXY = cont[i].divXY										# get div for XY gaze
@@ -781,6 +793,7 @@ def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEAD
 		fWebID.write('\n\t\t\t\t</td>')								# close cell tag
 
 	# # Write vergence data in a row ------------------------------------------------------------------------------
+	fWebID.write('\n<!-- Div for vergence plot -->')				# write comment in html
 	fWebID.write('\n\t\t\t<tr>') 									# create new row (plots in different colums)
 	for i in range(len(cont)):										# for each element in container
 		divXY = cont[i].verg_div									# get div for vergence
@@ -791,6 +804,7 @@ def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEAD
 		fWebID.write('\n\t\t\t\t</td>')								# close cell tag
 
 	# # Write fixation distance in a row --------------------------------------------------------------------------
+	fWebID.write('\n<!-- Div for fixation dist plot -->')			# write comment in html
 	fWebID.write('\n\t\t\t<tr>') 									# create new row (plots in different colums)
 	for i in range(len(cont)):										# for each element in container
 		divXY = cont[i].fixd_div									# get div for fixation distance
