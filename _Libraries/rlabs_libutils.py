@@ -720,47 +720,22 @@ class mycoords():
 
 # Forced mode functions --------------------------------------------------------------------------------------------
 
-def read_forced_transitions(transfilename='datatestN_NR_5_trans.txt'):
-    transfilename = 'datatestN_NR_5_trans.txt'
-    #forced = 1
-    deltaXaux1_ini = 0
-    deltaXaux2_ini = 0
-    deltaX1 = 0.01
-    deltaX2 = 0.01
-    # transfilename = 'datatestN_NR_5_trans.txt'
-    # transfilename_full = os.path.join(application_path, transfilename)    # Full path name of the transition file
-    # 5.1 - Read file with transition time stamps (for forced mode)
-    transTimeL = []
-    transTimeR = []
+def read_forced_transitions(transfilename='forcedtransitions.txt'):
+    transTimeL = []                                             # initialize Left  timestamps array
+    transTimeR = []                                             # initialize Right timestamps array   
+    try:                                                        # try/except used to handle errors
+        with open(transfilename, 'r') as f:                     # open transitions file
+            reader = csv.reader(f, delimiter='\t')              # reader is a csv class to parse data files
+
+            for L_item, R_item in reader:                       # L_item and R_item are the time stamps
+                transTimeL.append(float(L_item))                # append left time stamp to array
+                transTimeR.append(float(R_item))                # append left time stamp to array
+
+    except EnvironmentError:                                    # except: if the file name is wrong
+        print '{0} could not be opened'.format(transfilename)   # print error
+        sys.exit()                                              # exit python
     
-    try:                                                            # try/except is used here to handle errors such 
-        with open(transfilename, 'r') as f:                 # as the transition file name is wrong
-        #with open(transfilename) as f:
-        #with open('trans.txt') as f: 
-            reader=csv.reader(f,delimiter='\t')                     # reader is a csv class to parse data files
-        
-            for L_item,R_item in reader:                            #L_item and R_item are the time stamps
-            #for R_item,L_item in reader:                            #L_item and R_item are the time stamps
-                #L_array.append(float(L_item))                              # Append time stamps to array
-                #R_array.append(float(R_item))
-                transTimeL.append(float(L_item))                              # Append time stamps to array
-                transTimeR.append(float(R_item))
-        
-        #L_array.append(timeTrialMax)                                # Append total duration of trial at the end?
-        #R_array.append(timeTrialMax)
-                
-        #timeTransL = L_array[0]        
-        #timeTransR = R_array[0]
-        # timeRamp = 0.5
-        
-        
-        
-    except EnvironmentError:
-        #print srt(transfilename)+' could not be opened'
-        print "transition file could not be opened"
-        sys.exit()
-    
-    return transTimeL,transTimeR       
+    return transTimeL, transTimeR                               # return timestamps
 
 def compute_forced_values(i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2, timeRamp, timeStartTrial,timeNow, transTimeL, transTimeR, deltaX1=0.01, deltaX2=0.01, deltaXaux1_ini=0, deltaXaux2_ini=0):
     # Apply forced mode changes to the stereo
