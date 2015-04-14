@@ -38,16 +38,14 @@ def main(ExpName = 'Plaid', subjectname = ''):
 
     parameters = merge_dicts_ordered(cp, tp)
 
-    # randomize trials
-    numtrials = int(tp['numtrials'])
-    if cp['randomize_trials']:
-        trials_array = np_permutation(numtrials)    # goes from 0 to numtrials in random order
-    else:
-        trials_array = range(numtrials)             # no random
+    # randomize trials ?
+    
+    numtrials = int(tp['numtrials'])                                                        # get number of trials
+    trials_array = np_permutation(numtrials) if cp['randomize_trials'] else range(numtrials)# randomize trials or not
 
-    if cp['forced']:                                                                  # read forced transitions file
+    if cp['forced']:                                                                # read forced transitions file
         transfilename = 'datatestN_NR_5_trans.txt'
-        fs = Forced_struct(transfilename = transfilename, timeRamp = cp['speed']) # create forced struct
+        fs = Forced_struct(transfilename = transfilename, timeRamp = cp['speed'])   # create forced struct
 
     # Initialize pyglet window ------------------------------------------------------------------------        
     screens = pyglet.window.get_platform().get_default_display().get_screens()
