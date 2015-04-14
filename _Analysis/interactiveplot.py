@@ -151,7 +151,7 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 			reset_output()
 
 			## plot XY gaze ------------------------------------------------------------------------------------------------------------------------
-			bokehfig = figure(title = 'XY LEFT gaze')
+			bokehfig = figure(title = 'XY LEFT gaze', x_range = [-1,1], y_range = [-1,1])
 
 			bokehfig.scatter(ds.leftgazeX,ds.leftgazeY,marker = 'x', color=rgb2hex((1,0,0)), legend='left eye')
 			xaxis().bounds = [-1, 1]
@@ -323,7 +323,7 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 					reset_output()
 
 					## plot XY gaze ------------------------------------------------------------------------------------------------------------------------
-					bokehfig = figure(title = 'Trial {0}. XY LEFT gaze'.format(trial+1))
+					bokehfig = figure(title = 'Trial {0}. XY LEFT gaze'.format(trial+1), x_range = [-1,1], y_range = [-1,1])
 
 					bokehfig.scatter(lgX,lgY,marker = 'x', color=rgb2hex((1,0,0)), legend='left eye')
 					xaxis().bounds = [-1, 1]
