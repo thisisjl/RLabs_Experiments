@@ -828,7 +828,7 @@ class Forced_struct():
         self.deltaXaux2 = 0
 
     def compute_forced_values(self, timeStartTrial, timeNow):
-        if (timeNow - timeStartTrial > self.timeTransR) & (timeNow - timeStartTrial < self.timeTransR + timeRamp):
+        if (timeNow - timeStartTrial > self.timeTransR) & (timeNow - timeStartTrial < self.timeTransR + self.timeRamp):
             
             self.deltaXaux1 = self.deltaX1 * (timeNow - timeStartTrial - self.timeTransR) / self.timeRamp
             self.Ron = 1
@@ -841,7 +841,7 @@ class Forced_struct():
         if (timeNow - timeStartTrial > self.timeTransR + self.timeRamp) & (self.Ron == 1):
             self.Ron = 0
             self.i_R = self.i_R + 1
-            self.timeTransR = self.transTimeR[i_R]
+            self.timeTransR = self.transTimeR[self.i_R]
             
         if (timeNow - timeStartTrial > self.timeTransL) & (timeNow - timeStartTrial < self.timeTransL + self.timeRamp):
             
@@ -856,11 +856,11 @@ class Forced_struct():
         if (timeNow - timeStartTrial > self.timeTransL + self.timeRamp) & (self.Lon == 1):
             self.Lon = 0
             self.i_L = self.i_L + 1
-            self.timeTransL = self.transTimeL[i_L]
+            self.timeTransL = self.transTimeL[self.i_L]
         
         # update stereo value
-        stereo1 = (-deltaXaux1/2 + deltaXaux2/2) * scale
-        stereo2 =  (deltaXaux1/2 - deltaXaux2/2) * scale
+        stereo1 = (-self.deltaXaux1/2 + self.deltaXaux2/2) * self.scale
+        stereo2 =  (self.deltaXaux1/2 - self.deltaXaux2/2) * self.scale
 
         return stereo1, stereo2
 
