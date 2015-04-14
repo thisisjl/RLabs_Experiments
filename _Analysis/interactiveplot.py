@@ -485,7 +485,7 @@ class DataStruct():
 			self.rightvalidity 	= np.array(map(float, data['RightValidity']))					# get right gaze validity
 
 			self.vergence 		= np.array(map(float, data['Vergence']))						# get vergence
-			self.FixationDist 	= np.array(map(float, data['FixationDist']))					# get fixation distance
+			self.fixationdist 	= np.array(map(float, data['FixationDist']))					# get fixation distance
 
 			# Tobii gives data from 0 to 1, we want it from -1 to 1:
 			self.leftgazeX 		= 2 * self.leftgazeX 	- 1
@@ -543,6 +543,12 @@ class html_container():
 
 		self.hist_script = []		# javascript code for histogram bokeh's plot
 		self.hist_div	 = []		# html div that references self.hist_script
+
+		self.verg_script = []		# javascript code for vergence bokeh's plot
+		self.verg_div	 = []		# html div that references self.verg_script
+
+		self.fixd_script = []		# javascript code for fixation distance bokeh's plot
+		self.fixd_div	 = []		# html div that references self.fixd_script
 
 		self.XYvideolink = []		# relative path to the x,y gaze video
 		self.HAvideolink = []		# relative path to the high angle video
