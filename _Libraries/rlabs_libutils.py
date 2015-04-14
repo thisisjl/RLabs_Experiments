@@ -779,6 +779,90 @@ def compute_forced_values(i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1
 
     return stereo1, stereo2, i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2
 
+class Forced_struct():
+    def __init__(transfilename = 'forcedtransitions.txt', timeRamp = 0.5, scale = 500):
+        self.transfilename = transfilename                              # get transitions file name
+        self.timeRamp = timeRamp                                        # get stereo speeed
+        self.scale = scale
+        self.transTimeL = []                                            # initialize Left  timestamps array
+        self.transTimeR = []                                            # initialize Right timestamps array
+        
+        self.read_forced_transitions()                                  # read transition time stamps
+
+        # initialize forced variables
+        self.i_R = 0
+        self.i_L = 0
+        self.Ron = 0
+        self.Lon = 0
+        self.timeTransR = self.transTimeL[0]
+        self.timeTransL = self.transTimeR[0]
+        self.deltaXaux1 = 0
+        self.deltaXaux2 = 0
+
+        self.deltaX1 = 0.01
+        self.deltaX2 = 0.01
+        self.deltaXaux1_ini = 0
+        self.deltaXaux2_ini = 0
+
+    def read_forced_transitions(self):   
+        try:                                                            # try/except used to handle errors
+            with open(self.transfilename, 'r') as f:                    # open transitions file
+                reader = csv.reader(f, delimiter='\t')                  # reader is a csv class to parse data files
+
+                for L_item, R_item in reader:                           # L_item and R_item are the time stamps
+                    self.transTimeL.append(float(L_item))               # append left time stamp to array
+                    self.transTimeR.append(float(R_item))               # append left time stamp to array
+
+        except EnvironmentError:                                        # except: if the file name is wrong
+            print '{0} could not be opened'.format(self.transfilename)  # print error
+            sys.exit()                                                  # exit python
+
+    def reset_forced_variables(self):
+        self.i_R = 0
+        self.i_L = 0
+        self.Ron = 0
+        self.Lon = 0
+        self.timeTransR = self.transTimeL[0]
+        self.timeTransL = self.transTimeR[0]
+        self.deltaXaux1 = 0
+        self.deltaXaux2 = 0
+
+    def compute_forced_values(self, timeStartTrial, timeNow):
+        if (timeNow - timeStartTrial > self.timeTransR) & (timeNow - timeStartTrial < self.timeTransR + timeRamp):
+            
+            self.deltaXaux1 = self.deltaX1 * (timeNow - timeStartTrial - self.timeTransR) / self.timeRamp
+            self.Ron = 1
+            
+            if self.deltaXaux2_ini > self.deltaX2/2:
+                self.deltaXaux2 = self.deltaX2 - self.deltaX2 * (timeNow - timeStartTrial - self.timeTransR) / self.timeRamp
+            
+            self.deltaXaux1_ini = self.deltaXaux1
+            
+        if (timeNow - timeStartTrial > self.timeTransR + self.timeRamp) & (self.Ron == 1):
+            self.Ron = 0
+            self.i_R = self.i_R + 1
+            self.timeTransR = self.transTimeR[i_R]
+            
+        if (timeNow - timeStartTrial > self.timeTransL) & (timeNow - timeStartTrial < self.timeTransL + self.timeRamp):
+            
+            self.deltaXaux2 = self.deltaX2 * (timeNow - timeStartTrial - self.timeTransL) / self.timeRamp
+            self.Lon = 1
+            
+            if (self.deltaXaux1_ini > self.deltaX1/2):
+                self.deltaXaux1 = self.deltaX1 - self.deltaX1 * (timeNow - timeStartTrial - self.timeTransL) / self.timeRamp
+            
+            self.deltaXaux2_ini = self.deltaXaux2
+        
+        if (timeNow - timeStartTrial > self.timeTransL + self.timeRamp) & (self.Lon == 1):
+            self.Lon = 0
+            self.i_L = self.i_L + 1
+            self.timeTransL = self.transTimeL[i_L]
+        
+        # update stereo value
+        stereo1 = (-deltaXaux1/2 + deltaXaux2/2) * scale
+        stereo2 =  (deltaXaux1/2 - deltaXaux2/2) * scale
+
+        return stereo1, stereo2
 
 # Camera (from http://tartley.com/?p=378) ---------------------------------------------------------------------------
 
