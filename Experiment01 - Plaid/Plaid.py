@@ -47,13 +47,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
 
     if cp['forced']:                                                                  # read forced transitions file
         transfilename = 'datatestN_NR_5_trans.txt'
-        # transfilename_full = os.path.join(application_path, transfilename)      # Full path name of the transition file
-        # transTimeL, transTimeR = read_forced_transitions(transfilename)
-        transTimeL, transTimeR = read_forced_transitions(transfilename=transfilename)
-        timeRamp = 0.5
-    else:
-        deltaX1 = 0
-        deltaX2 = 0
+        fs = Forced_struct(transfilename = transfilename, timeRamp = cp['speed']) # create forced struct
 
     # Initialize pyglet window ------------------------------------------------------------------------        
     screens = pyglet.window.get_platform().get_default_display().get_screens()
@@ -79,7 +73,7 @@ def main(ExpName = 'Plaid', subjectname = ''):
     # 3.4 - Initialize text to be shown at startup (not whown right now)
     textInstruc = "Continually report the motion of the grating in front.\nPress the left mouse button for left-ward motion.\nPress the right mouse button for right-ward motion\n\nClick mouse-wheel to start"
     lbl_instr = pyglet.text.Label(text=textInstruc, font_name='Times New Roman', font_size=36,
-        color=(0, 0, 0, 255), x = MyWin.width/2, y = MyWin.height/2, anchor_x='center', anchor_y='center', width=MyWin.width/1.8, multiline=True)
+        color=(0, 0, 0, 255), x = MyWin.width/2+120, y = MyWin.height/2, anchor_x='center', anchor_y='center', width=MyWin.width/1, multiline=True)
 
     textInstruc2 = "Click mouse-wheel for next trial"
     lbl_instr2 = pyglet.text.Label(text=textInstruc2, font_name='Times New Roman', font_size=24,
@@ -167,16 +161,8 @@ def main(ExpName = 'Plaid', subjectname = ''):
 
         # Start stimulus loop -------------------------------------------------------------------------------------------------------------
 
-        # Initialize forced variables
         if cp['forced']:
-            i_R = 0
-            i_L = 0
-            Ron = 0
-            Lon = 0
-            timeTransR = transTimeL[0]
-            timeTransL = transTimeR[0]
-            deltaXaux1 = 0
-            deltaXaux2 = 0
+            fs.reset_forced_values()                                        # Initialize forced variables
 
 
         timeStart = time.time()                                             # get trial start time
@@ -201,8 +187,9 @@ def main(ExpName = 'Plaid', subjectname = ''):
             # Update position of objects ---------------------------------------------------------------------------------------------------
 
             if cp['forced']:
-                stereo1, stereo2, i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2 = compute_forced_values(
-                    i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2, timeRamp, timeStart, timeNow, transTimeL, transTimeR)
+                stereo1, stereo2 = fs.compute_forced_values(timeStart, timeNow)
+
+
             else:
                 stereo1 = cp['stereo1']
                 stereo2 = cp['stereo2']
