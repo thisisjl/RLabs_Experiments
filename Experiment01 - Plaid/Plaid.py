@@ -14,7 +14,13 @@ import time                                                                 # fo
 from numpy.random import permutation as np_permutation                      # for random trials
 from collections import OrderedDict
 import ConfigParser                                                         # read parameter files
-def main(ExpName = 'Plaid', subjectname = ''):
+def main(
+    ExpName = 'Plaid', 
+    subjectname = '', 
+    config_file = 'config_file.txt', 
+    trials_file = 'trials_file.txt', 
+    transitions_file = 'datatestN_NR_5_trans.txt'
+    ):
 
     # Load parameters ------------------------------------------------------------------------
     if getattr(sys, 'frozen', False):                                       # path is different
@@ -28,23 +34,22 @@ def main(ExpName = 'Plaid', subjectname = ''):
     # config_name_full = os.path.join(application_path, config_name)  # Full path name of the config file
     # trials_name_full = os.path.join(application_path, trials_name)  # Full path name of the trials file
 
-    cp = ConfigParser.SafeConfigParser()
-    cp.readfp(FakeSecHead(open('config_file.txt'))) 
-    cp = OrderedDict([(k,float(v) if len(v) < 7 else (map(float,v.split(',')))) for k,v in cp.items('asection')])
+    cp = ConfigParser.SafeConfigParser()                                                                            # create a configParser instance
+    cp.readfp(FakeSecHead(open(config_file)))                                                                       # read config_file and add fake header (INI file)
+    cp = OrderedDict([(k,float(v) if len(v) < 7 else (map(float,v.split(',')))) for k,v in cp.items('asection')])   # read parameters of config_file in OrderedDict
 
-    tp = ConfigParser.SafeConfigParser()
-    tp.readfp(FakeSecHead(open('trials_file.txt'))) 
-    tp = OrderedDict([(k,float(v) if len(v) < 5 else map(float,v.split(','))) for k,v in tp.items('asection')])
+    tp = ConfigParser.SafeConfigParser()                                                                            # create a configParser instance
+    tp.readfp(FakeSecHead(open(trials_file)))                                                                       # read trials_file and add fake header (INI file)
+    tp = OrderedDict([(k,float(v) if len(v) < 5 else map(float,v.split(','))) for k,v in tp.items('asection')])     # read parameters of config_file in OrderedDict
 
-    parameters = merge_dicts_ordered(cp, tp)
+    parameters = merge_dicts_ordered(cp, tp)                                                                        # join parameters (to write them later)
 
     # randomize trials ?
-    numtrials = int(tp['numtrials'])                                                        # get number of trials
-    trials_array = np_permutation(numtrials) if cp['randomize_trials'] else range(numtrials)# randomize trials or not
+    numtrials = int(tp['numtrials'])                                                            # get number of trials
+    trials_array = np_permutation(numtrials) if cp['randomize_trials'] else range(numtrials)    # randomize trials or not
 
-    if cp['forced']:                                                                # read forced transitions file
-        transfilename = 'datatestN_NR_5_trans.txt'
-        fs = Forced_struct(transfilename = transfilename, timeRamp = cp['speed'])   # create forced struct
+    # read forced transitions file
+    if cp['forced']: fs = Forced_struct(transfilename = transitions_file, timeRamp = cp['speed']) 
 
     # Initialize pyglet window ------------------------------------------------------------------------        
     screens = pyglet.window.get_platform().get_default_display().get_screens()
@@ -57,8 +62,8 @@ def main(ExpName = 'Plaid', subjectname = ''):
     xcenter = MyWin.width/2
     ycenter = MyWin.height/2
 
-    clock.set_fps_limit(cp['framerate'])                                          # set limit for frames per second
-    frameMs = 1000.0/cp['framerate']                                              # manual frame rate control: frameMs is the time in ms a frame will be displayed
+    clock.set_fps_limit(cp['framerate'])                                    # set limit for frames per second
+    frameMs = 1000.0/cp['framerate']                                        # manual frame rate control: frameMs is the time in ms a frame will be displayed
   
 
     # Initialize variables for data file ----------------------------------------------------------------------
