@@ -67,7 +67,8 @@ def main(
   
 
     # Initialize variables for data file ----------------------------------------------------------------------
-    
+    if not os.path.isdir('data'):                                           # if there is not a folder called 'data',
+        os.makedirs('data')                                                 # create it
     # Name of the data files
     eyetrackeroutput   = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyetracker_data" + ".txt"))
     filename_data      = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "button_press_data" + ".txt"))
