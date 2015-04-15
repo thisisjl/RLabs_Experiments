@@ -38,7 +38,7 @@ speed = 0.5
 time_fixp = 0.7
 
 # mode
-forced = 0
+forced = 1
 
 # 1 if connected to the eyetracker, 0 if not. Temporal variable. 
 eyetracker = 0
@@ -51,4 +51,4 @@ randomize_trials = 0
 # 1: Circle with protection zone
 # 2: Circle without protection zone
 # 3: Cross
-fixationpoint = 0
+fixationpoint = 1
