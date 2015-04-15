@@ -1646,6 +1646,8 @@ class MyTobiiController:
                 
                 if g.LeftValidity == g.RightValidity:                       # if both validity values are the same,
                     verg, fixdist = self.calcVerg(SL, SR)                   # compute vergence and fixation distance
+                else:                                                       # if validity values are not the same,
+                    verg, fixdist = -1, -1                                  # set vergence and fix dist to -1 (for now)
 
                 # write eyetracker data
                 f.write('%.1f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%d\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%d\t%.4f\t%.4f\t'%(
