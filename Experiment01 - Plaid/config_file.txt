@@ -1,11 +1,20 @@
+# Define parameters for whole experiment
+# These parameters will not change between trials.
+
+# Note: color parameters must follow the format:
+# color = R, G, B
+
 # screen_parameters
 xsize = 1366
 ysize = 768
+
 # refresh rate
 framerate = 60.0 
 bit_per_pixel = 32
+
 # xsize_cm = 31.1 # not using these parameters for plaid Feb22 2015
 # ysize_cm = 19.5 # not using these cm parameters
+
 FPsize = 5
 aperture_switch = 1
 # monitor in sala G: Philips 109B2, resolution: 1280x960, width = 36.5cm, height = 27.5 cm
