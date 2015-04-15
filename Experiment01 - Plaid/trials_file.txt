@@ -1,20 +1,23 @@
+# Define the parameters for each trial.
+# Format:
+# parameter = value_trial_1, value_trial_2, ..., value_trial_numtrials
+# All parameters must have the same number of values
+
+
 # number of trials
 numtrials = 3
+
 # parameters for gratings 1
-
-
 mylambda1 = 100,100,100
 duty_cycle1 = 0.2, 0.2, 0.2
 speed1 = 60,70,80
-orientation1 = 8,8,8
+orientation1 = 4,15,8
 
 # parameters for gratings 2
-
-
 mylambda2 = 100,100,100
 duty_cycle2 = 0.2,0.2,0.2
 speed2 = -60,-70,-80
-orientation2 = -8,-8,-8
+orientation2 = -4,-15,-8
 
 # time for each trial
-timetrial = 5	
+timetrial = 20
