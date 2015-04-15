@@ -1643,7 +1643,9 @@ class MyTobiiController:
 
                 SL = float(g.LeftGazePoint2D.x)                             # get X left gaze point 
                 SR = float(g.RightGazePoint2D.x)                            # get X right gaze point
-                verg, fixdist = self.calcVerg(SL, SR)                       # compute vergence and fixation distance
+                
+                if g.LeftValidity == g.RightValidity:                       # if both validity values are the same,
+                    verg, fixdist = self.calcVerg(SL, SR)                   # compute vergence and fixation distance
 
                 # write eyetracker data
                 f.write('%.1f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%d\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%.4f\t%d\t%.4f\t%.4f\t'%(
