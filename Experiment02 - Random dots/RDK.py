@@ -93,7 +93,8 @@ def main(Tau = 100, CycleDur = 360, num_dots = 1000, zDir = 1, TranspYN = 1, sub
 	# # sys.exit()
 
 	if testing_with_eyetracker:
-		# data files name:
+		if not os.path.isdir('data'):                                           # if there is not a folder called 'data',
+	        os.makedirs('data')                                                 # create it
 		eyetrackeroutput   = os.path.join('data',("Randomdots" + "-" + time.strftime( 			# eyetracker data file name
 			"%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyet" + ".txt"))	#
 		eb = EyetrackerBrowser()																# Create an EyetrackerBrowser
