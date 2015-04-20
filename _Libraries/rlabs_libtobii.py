@@ -1489,7 +1489,7 @@ class MyTobiiController:
                     'Parameters'] # these last line is added (see OLD_write_eyetracker_data_file)
         
         for n in range(ntrials):                                            # for each trial
-            fields.append('Value for trial {0}'.format(n+1))                # add field in header 
+            fields.append('Value-trial-{0}'.format(n+1))                # add field in header 
 
 
         with open(self.filename, 'a' ) as f:                                # open or create text file 'filename' to append             
