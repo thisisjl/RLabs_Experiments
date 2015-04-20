@@ -271,8 +271,8 @@ def write_data_file_with_parameters(data_namefile, data_struct, parameters, righ
     ntrials = int(parameters['numtrials'])                              # get number of trials
     timeStampStart = data_struct[0].timestamp                           # get time stamp of the start of trial 1
 
-    fields = ['Timestamp', 'EventName', 'EventType', 'EventID',         # create header
-    'EventCode', 'EventCount', 'Parameters']
+    fields = ['EventTimeStamp', 'EventName', 'EventType', 'EventID',    # create header
+    'Code', 'EventCount', 'Parameters']
 
     for n in range(ntrials):                                            # for each trial
         fields.append('Value for trial {0}'.format(n+1))                # add field in header 
