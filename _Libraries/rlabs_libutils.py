@@ -264,7 +264,7 @@ def write_data_file(data_namefile, data_struct, right_keys = [4], left_keys = [1
 
     pass
 
-def write_data_file_with_parameters(data_namefile, data_struct, parameters, right_keys = [4], left_keys = [1]):
+def write_data_file_with_parameters(data_namefile, data_struct, parameters, right_keys = [4], left_keys = [1], codes = [1, 4, 8, 999]):
     """ write data file including events (mouse, trials) and configuration and trials parameters"""
     from itertools import izip_longest                                  # import itertools to iterate over two variables
 
@@ -283,7 +283,7 @@ def write_data_file_with_parameters(data_namefile, data_struct, parameters, righ
         for e, b in izip_longest(data_struct, parameters.items()):      # iterate over data_struct and parameters until longest is over
         
             if e is not None:                                           # if event in data_struct is not None
-                e = compute_event_code(e)                               # compute code for each one
+                e = compute_event_code(e, codes = codes)                # compute code for each one
                 f.write('{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t'.format(        # and write it in data file
                     e.timestamp - timeStampStart, e.name,               
                     e.type, e.id, e.code, e.counter))
@@ -829,7 +829,6 @@ class Forced_struct():
 
     def compute_forced_values(self, timeStartTrial, timeNow):
         if (timeNow - timeStartTrial > self.timeTransR) & (timeNow - timeStartTrial < self.timeTransR + self.timeRamp):
-            
             self.deltaXaux1 = self.deltaX1 * (timeNow - timeStartTrial - self.timeTransR) / self.timeRamp
             self.Ron = 1
             
@@ -844,7 +843,6 @@ class Forced_struct():
             self.timeTransR = self.transTimeR[self.i_R]
             
         if (timeNow - timeStartTrial > self.timeTransL) & (timeNow - timeStartTrial < self.timeTransL + self.timeRamp):
-            
             self.deltaXaux2 = self.deltaX2 * (timeNow - timeStartTrial - self.timeTransL) / self.timeRamp
             self.Lon = 1
             
