@@ -1259,7 +1259,7 @@ class MyTobiiController:
         pass
 
 
-    def write_eyetracker_data_file(self):
+    def OLD2_write_eyetracker_data_file(self):
         # def write_eyetracker_data_file(self,filename='eyetrackeroutputdatafile.txt'):
         """
         Uses the complete GazeData array from tobii.controller.
