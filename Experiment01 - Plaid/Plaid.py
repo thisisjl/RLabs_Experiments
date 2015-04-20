@@ -82,7 +82,8 @@ def main(
     trials_array = np_permutation(numtrials) if cp['randomize_trials'] else range(numtrials)    # randomize trials or not
 
     # read forced transitions file
-    if cp['forced']: fs = Forced_struct(transfilename = transitions_file, timeRamp = cp['speed']) 
+    transitions_file_full = os.path.join(application_path, transitions_file)
+    if cp['forced']: fs = Forced_struct(transfilename = transitions_file_full, timeRamp = cp['speed']) 
 
     # Initialize pyglet window ------------------------------------------------------------------------        
     screens = pyglet.window.get_platform().get_default_display().get_screens()
@@ -103,8 +104,8 @@ def main(
     if not os.path.isdir('data'):                                           # if there is not a folder called 'data',
         os.makedirs('data')                                                 # create it
     # Name of the data files
-    eyetrackeroutput   = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyetracker_data" + ".txt"))
-    filename_data      = os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "button_press_data" + ".txt"))
+    eyetrackeroutput   = os.path.join(application_path, os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyetracker_data" + ".txt")))
+    filename_data      = os.path.join(application_path, os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "button_press_data" + ".txt")))
    
     # 3.4 - Initialize text to be shown at startup (not whown right now)
     textInstruc = "Continually report the motion of the grating in front.\nPress the left mouse button for left-ward motion.\nPress the right mouse button for right-ward motion\n\nClick mouse-wheel to start"
