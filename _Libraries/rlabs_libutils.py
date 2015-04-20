@@ -275,7 +275,7 @@ def write_data_file_with_parameters(data_namefile, data_struct, parameters, righ
     'Code', 'EventCount', 'Parameters']
 
     for n in range(ntrials):                                            # for each trial
-        fields.append('Value for trial {0}'.format(n+1))                # add field in header 
+        fields.append('Value-trial-{0}'.format(n+1))                # add field in header 
    
     with open(data_namefile, 'w' ) as f:                                # open or create text file 'data_namefile' to write
         f.write('\t'.join(fields)+'\n')                                 # write header. Separate the fields with tabs
