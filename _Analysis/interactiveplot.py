@@ -19,9 +19,9 @@ from bokeh import mpl
 from bokeh.plotting import figure, output_file, show, VBox, reset_output, xaxis
 
 def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TIME_format="%Y-%m-%d_%H.%M", input_extension='*.txt',
-	A_color=(1.0, 0., 0.), B_color=(0., 1.0, 0.), YvalsA=[0.80, 0.90, 0, 1], YvalsB=[0.75, 0.85, 0, 1],
-	apply_fade=0, fade_sec=0.5, samplingfreq=120.0, shiftval=0.05, color_shift=[-0.3,0,0], plotrange=[-1.1,1.1], forshow0_forsave1=0,
-	createvideoYN=0, create_highangle_videoYN=0, videofortrials=(0,-1), epsilon=0.0123, A_code=1, B_code=4, trial_code=8, framerate=120.0):
+	A_color=(1.0, 0., 0.), B_color=(0., 1.0, 0.), YvalsA=[0.80, 0.90, 0, 1], YvalsB=[0.75, 0.85, 0, 1],	apply_fade=0, fade_sec=0.5, 
+	samplingfreq=120.0, shiftval=0.05, color_shift=[-0.3,0,0], plotrange=[-1.1,1.1], forshow0_forsave1=0, createvideoYN=0, 
+	create_highangle_videoYN=0, videofortrials=(0,-1), epsilon=0.0123, A_code=1, B_code=4, trial_code=8, framerate=120.0, outlier_th = 200):
 
 	# Scale Yvals to plotrange
 	YvalsA = np.array(YvalsA) * plotrange[1]
@@ -106,8 +106,8 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 			## plot X velocity for both eyes ------------------------------------------------------------------------------------------------------
 
 			# compute velocity
-			v_leftx  = np.diff(ds.leftgazeX, n=1) / framerate
-			v_rightx = np.diff(ds.rightgazeX, n=1) / framerate + shiftval
+			v_leftx  = np.diff(ds.leftgazeX, n=1) / framerate;  v_leftx  = v_leftx[~is_outlier(v_leftx, outlier_th)]				
+			v_rightx = np.diff(ds.rightgazeX, n=1) / framerate; v_rightx = v_rightx[~is_outlier(v_rightx, outlier_th)] + shiftval;
 			
 			bokehfig = figure(title = 'X gaze velocity. Right eye shifted {0}'.format(shiftval))
 
@@ -130,8 +130,8 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 			## plot Y velocity for both eyes ----------------------------------------------------------------------------------------------------------
 
 			# compute velocity
-			v_lefty  = np.diff(ds.leftgazeY, n=1) / framerate
-			v_righty = np.diff(ds.rightgazeY, n=1) / framerate + shiftval
+			v_lefty  = np.diff(ds.leftgazeY, n=1) / framerate;  v_lefty  = v_lefty[~is_outlier(v_lefty, outlier_th)]
+			v_righty = np.diff(ds.rightgazeY, n=1) / framerate; v_righty = v_righty[~is_outlier(v_righty, outlier_th)] + shiftval;
 
 			bokehfig = figure(title = 'Y Gaze velocity. Right eye shifted {0}'.format(shiftval))
 
@@ -278,8 +278,8 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 					## plot X velocity for both eyes ------------------------------------------------------------------------------------------------------
 
 					# compute velocity
-					v_leftx  = np.diff(lgX, n=1) / framerate
-					v_rightx = np.diff(rgX, n=1) / framerate + shiftval
+					v_leftx  = np.diff(lgX, n=1) / framerate; v_leftx  = v_leftx[~is_outlier(v_leftx, outlier_th)]
+					v_rightx = np.diff(rgX, n=1) / framerate; v_rightx = v_rightx[~is_outlier(v_rightx, outlier_th)] + shiftval
 					
 					bokehfig = figure(title = 'Trial {0}. X gaze velocity. Right eye shifted {1}'.format(trial+1,shiftval))
 
@@ -301,8 +301,8 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 					## plot Y velocity for both eyes ----------------------------------------------------------------------------------------------------------
 
 					# compute velocity
-					v_lefty  = np.diff(lgY, n=1) / framerate
-					v_righty = np.diff(rgY, n=1) / framerate + shiftval
+					v_lefty  = np.diff(lgY, n=1) / framerate; v_lefty  = v_lefty[~is_outlier(v_lefty, outlier_th)]
+					v_righty = np.diff(rgY, n=1) / framerate; v_righty = v_righty[~is_outlier(v_righty, outlier_th)] + shiftval
 
 					bokehfig = figure(title = 'Trial {0}. Y gaze velocity. Right eye shifted {1}'.format(trial+1,shiftval))
 					
@@ -1032,6 +1032,43 @@ def find_nearest_above(array, value):
 
 
 	return val, idx
+
+def is_outlier(points, thresh=3.5):
+    """
+    Returns a boolean array with True if points are outliers and False 
+    otherwise.
+
+    Parameters:
+    -----------
+        points : An numobservations by numdimensions array of observations
+        thresh : The modified z-score to use as a threshold. Observations with
+            a modified z-score (based on the median absolute deviation) greater
+            than this value will be classified as outliers.
+
+    Returns:
+    --------
+        mask : A numobservations-length boolean array.
+
+    References:
+    ----------
+        Boris Iglewicz and David Hoaglin (1993), "Volume 16: How to Detect and
+        Handle Outliers", The ASQC Basic References in Quality Control:
+        Statistical Techniques, Edward F. Mykytka, Ph.D., Editor. 
+    
+    Got it from:
+    ------------
+    http://stackoverflow.com/questions/11882393/matplotlib-disregard-outliers-when-plotting
+    """
+    if len(points.shape) == 1:
+        points = points[:,None]
+    median = np.median(points, axis=0)
+    diff = np.sum((points - median)**2, axis=-1)
+    diff = np.sqrt(diff)
+    med_abs_deviation = np.median(diff)
+
+    modified_z_score = 0.6745 * diff / med_abs_deviation
+
+    return modified_z_score > thresh
 
 if __name__ == '__main__':
 
