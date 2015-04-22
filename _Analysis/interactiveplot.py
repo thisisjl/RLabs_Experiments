@@ -139,8 +139,11 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 			
 			bokehfig = figure(title = 'X gaze velocity. Right eye shifted {0}'.format(shiftval))
 
-			bokehfig.line(ds.timestamps,v_leftx, marker='x', color=rgb2hex(A_color), legend='left eye')
-			bokehfig.line(ds.timestamps,v_rightx, marker='o', color=rgb2hex(B_color), legend='right eye')
+			bokehfig.line(ds.timestamps,v_leftx, color=rgb2hex(A_color), legend='left eye')
+			bokehfig.scatter(ds.timestamps,v_leftx, marker='x', color=rgb2hex(A_color))
+			bokehfig.line(ds.timestamps,v_rightx, color=rgb2hex(B_color), legend='right eye')
+			bokehfig.scatter(ds.timestamps,v_rightx, marker='x', color=rgb2hex(B_color))
+
 
 			for event in ds.trial_ts:																			# for each event time stamp
 			 	bokehfig.line((event, event), (-YvalsA[1]/2,YvalsA[1]), 'k-', color = rgb2hex((0,0,0)))			# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
@@ -162,8 +165,10 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 
 			bokehfig = figure(title = 'Y Gaze velocity. Right eye shifted {0}'.format(shiftval))
 
-			bokehfig.line(ds.timestamps,v_lefty,  marker = 'x', color=rgb2hex(A_color), legend='left eye')
-			bokehfig.line(ds.timestamps,v_righty, marker = 'o', color=rgb2hex(B_color), legend='right eye')
+			bokehfig.line(ds.timestamps,v_lefty, color=rgb2hex(A_color), legend='left eye')
+			bokehfig.scatter(ds.timestamps,v_lefty, marker = 'x', color=rgb2hex(A_color))
+			bokehfig.line(ds.timestamps,v_righty, color=rgb2hex(B_color), legend='right eye')
+			bokehfig.scatter(ds.timestamps,v_righty, marker = 'x', color=rgb2hex(B_color))
 
 			for event in ds.trial_ts:																			# for each event time stamp
 			 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
@@ -312,8 +317,10 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 					
 					bokehfig = figure(title = 'Trial {0}. X gaze velocity. Right eye shifted {1}'.format(trial+1,shiftval))
 
-					bokehfig.line(ts,vlx, marker='x', color=rgb2hex(A_color), legend='left eye')
-					bokehfig.line(ts,vrx, marker='o', color=rgb2hex(B_color), legend='right eye')
+					bokehfig.line(ts,vlx, color=rgb2hex(A_color), legend='left eye')
+					bokehfig.scatter(ts,vlx, marker='x', color=rgb2hex(A_color))
+					bokehfig.line(ts,vrx, color=rgb2hex(B_color), legend='right eye')
+					bokehfig.scatter(ts,vrx, marker='o', color=rgb2hex(B_color))
 
 					for event in trial_ts:																			# for each event time stamp
 					 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
@@ -331,8 +338,10 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 
 					bokehfig = figure(title = 'Trial {0}. Y gaze velocity. Right eye shifted {1}'.format(trial+1,shiftval))
 					
-					bokehfig.line(ts,vly,  marker = 'x', color=rgb2hex(A_color), legend='left eye')
-					bokehfig.line(ts,vry, marker = 'o', color=rgb2hex(B_color), legend='right eye')
+					bokehfig.line(ts,vly,  color=rgb2hex(A_color), legend='left eye')
+					bokehfig.scatter(ts,vly, marker = 'x', color=rgb2hex(A_color))
+					bokehfig.line(ts,vry, color=rgb2hex(B_color), legend='right eye')
+					bokehfig.scatter(ts,vry, marker = 'o', color=rgb2hex(B_color))
 
 					for event in trial_ts:																			# for each event time stamp
 					 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
