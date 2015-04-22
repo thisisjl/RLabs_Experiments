@@ -16,12 +16,13 @@ from tkMessageBox import askquestion 		# ask new name
 from bokeh.resources import CDN
 from bokeh.embed import components, file_html
 from bokeh import mpl
-from bokeh.plotting import figure, output_file, show, VBox, reset_output, xaxis
+from bokeh.plotting import figure, output_file, show, VBox, reset_output
 
 def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TIME_format="%Y-%m-%d_%H.%M", input_extension='*.txt',
-	A_color=(1.0, 0., 0.), B_color=(0., 1.0, 0.), YvalsA=[0.80, 0.90, 0, 1], YvalsB=[0.75, 0.85, 0, 1],	apply_fade=0, fade_sec=0.5, 
+	A_color=(1.0, 0., 0.), B_color=(0., 1.0, 0.), YvalsA=[0.1, 0.2, 0, 1], YvalsB=[0.05, 0.15, 0, 1],	apply_fade=0, fade_sec=0.5, 
 	samplingfreq=120.0, shiftval=0.05, color_shift=[-0.3,0,0], plotrange=[-1.1,1.1], forshow0_forsave1=0, createvideoYN=0, 
-	create_highangle_videoYN=0, videofortrials=(0,-1), epsilon=0.0123, A_code=1, B_code=4, trial_code=8, framerate=120.0, outlier_th = 200):
+	create_highangle_videoYN=0, videofortrials=(0,-1), epsilon=0.0123, A_code=1, B_code=4, trial_code=8, framerate=120.0, 
+	outlier_th = 20, windowwidth_cm = 36.5, windowwidth_pix = 1280, fixationdistance = 60):
 
 	# Scale Yvals to plotrange
 	YvalsA = np.array(YvalsA) * plotrange[1]
@@ -133,9 +134,8 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 			# Plot X and Y gaze velocity over time stamps of all experiment -----------------------------------------------------------------------
 			## plot X velocity for both eyes ------------------------------------------------------------------------------------------------------
 
-			# compute velocity
-			v_leftx  = np.diff(ds.leftgazeX, n=1) / framerate;  v_leftx  = v_leftx[~is_outlier(v_leftx, outlier_th)]				
-			v_rightx = np.diff(ds.rightgazeX, n=1) / framerate; v_rightx = v_rightx[~is_outlier(v_rightx, outlier_th)] + shiftval;
+			v_leftx  = ds.leftgazeXvelocity[~is_outlier(ds.leftgazeXvelocity, outlier_th)]		 	 			# filter outliers		
+			v_rightx = ds.rightgazeXvelocity[~is_outlier(ds.rightgazeXvelocity, outlier_th)] + shiftval;		# filter outliers
 			
 			bokehfig = figure(title = 'X gaze velocity. Right eye shifted {0}'.format(shiftval))
 
@@ -143,7 +143,7 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 			bokehfig.line(ds.timestamps,v_rightx, marker='o', color=rgb2hex(B_color), legend='right eye')
 
 			for event in ds.trial_ts:																			# for each event time stamp
-			 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
+			 	bokehfig.line((event, event), (-YvalsA[1]/2,YvalsA[1]), 'k-', color = rgb2hex((0,0,0)))			# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
 
 			plot = bokeh_plotTC(bokehfig, ds.A_ts, Tmax, YvalsA, A_color, change_axis=1, label = 'Left input')	# plot TC. left press
 			plot = bokeh_plotTC(bokehfig, ds.B_ts, Tmax, YvalsB, B_color, change_axis=1, label = 'Right input')	# plot TC. left press
@@ -157,9 +157,8 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 
 			## plot Y velocity for both eyes ----------------------------------------------------------------------------------------------------------
 
-			# compute velocity
-			v_lefty  = np.diff(ds.leftgazeY, n=1) / framerate;  v_lefty  = v_lefty[~is_outlier(v_lefty, outlier_th)]
-			v_righty = np.diff(ds.rightgazeY, n=1) / framerate; v_righty = v_righty[~is_outlier(v_righty, outlier_th)] + shiftval;
+			v_lefty  = ds.leftgazeYvelocity[~is_outlier(ds.leftgazeYvelocity, outlier_th)]		 	 			# filter outliers		
+			v_righty = ds.rightgazeYvelocity[~is_outlier(ds.rightgazeYvelocity, outlier_th)] + shiftval;		# filter outliers
 
 			bokehfig = figure(title = 'Y Gaze velocity. Right eye shifted {0}'.format(shiftval))
 
@@ -262,6 +261,12 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 					vrg = ds.vergence[idx_start:idx_end] 							# vergence     of this trial
 					fxd = ds.fixationdist[idx_start:idx_end]						# vergence     of this trial
 
+					vlx = v_leftx[idx_start:idx_end]  								# velocity of this trial
+					vrx = v_rightx[idx_start:idx_end]
+					vly = v_lefty[idx_start:idx_end]
+					vry = v_righty[idx_start:idx_end]
+
+
 					## plot X coordinate for both eyes -----------------------------------------------------------------------------------------------------
 
 					bokehfig = figure(title = 'Trial {0}. X coordinate. Right eye shifted {1}'.format(trial+1,shiftval))
@@ -304,15 +309,11 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 
 					# Plot X and Y gaze velocity ----------------------------------------------------------------------------------------------------------
 					## plot X velocity for both eyes ------------------------------------------------------------------------------------------------------
-
-					# compute velocity
-					v_leftx  = np.diff(lgX, n=1) / framerate; v_leftx  = v_leftx[~is_outlier(v_leftx, outlier_th)]
-					v_rightx = np.diff(rgX, n=1) / framerate; v_rightx = v_rightx[~is_outlier(v_rightx, outlier_th)] + shiftval
 					
 					bokehfig = figure(title = 'Trial {0}. X gaze velocity. Right eye shifted {1}'.format(trial+1,shiftval))
 
-					bokehfig.line(ts,v_leftx, marker='x', color=rgb2hex(A_color), legend='left eye')
-					bokehfig.line(ts,v_rightx, marker='o', color=rgb2hex(B_color), legend='right eye')
+					bokehfig.line(ts,vlx, marker='x', color=rgb2hex(A_color), legend='left eye')
+					bokehfig.line(ts,vrx, marker='o', color=rgb2hex(B_color), legend='right eye')
 
 					for event in trial_ts:																			# for each event time stamp
 					 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
@@ -328,14 +329,10 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 
 					## plot Y velocity for both eyes ----------------------------------------------------------------------------------------------------------
 
-					# compute velocity
-					v_lefty  = np.diff(lgY, n=1) / framerate; v_lefty  = v_lefty[~is_outlier(v_lefty, outlier_th)]
-					v_righty = np.diff(rgY, n=1) / framerate; v_righty = v_righty[~is_outlier(v_righty, outlier_th)] + shiftval
-
 					bokehfig = figure(title = 'Trial {0}. Y gaze velocity. Right eye shifted {1}'.format(trial+1,shiftval))
 					
-					bokehfig.line(ts,v_lefty,  marker = 'x', color=rgb2hex(A_color), legend='left eye')
-					bokehfig.line(ts,v_righty, marker = 'o', color=rgb2hex(B_color), legend='right eye')
+					bokehfig.line(ts,vly,  marker = 'x', color=rgb2hex(A_color), legend='left eye')
+					bokehfig.line(ts,vry, marker = 'o', color=rgb2hex(B_color), legend='right eye')
 
 					for event in trial_ts:																			# for each event time stamp
 					 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
@@ -457,7 +454,8 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 	pass
 
 class DataStruct():
-	def __init__(self, datafile, A_code = 1, B_code = 4, trial_code = 8, epsilon = 0.0123, plotrange = [-1.1,1.1]):
+	def __init__(self, datafile, A_code = 1, B_code = 4, trial_code = 8, epsilon = 0.0123, plotrange = [-1.1,1.1], 
+		winwidth_pix = 1280, winwidth_cm = 35.6, fixdist = 60.0, dataframerate = 120.0):
 		
 		self.filenamefp 	= datafile 		# full path of data file
 		self.filename 		= '' 			# data filename 
@@ -472,6 +470,11 @@ class DataStruct():
 		self.rightgazeY 	= []			# 
 		self.leftvalidity 	= []			#
 		self.rightvalidity 	= []			#
+
+		self.leftgazeXvelocity  = []		# to allocate velocity
+		self.rightgazeXvelocity = []		# which will be computed
+		self.leftgazeYvelocity  = []		# in self.read_data()
+		self.rightgazeYvelocity = []		#
 
 
 		self.trial_ts 	= [] 				# time stamps for trials
@@ -489,12 +492,19 @@ class DataStruct():
 		self.epsilon 	= epsilon 			# epsilon
 		self.plotrange 	= plotrange 		# plotrange 
 
+		self.winwidth_pix = winwidth_pix	#
+		self.winwidth_cm  = winwidth_cm		#
+		self.fixdist 	  = fixdist			#
+		self.framerate    = dataframerate 	#
+		
+		
+
 		self.read_data()					# read data
 
 		self.expname = ''
 		self.subjectname = ''
 
-		pass
+		
 
 	def read_data(self):
 		# Read data file --------------------------------------------------------------------------------------------
@@ -505,10 +515,14 @@ class DataStruct():
 		except ValueError:
 			try: 
 				data = np.genfromtxt(self.filenamefp, delimiter="\t", 
-					dtype=None, names=True, usecols = range(9))										
+					dtype=None, names=True, usecols = range(34))										
 			except ValueError:
-				print 'cannot read data file'
-				sys.exit()
+				try:
+					data = np.genfromtxt(self.filenamefp, delimiter="\t", 
+					dtype=None, names=True, usecols = range(9))
+				except ValueError:
+					print 'cannot read data file'
+					sys.exit()
 
 		# Determine if datafile contains eyetracker data or just input (mouse) ----------------------------------------
 		et_data = True if 'LeftGazePoint2Dx' in data.dtype.names else False						# if LeftGazePoint2Dx in header, et_data is True, else is False
@@ -516,8 +530,11 @@ class DataStruct():
 		
 		# Read events data --------------------------------------------------------------------------------------------
 		if et_data:
-			ets 	  = data['EventTimeStamp'][data['EventTimeStamp']!='-'].astype(np.float) 		# event time stamp: filter out values with '-' and convert str to float
-			ecode	  = data['Code'][data['Code'] != '-'].astype(np.float)							# event code: filter out values with '-' and convert to float
+			try:
+				ets 	  = data['EventTimeStamp'][data['EventTimeStamp']!='-'].astype(np.float) 		# event time stamp: filter out values with '-' and convert str to float
+				ecode	  = data['Code'][data['Code'] != '-'].astype(np.float)							# event code: filter out values with '-' and convert to float
+			except ValueError:
+				print data.dtype.names
 		else:
 			ets 	  = data['EventTimeStamp'] 														# event time stamp: filter out values with '-' and convert str to float
 			ecode	  = data['Code']																# event code: filter out values with '-' and convert to float
@@ -610,6 +627,29 @@ class DataStruct():
 			self.leftgazeY[self.plotrange[0]  > self.leftgazeY]  = self.plotrange[0]; self.leftgazeY[self.plotrange[1] < self.leftgazeY] = self.plotrange[1]
 			self.rightgazeX[self.plotrange[0] > self.rightgazeX] = self.plotrange[0]; self.rightgazeX[self.plotrange[1] < self.rightgazeX] = self.plotrange[1]
 			self.rightgazeY[self.plotrange[0] > self.rightgazeY] = self.plotrange[0]; self.rightgazeY[self.plotrange[1] < self.rightgazeY] = self.plotrange[1]
+
+			# Compute velocity
+			# 1 - convert gaze values from arbitrary units to pixels
+			leftgazeX_pix  = self.leftgazeX  * self.winwidth_pix 								#
+			rightgazeX_pix = self.rightgazeX * self.winwidth_pix
+			leftgazeY_pix  = self.leftgazeY  * self.winwidth_pix
+			rightgazeY_pix = self.rightgazeY * self.winwidth_pix
+
+			# 2 - convert gaze values from pixels to degrees
+			V = 2 * np.arctan(self.winwidth_cm/2 * self.fixdist)								# in radians
+			deg_per_pix = V / self.winwidth_pix 					 							# in degrees
+
+			leftgazeX_deg  = leftgazeX_pix  * deg_per_pix 										#
+			rightgazeX_deg = rightgazeX_pix * deg_per_pix 										#
+			leftgazeY_deg  = leftgazeY_pix  * deg_per_pix										#
+			rightgazeY_deg = rightgazeY_pix * deg_per_pix										#
+
+			# 3 - compute velocity
+			self.leftgazeXvelocity  = np.diff(leftgazeX_deg,  n=1) * self.framerate;			#
+			self.rightgazeXvelocity = np.diff(rightgazeX_deg, n=1) * self.framerate;			#
+			self.leftgazeYvelocity  = np.diff(leftgazeY_deg,  n=1) * self.framerate;			#
+			self.rightgazeYvelocity = np.diff(rightgazeY_deg, n=1) * self.framerate;			#
+
 
 			# compute percentage of validity
 			self.dataloss = []
