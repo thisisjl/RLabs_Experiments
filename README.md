@@ -18,6 +18,9 @@ The folder **_Libraries** contains two libraries. **rlabs_libutils.py** contains
 The folder **_Analysis** contains scripts to analyse and visualize eyetracker data and mouse press data.
 
 # Required libraries
+Using Python 2.7 because the tobii skd only supports python 2.7.
+
+
 **For the stimuli** 
 - Pyglet (http://www.pyglet.org/)
 	- Installed using Python's pip: pip install pyglet
