@@ -2,7 +2,7 @@ import os, sys
 lib_path = os.path.abspath(os.path.join('..','_Libraries'))
 sys.path.append(lib_path)
 
-from rlabs_libutils import DataStruct, is_outlier
+from rlabs_libutils import DataStruct, is_outlier, rgb2hex, movingaverage, find_nearest_above
 import glob 								# to list the files in directory
 import numpy as np 							# to read data
 import matplotlib.pyplot as plt 			# to plot
@@ -544,17 +544,6 @@ def bokeh_histogram(figure, percept_timestamps, binw, fil_color = "#036564", lin
 
 	return figure	
 
-def rgb2hex(color):
-
-	if max(color) <= 1:
-		color = (np.array(color) * 255).astype(int).tolist()
-	
-	r = max(0, min(color[0] , 255))
-	g = max(0, min(color[1] , 255))
-	b = max(0, min(color[2] , 255))
-
-	return "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
-
 def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEADER = ''):
 	videowidth, videoheight = 800,600
 
@@ -912,33 +901,6 @@ def create_highangle_video(timestamps, Lgaze_array, Rgaze_array, videoname = '')
 			writer.grab_frame()																# send frame to movie writer
 
 	pass
-
-def movingaverage(array, samples):
-    window = np.ones(int(samples))/float(samples)
-    return np.convolve(array, window, 'valid')
-
-def differentialsmoothing(array, bins, divisor, fs = 120.0):
-	window = np.hstack((-np.ones(bins),0,np.ones(bins)))
-	return np.convolve(array, window, 'valid') / (divisor / fs)
-
-def find_nearest_above(array, value):
-	diff = array - value
-	mask = np.ma.less_equal(diff, 0)
-    # We need to mask the negative differences and zero
-    # since we are looking for values above
-	if np.all(mask):
-		return None, None # returns None if target is greater than any value
-	masked_diff = np.ma.masked_array(diff, mask)
-
-	idx = masked_diff.argmin()
-	val = array[idx]
-	
-	if val < value:		# if there's no value above
-		val = -1 		# use -1 for val
-		idx = 0 		# and 0 for idx
-
-
-	return val, idx
 
 if __name__ == '__main__':
 
