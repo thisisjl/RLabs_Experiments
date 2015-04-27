@@ -1,8 +1,11 @@
+import os, sys
+lib_path = os.path.abspath(os.path.join('..','_Libraries'))
+sys.path.append(lib_path)
+
+from rlabs_libutils import DataStruct 		# to read data file
 import glob 								# to list the files in directory
-import sys									# to parse input
 import numpy as np 							# to read data
 import matplotlib.pyplot as plt 			# to plot
-import os 									# to save figures in folder
 import time 								# to name figures
 import shutil 								# to delete folders
 
@@ -462,229 +465,6 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 
 	pass
 
-class DataStruct():
-	def __init__(self, datafile, A_code = 1, B_code = 4, trial_code = 8, epsilon = 0.0123, plotrange = [-1.1,1.1], 
-		winwidth_pix = 1280, winwidth_cm = 35.6, fixdist = 60.0, dataframerate = 120.0):
-		
-		self.filenamefp 	= datafile 		# full path of data file
-		self.filename 		= '' 			# data filename 
-		self.eyetrackerdata = False 		# True if et data, False if just input
-		self.numtrials 		= 0				# number of trials in data file
-
-		# eyetracker data
-		self.timestamps 	= []			# eyetracker time stamps
-		self.leftgazeX  	= []			# 
-		self.leftgazeY  	= []			# 
-		self.rightgazeX 	= []			# 
-		self.rightgazeY 	= []			# 
-		self.leftvalidity 	= []			#
-		self.rightvalidity 	= []			#
-
-		self.leftgazeXvelocity  = []		# to allocate velocity
-		self.rightgazeXvelocity = []		# which will be computed
-		self.leftgazeYvelocity  = []		# in self.read_data()
-		self.rightgazeYvelocity = []		#
-
-
-		self.trial_ts 	= [] 				# time stamps for trials
-
-		# percept data
-		self.A_trial 	= [] 				# time stamps for A in trial
-		self.B_trial 	= [] 				# time stamps for B in trial
-		self.A_ts 	 	= [] 				# time stamps for A
-		self.B_ts    	= [] 				# time stamps for B
-
-		# constants
-		self.A_code 	= A_code 			# code value for A percept
-		self.B_code 	= B_code 			# code value for B percept
-		self.trial_code = trial_code 		# code value for trials
-		self.epsilon 	= epsilon 			# epsilon
-		self.plotrange 	= plotrange 		# plotrange 
-
-		self.winwidth_pix = winwidth_pix	#
-		self.winwidth_cm  = winwidth_cm		#
-		self.fixdist 	  = fixdist			#
-		self.framerate    = dataframerate 	#
-		
-		
-
-		self.read_data()					# read data
-
-		self.expname = ''
-		self.subjectname = ''
-
-		
-
-	def read_data(self):
-		# Read data file --------------------------------------------------------------------------------------------
-		self.filename = os.path.split(self.filenamefp)[1] 										# get just data file name, not full path
-		try:
-			data = np.genfromtxt(self.filenamefp, delimiter="\t",  								# read data file, dtype allows mixed types of data,
-			dtype=None, names=True, usecols = range(38))										# names reads first row as header, usecols will read just 38 columns
-		except ValueError:
-			try: 
-				data = np.genfromtxt(self.filenamefp, delimiter="\t", 
-					dtype=None, names=True, usecols = range(34))										
-			except ValueError:
-				try:
-					data = np.genfromtxt(self.filenamefp, delimiter="\t", 
-					dtype=None, names=True, usecols = range(9))
-				except ValueError:
-					print 'cannot read data file'
-					sys.exit()
-
-		# Determine if datafile contains eyetracker data or just input (mouse) ----------------------------------------
-		et_data = True if 'LeftGazePoint2Dx' in data.dtype.names else False						# if LeftGazePoint2Dx in header, et_data is True, else is False
-
-		
-		# Read events data --------------------------------------------------------------------------------------------
-		if et_data:
-			try:
-				ets 	  = data['EventTimeStamp'][data['EventTimeStamp']!='-'].astype(np.float) 		# event time stamp: filter out values with '-' and convert str to float
-				ecode	  = data['Code'][data['Code'] != '-'].astype(np.float)							# event code: filter out values with '-' and convert to float
-			except ValueError:
-				print data.dtype.names
-		else:
-			ets 	  = data['EventTimeStamp'] 														# event time stamp: filter out values with '-' and convert str to float
-			ecode	  = data['Code']																# event code: filter out values with '-' and convert to float
-		# print data['Code']
-
-		Trial_on  = ets[ecode ==  self.trial_code] 												# get timestamp of trials start
-		Trial_off = ets[ecode == -self.trial_code] 												# get timestamp of trials end
-
-		A_on  	  = ets[ecode ==  self.A_code] 													# get timestamp of percept A on (LEFT press)
-		A_off 	  = ets[ecode == -self.A_code] 													# get timestamp of percept A off (LEFT release)
-
-		B_on  	  = ets[ecode ==  self.B_code] 													# get timestamp of percept B on (RIGHT press)
-		B_off 	  = ets[ecode == -self.B_code] 													# get timestamp of percept B off (RIGHT release)
-
-		self.numtrials = len(Trial_on) 															# compute number of trials
-
-		# datastruct
-		self.trial_ts = np.empty((Trial_on.size + Trial_off.size,), dtype=Trial_on.dtype) 		# create empty matrix of specific lenght
-		self.trial_ts[0::2] = Trial_on 															# put Trial_on on even spaces 
-		self.trial_ts[1::2] = Trial_off 														# put Trial_off on odd spaces
-
-		# Check input events --------------------------------------------------------------------------------------------
-
-		# Get input in each trial
-		x, y, z = 2, 0, self.numtrials 															# size of percept matrix
-		self.A_trial = [[[0 for k in xrange(x)] for j in xrange(y)] for i in xrange(z)]			# matrix for A percept of each trial
-		self.B_trial = [[[0 for k in xrange(x)] for j in xrange(y)] for i in xrange(z)]			# matrix for B percept of each trial
-
-		it = 0 																					# iterator
-		for trial in range(self.numtrials): 													# for each trial
-			start = self.trial_ts[it]															# timestamp start of trial
-			end   = self.trial_ts[it+1]															# timestamp end of trial
-
-			A_on_in_trial = [i for i in A_on if start<i<end]									# get A_on in trial
-
-			for ts_on in A_on_in_trial:															# for each A_on
-				val, idx_start = find_nearest_above(A_off, ts_on)								# look for the nearest above A_off
-				
-				if val is not None:																# compare nearest above to end of trial,
-					ts_off = np.minimum(end,val) 												# get minimum												
-				else:
-					ts_off = end
-
-				self.A_trial[trial].append([ts_on, ts_off]) 									# add A_on and A_off times to percept matrix
-
-			B_on_in_trial = [i for i in B_on if start<i<end]									# get A_on in trial
-
-			for ts_on in B_on_in_trial:															# for each B_on
-				val, idx_start = find_nearest_above(B_off, ts_on)								# look for the nearest above B_off
-				
-				if val is not None: 															# compare nearest above to end of trial,
-					ts_off = np.minimum(end,val)												# get minimum
-				else:
-					ts_off = end
-
-				self.B_trial[trial].append([ts_on, ts_off])										# add B_on and B_off times to percept matrix
-
-			it += 2 																			# increase iterator
-
-			for item in self.A_trial[trial]:               										# datastruct.A/B_ts will contain on and off
-				self.A_ts.append(item) 															# time staps in the following way:
-			for item in self.B_trial[trial]: 													# [[on_1, off_2], [on_2, off_2] ...]
-				self.B_ts.append(item) 															# 
-
-		# Read eyetracker data ---------------------------------------------------------------------------------------
-		if et_data:
-			self.eyetrackerdata = True 															# indicate that datastruct contains eyetracker data
-
-			self.timestamps 	= np.array(map(float, data['Timestamp']))						# get time stamps of the eye tracker data
-
-			self.leftgazeX 		= np.array(map(float, data['LeftGazePoint2Dx']))				# get left gaze X data
-			self.leftgazeY 		= np.array(map(float, data['LeftGazePoint2Dy']))				# get left gaze Y data
-			self.leftvalidity 	= np.array(map(float, data['LeftValidity']))					# get left gaze validity
-			
-			self.rightgazeX 	= np.array(map(float, data['RightGazePoint2Dx']))				# get right gaze X data
-			self.rightgazeY 	= np.array(map(float, data['RightGazePoint2Dy']))				# get right gaze Y data
-			self.rightvalidity 	= np.array(map(float, data['RightValidity']))					# get right gaze validity
-
-			self.vergence 		= np.array(map(float, data['Vergence']))						# get vergence
-			self.fixationdist 	= np.array(map(float, data['FixationDist']))					# get fixation distance
-
-			# Tobii gives data from 0 to 1, we want it from -1 to 1:
-			self.leftgazeX 		= 2 * self.leftgazeX 	- 1
-			self.leftgazeY 		= 2 * self.leftgazeY 	- 1
-			self.rightgazeX 	= 2 * self.rightgazeX - 1
-			self.rightgazeY 	= 2 * self.rightgazeY - 1
-
-			# Map values outside of range to the boundaries
-			self.leftgazeX[self.plotrange[0]  > self.leftgazeX]  = self.plotrange[0]; self.leftgazeX[self.plotrange[1] < self.leftgazeX] = self.plotrange[1]
-			self.leftgazeY[self.plotrange[0]  > self.leftgazeY]  = self.plotrange[0]; self.leftgazeY[self.plotrange[1] < self.leftgazeY] = self.plotrange[1]
-			self.rightgazeX[self.plotrange[0] > self.rightgazeX] = self.plotrange[0]; self.rightgazeX[self.plotrange[1] < self.rightgazeX] = self.plotrange[1]
-			self.rightgazeY[self.plotrange[0] > self.rightgazeY] = self.plotrange[0]; self.rightgazeY[self.plotrange[1] < self.rightgazeY] = self.plotrange[1]
-
-			# Compute velocity
-			# 1 - convert gaze values from arbitrary units to pixels
-			leftgazeX_pix  = self.leftgazeX  * self.winwidth_pix 								#
-			rightgazeX_pix = self.rightgazeX * self.winwidth_pix
-			leftgazeY_pix  = self.leftgazeY  * self.winwidth_pix
-			rightgazeY_pix = self.rightgazeY * self.winwidth_pix
-
-			# 2 - convert gaze values from pixels to degrees
-			V = 2 * np.arctan(self.winwidth_cm/2 * self.fixdist)								# in radians
-			deg_per_pix = V / self.winwidth_pix 					 							# in degrees
-
-			leftgazeX_deg  = leftgazeX_pix  * deg_per_pix 										#
-			rightgazeX_deg = rightgazeX_pix * deg_per_pix 										#
-			leftgazeY_deg  = leftgazeY_pix  * deg_per_pix										#
-			rightgazeY_deg = rightgazeY_pix * deg_per_pix										#
-
-			# 3 - compute velocity
-			self.leftgazeXvelocity  = np.diff(leftgazeX_deg,  n=1) * self.framerate;			#
-			self.rightgazeXvelocity = np.diff(rightgazeX_deg, n=1) * self.framerate;			#
-			self.leftgazeYvelocity  = np.diff(leftgazeY_deg,  n=1) * self.framerate;			#
-			self.rightgazeYvelocity = np.diff(rightgazeY_deg, n=1) * self.framerate;			#
-
-
-			# compute percentage of validity
-			self.dataloss = []
-			
-			it = 0
-			for trial in range(self.numtrials): 												# for each trial
-				start = self.trial_ts[it]														# timestamp start of trial
-				end   = self.trial_ts[it+1]														# timestamp end of trial
-
-				# get row index
-				val, idx_start = find_nearest_above(self.timestamps, start)
-				val, idx_end   = find_nearest_above(self.timestamps, end)
-				if idx_end is None: idx_end = len(self.timestamps)-1
-
-				nsamples = idx_end - idx_start
-
-				lv_trial = 100 * (self.leftvalidity[idx_start:idx_end] == 4).sum()/float(nsamples) 	# left eye:  % of lost data
-				rv_trial = 100 * (self.rightvalidity[idx_start:idx_end] == 4).sum()/float(nsamples)	# right eye: % of lost data
-
-				self.dataloss.append([lv_trial, rv_trial])
-
-				print 'For trial {0}, {1} % of data was lost'.format(trial+1, "%.1f" % lv_trial)	# (e.g. validity equal to 4)
-
-				it += 1 
-			# sys.exit()
-
 class html_container():
 	def __init__(self):
 		self.scriptX 	 = []		# javascript code for X gaze bokeh's plot
@@ -1136,6 +916,11 @@ def create_highangle_video(timestamps, Lgaze_array, Rgaze_array, videoname = '')
 def movingaverage(array, samples):
     window = np.ones(int(samples))/float(samples)
     return np.convolve(array, window, 'valid')
+
+def differentialsmoothing(array, bins, divisor, fs = 120.0):
+	window = np.hstack((-np.ones(bins),0,np.ones(bins)))
+	return np.convolve(array, window, 'valid') / (divisor / fs)
+
 
 def find_nearest_above(array, value):
 	diff = array - value
