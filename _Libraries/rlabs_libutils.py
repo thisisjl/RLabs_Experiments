@@ -136,6 +136,10 @@ class DataStruct():
         self.leftgazeYvelocity  = []        # in self.read_data()
         self.rightgazeYvelocity = []        #
 
+        self.dataloss   = []                # store data loss information
+        self.snr        = []                # store snr
+        self.cv         = []                # store coefficient of variation
+
 
         self.trial_ts   = []                # time stamps for trials
 
@@ -156,8 +160,7 @@ class DataStruct():
         self.winwidth_cm  = winwidth_cm     #
         self.fixdist      = fixdist         #
         self.framerate    = dataframerate   #
-        
-        
+      
 
         self.read_data()                    # read data
 
@@ -341,12 +344,14 @@ class DataStruct():
                 rx_snr = sp.stats.signaltonoise(rgx[rv != 4])
                 ly_snr = sp.stats.signaltonoise(lgy[lv != 4])
                 ry_snr = sp.stats.signaltonoise(rgy[rv != 4])
+                self.snr.append([lx_snr, rx_snr, ly_snr, ry_snr])
 
                 # compute variation
                 lx_cv = sp.stats.variation(lgx[lv != 4])
                 rx_cv = sp.stats.variation(rgx[rv != 4])
                 ly_cv = sp.stats.variation(lgy[lv != 4])
                 ry_cv = sp.stats.variation(rgy[rv != 4])
+                self.snr.append([lx_cv, rx_cv, ly_cv, ry_cv])
 
                 print 'Trial {0} - {1} % of data was lost. SNR: {2}. CV: {3}'.format(trial + 1,      # report data loss, snr and cv
                     "%.1f" % lv_trial, lx_snr, lx_cv)    
