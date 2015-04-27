@@ -70,7 +70,7 @@ class EventItem():
         self.ETtime     = ETtime # time of the eyetracker
         self.code       = code
         
-class DataStruct(object):
+class _DataStruct(object):
     
     def __init__(self):
 
