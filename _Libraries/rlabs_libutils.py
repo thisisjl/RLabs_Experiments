@@ -126,10 +126,12 @@ class DataStruct():
         self.timestamps     = []            # eyetracker time stamps
         self.leftgazeX      = []            # 
         self.leftgazeY      = []            # 
+        self.leftvalidity   = []            #
+        self.leftpupil      = []            #
         self.rightgazeX     = []            # 
         self.rightgazeY     = []            # 
-        self.leftvalidity   = []            #
         self.rightvalidity  = []            #
+        self.rightpupil     = []            #
 
         self.leftgazeXvelocity  = []        # to allocate velocity
         self.rightgazeXvelocity = []        # which will be computed
@@ -266,10 +268,12 @@ class DataStruct():
             self.leftgazeX      = np.array(map(float, data['LeftGazePoint2Dx']))                    # get left gaze X data
             self.leftgazeY      = np.array(map(float, data['LeftGazePoint2Dy']))                    # get left gaze Y data
             self.leftvalidity   = np.array(map(float, data['LeftValidity']))                        # get left gaze validity
+            self.leftpupil      = np.array(map(float, data['LeftPupil']))                           # get left pupil size
             
             self.rightgazeX     = np.array(map(float, data['RightGazePoint2Dx']))                   # get right gaze X data
             self.rightgazeY     = np.array(map(float, data['RightGazePoint2Dy']))                   # get right gaze Y data
             self.rightvalidity  = np.array(map(float, data['RightValidity']))                       # get right gaze validity
+            self.rightpupil     = np.array(map(float, data['RightPupil']))                          # get right pupil size
 
             self.vergence       = np.array(map(float, data['Vergence']))                            # get vergence
             self.fixationdist   = np.array(map(float, data['FixationDist']))                        # get fixation distance
