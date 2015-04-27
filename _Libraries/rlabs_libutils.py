@@ -104,6 +104,17 @@ def is_outlier(points, thresh=3.5):
 
     return modified_z_score > thresh
 
+def rgb2hex(color):
+
+    if max(color) <= 1:
+        color = (np.array(color) * 255).astype(int).tolist()
+    
+    r = max(0, min(color[0] , 255))
+    g = max(0, min(color[1] , 255))
+    b = max(0, min(color[2] , 255))
+
+    return "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
+
 # Data management functions and classes --------------------------------------------------------------------------
 
 class EventItem():
