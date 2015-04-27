@@ -220,10 +220,9 @@ class DataStruct():
         self.A_trial = [[[0 for k in xrange(x)] for j in xrange(y)] for i in xrange(z)]         # matrix for A percept of each trial
         self.B_trial = [[[0 for k in xrange(x)] for j in xrange(y)] for i in xrange(z)]         # matrix for B percept of each trial
 
-        it = 0                                                                                  # iterator
         for trial in range(self.numtrials):                                                     # for each trial
-            start = self.trial_ts[it]                                                           # timestamp start of trial
-            end   = self.trial_ts[it+1]                                                         # timestamp end of trial
+            start = self.trial_ts[2 * trial]                                                    # timestamp start of trial
+            end   = self.trial_ts[2 * trial + 1]                                                # timestamp end of trial
 
             A_on_in_trial = [i for i in A_on if start<i<end]                                    # get A_on in trial
 
@@ -248,8 +247,6 @@ class DataStruct():
                     ts_off = end
 
                 self.B_trial[trial].append([ts_on, ts_off])                                     # add B_on and B_off times to percept matrix
-
-            it += 2                                                                             # increase iterator
 
             for item in self.A_trial[trial]:                                                    # datastruct.A/B_ts will contain on and off
                 self.A_ts.append(item)                                                          # time staps in the following way:
