@@ -311,10 +311,9 @@ class DataStruct():
             # compute percentage of validity
             self.dataloss = []
             
-            it = 0
             for trial in range(self.numtrials):                                                 # for each trial
-                start = self.trial_ts[it]                                                       # timestamp start of trial
-                end   = self.trial_ts[it+1]                                                     # timestamp end of trial
+                start = self.trial_ts[2 * trial]                                                # timestamp start of trial
+                end   = self.trial_ts[2 * trial + 1]                                            # timestamp end of trial
 
                 # get row index
                 val, idx_start = find_nearest_above(self.timestamps, start)
@@ -330,8 +329,6 @@ class DataStruct():
 
                 print 'For trial {0}, {1} % of data was lost'.format(trial+1, "%.1f" % lv_trial)    # (e.g. validity equal to 4)
 
-                it += 1 
-            # sys.exit()
 
 def save_data_to_arrays(lastevent, data_struct, trial, timeNow):
     """
@@ -1202,6 +1199,5 @@ class Aperture():
         pass
     
     pass
-
 
 
