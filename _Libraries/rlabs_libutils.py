@@ -5,8 +5,8 @@ import csv                          # for reading the forced transition file
 import os, stat                     # to create read-only file
 import numpy as np                  # for camera sin and cos
 from pyglet.window import key,mouse # for event handler
-import scipy as sp                  # for SNR in DataStruct()
-
+# import scipy as sp                  # for SNR in DataStruct()
+import scipy.stats 
 # misc functions -------------------------------------------------------------------------------------------------
 def perm(x,n):
     """
@@ -400,17 +400,17 @@ class DataStruct():
                 self.dataloss.append([lv_trial, rv_trial])                                          # store % of lost data
 
                 # compute SNR
-                lx_snr = sp.stats.signaltonoise(lgx[lv != 4])
-                rx_snr = sp.stats.signaltonoise(rgx[rv != 4])
-                ly_snr = sp.stats.signaltonoise(lgy[lv != 4])
-                ry_snr = sp.stats.signaltonoise(rgy[rv != 4])
+                lx_snr = scipy.stats.signaltonoise(lgx[lv != 4])
+                rx_snr = scipy.stats.signaltonoise(rgx[rv != 4])
+                ly_snr = scipy.stats.signaltonoise(lgy[lv != 4])
+                ry_snr = scipy.stats.signaltonoise(rgy[rv != 4])
                 self.snr.append([lx_snr, rx_snr, ly_snr, ry_snr])
 
                 # compute variation
-                lx_cv = sp.stats.variation(lgx[lv != 4])
-                rx_cv = sp.stats.variation(rgx[rv != 4])
-                ly_cv = sp.stats.variation(lgy[lv != 4])
-                ry_cv = sp.stats.variation(rgy[rv != 4])
+                lx_cv = scipy.stats.variation(lgx[lv != 4])
+                rx_cv = scipy.stats.variation(rgx[rv != 4])
+                ly_cv = scipy.stats.variation(lgy[lv != 4])
+                ry_cv = scipy.stats.variation(rgy[rv != 4])
                 self.snr.append([lx_cv, rx_cv, ly_cv, ry_cv])
 
                 print 'Trial {0} - {1} % of data was lost. SNR: {2}. CV: {3}'.format(trial + 1,      # report data loss, snr and cv
