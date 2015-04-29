@@ -226,21 +226,24 @@ class DataStruct():
         self.subjectname = ''
 
     def read_data(self):
-        # Read data file --------------------------------------------------------------------------------------------
+        # read data. try/except for reading different formats -------------------------------------------------------------------------------------------------
         self.filename = os.path.split(self.filenamefp)[1]                                           # get just data file name, not full path
         try:
             data = np.genfromtxt(self.filenamefp, delimiter="\t",                                   # read data file, dtype allows mixed types of data,
             dtype=None, names=True, usecols = range(38))                                            # names reads first row as header, usecols will read just 38 columns
+            print '{0}: eyetracker data (38 colums format)'.format(os.path.split(filename)[1])
         except ValueError:                                                                          
             try:                                                                                    # if file does not have 38 columns, try 
                 data = np.genfromtxt(self.filenamefp, delimiter="\t", 
                     dtype=None, names=True, usecols = range(34))                                    # 34 colums (legacy file)
+                print '{0}: eyetracker data (34 colums format). This does not have parameters'.format(os.path.split(self.filename)[1])
             except ValueError:
                 try:
                     data = np.genfromtxt(self.filenamefp, delimiter="\t",                           # if that stil does not work
                     dtype=None, names=True, usecols = range(10))                                    # try with 10 colums (only button presses file)
+                    print '{0}: button press data (10 colums format)'.format(os.path.split(self.filename)[1])
                 except ValueError:                                                                  # if neither of these work, 
-                    print 'cannot read data file'                                                   # cannot read data file
+                    print 'cannot read data file {0}'.format(os.path.split(self.filenamefp)[1])     # cannot read data file
                     sys.exit()
 
         # Determine if datafile contains eyetracker data or just input (mouse) ----------------------------------------
@@ -255,8 +258,12 @@ class DataStruct():
             except ValueError:
                 print data.dtype.names
         else:
-            ets       = data['EventTimeStamp']                                                      # event time stamp: filter out values with '-' and convert str to float
-            ecode     = data['Code']                                                                # event code: filter out values with '-' and convert to float
+            try:
+                ets       = data['EventTimeStamp']                                                  # event time stamp
+                ecode     = data['Code']                                                            # event code
+            except ValueError:
+                ets       = data['Timestamp']                                                       # event time stamp
+                ecode     = data['EventCode']                                                       # event code
         # print data['Code']
 
         Trial_on  = ets[ecode ==  self.trial_code]                                                  # get timestamp of trials start
