@@ -54,7 +54,7 @@ def main(
     trials_file = 'trials_file.txt', 
     transitions_file = 'datatestN_NR_5_trans.txt'
     ):
-
+    transitions_file = 'out.txt'
     # Load parameters ------------------------------------------------------------------------
     if getattr(sys, 'frozen', False):                                       # path is different
         application_path = os.path.dirname(sys.executable)                  # if its an executable
@@ -199,7 +199,7 @@ def main(
         # Start stimulus loop -------------------------------------------------------------------------------------------------------------
 
         if cp['forced']:
-            fs.reset_forced_values()                                        # Initialize forced variables
+            fs.reset_forced_values(trial = trial)                           # Initialize forced variables
 
 
         timeStart = time.time()                                             # get trial start time
