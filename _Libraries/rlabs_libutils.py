@@ -1091,7 +1091,7 @@ def compute_forced_values(i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1
 
     return stereo1, stereo2, i_R, i_L, Ron, Lon, timeTransR, timeTransL, deltaXaux1, deltaXaux2
 
-class Forced_struct():
+class _Forced_struct():
     def __init__(self, transfilename = 'forcedtransitions.txt', timeRamp = 0.5, scale = 500):
         self.transfilename = transfilename                              # get transitions file name
         self.timeRamp = timeRamp                                        # get stereo speeed
@@ -1173,6 +1173,100 @@ class Forced_struct():
         stereo2 =  (self.deltaXaux1/2 - self.deltaXaux2/2) * self.scale
 
         return stereo1, stereo2
+
+class Forced_struct():
+    def __init__(self, transfilename = 'forcedtransitions.txt', timeRamp = 0.5, scale = 500):
+        self.transfilename = transfilename                              # get transitions file name
+        self.timeRamp = timeRamp                                        # get stereo speeed
+        self.scale = scale
+        self.transTimeL = []                                            # initialize Left  timestamps array
+        self.transTimeR = []                                            # initialize Right timestamps array
+        self.transTrial = []
+
+        self.read_forced_transitions()                                  # read transition time stamps
+
+        # initialize forced variables
+        self. reset_forced_values(trial = 0)
+
+        self.deltaX1 = 0.01
+        self.deltaX2 = 0.01
+        self.deltaXaux1_ini = 0
+        self.deltaXaux2_ini = 0
+
+    def read_forced_transitions(self):   
+        try:                                                            # try/except used to handle errors
+            with open(self.transfilename, 'r') as f:                    # open transitions file
+                reader = csv.reader(f, delimiter='\t')                  # reader is a csv class to parse data files
+
+                for L_item, R_item, trial in reader:                    # L_item and R_item are the time stamps
+                    if L_item != 'None':
+                        self.transTimeL.append(float(L_item))           # append left time stamp to array
+                    else:
+                        self.transTimeL.append(np.nan)                  # append left time stamp to array
+                    if R_item != 'None':
+                        self.transTimeR.append(float(R_item))           # append right time stamp to array
+                    else:
+                        self.transTimeR.append(np.nan)                  # append right time stamp to array
+                    self.transTrial.append(int(trial))                  # append trial number to array
+
+        except EnvironmentError:                                        # except: if the file name is wrong
+            print '{0} could not be opened'.format(self.transfilename)  # print error
+            sys.exit()                                                  # exit python
+
+    def reset_forced_values(self, trial = 0):
+        self.get_values_for_trial(trial)
+
+        self.i_R = 0
+        self.i_L = 0
+        self.Ron = 0
+        self.Lon = 0
+        self.timeTransR = self.transTimeL_trial[0]
+        self.timeTransL = self.transTimeR_trial[0]
+        self.deltaXaux1 = 0
+        self.deltaXaux2 = 0
+
+    def compute_forced_values(self, timeStartTrial, timeNow):
+        if (timeNow - timeStartTrial > self.timeTransR) & (timeNow - timeStartTrial < self.timeTransR + self.timeRamp):
+            self.deltaXaux1 = self.deltaX1 * (timeNow - timeStartTrial - self.timeTransR) / self.timeRamp
+            self.Ron = 1
+            
+            if self.deltaXaux2_ini > self.deltaX2/2:
+                self.deltaXaux2 = self.deltaX2 - self.deltaX2 * (timeNow - timeStartTrial - self.timeTransR) / self.timeRamp
+            
+            self.deltaXaux1_ini = self.deltaXaux1
+            
+        if (timeNow - timeStartTrial > self.timeTransR + self.timeRamp) & (self.Ron == 1):
+            self.Ron = 0
+            self.i_R = self.i_R + 1
+            if self.i_R < len(self.transTimeR_trial):
+                self.timeTransR = self.transTimeR_trial[self.i_R]
+            
+        if (timeNow - timeStartTrial > self.timeTransL) & (timeNow - timeStartTrial < self.timeTransL + self.timeRamp):
+            self.deltaXaux2 = self.deltaX2 * (timeNow - timeStartTrial - self.timeTransL) / self.timeRamp
+            self.Lon = 1
+            
+            if (self.deltaXaux1_ini > self.deltaX1/2):
+                self.deltaXaux1 = self.deltaX1 - self.deltaX1 * (timeNow - timeStartTrial - self.timeTransL) / self.timeRamp
+            
+            self.deltaXaux2_ini = self.deltaXaux2
+        
+        if (timeNow - timeStartTrial > self.timeTransL + self.timeRamp) & (self.Lon == 1):
+            self.Lon = 0
+            self.i_L = self.i_L + 1
+            if self.i_L < len(self.transTimeL_trial):
+                self.timeTransL = self.transTimeL_trial[self.i_L]
+        
+        # update stereo value
+        stereo1 = (-self.deltaXaux1/2 + self.deltaXaux2/2) * self.scale
+        stereo2 =  (self.deltaXaux1/2 - self.deltaXaux2/2) * self.scale
+
+        return stereo1, stereo2
+
+    def get_values_for_trial(self, trial = 0):
+        idx_trial = np.where(np.array(self.transTrial) == trial)[0]
+        self.transTimeL_trial = np.array(self.transTimeL)[idx_trial]
+        self.transTimeR_trial = np.array(self.transTimeR)[idx_trial]
+
 
 # Camera (from http://tartley.com/?p=378) ---------------------------------------------------------------------------
 
