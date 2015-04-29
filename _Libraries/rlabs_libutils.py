@@ -238,7 +238,7 @@ class DataStruct():
             except ValueError:
                 try:
                     data = np.genfromtxt(self.filenamefp, delimiter="\t",                           # if that stil does not work
-                    dtype=None, names=True, usecols = range(9))                                     # try with 9 colums (only button presses file)
+                    dtype=None, names=True, usecols = range(10))                                    # try with 10 colums (only button presses file)
                 except ValueError:                                                                  # if neither of these work, 
                     print 'cannot read data file'                                                   # cannot read data file
                     sys.exit()
