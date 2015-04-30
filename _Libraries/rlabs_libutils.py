@@ -259,9 +259,14 @@ class DataStruct():
                 print data.dtype.names
         else:
             try:
-                ets       = data['EventTimeStamp']                                                  # event time stamp
-                ecode     = data['Code']                                                            # event code
+                if '-' in data['EventTimeStamp']:
+                    ets       = data['EventTimeStamp'][data['EventTimeStamp']!='-'].astype(np.float)# event time stamp
+                    ecode     = data['Code'][data['Code'] != '-'].astype(np.float)                 # event code
+                else:
+                    ets       = data['EventTimeStamp']                                             # event time stamp
+                    ecode     = data['Code']                                                       # event code
             except ValueError:
+                print 'except'
                 ets       = data['Timestamp']                                                       # event time stamp
                 ecode     = data['EventCode']                                                       # event code
         # print data['Code']
