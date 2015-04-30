@@ -1215,6 +1215,7 @@ class Forced_struct():
 
     def reset_forced_values(self, trial = 0):
         self.get_values_for_trial(trial)
+        self.trial = trial
 
         self.i_R = 0
         self.i_L = 0
@@ -1226,6 +1227,7 @@ class Forced_struct():
         self.deltaXaux2 = 0
 
     def compute_forced_values(self, timeStartTrial, timeNow):
+
         if (timeNow - timeStartTrial > self.timeTransR) & (timeNow - timeStartTrial < self.timeTransR + self.timeRamp):
             self.deltaXaux1 = self.deltaX1 * (timeNow - timeStartTrial - self.timeTransR) / self.timeRamp
             self.Ron = 1
@@ -1240,7 +1242,7 @@ class Forced_struct():
             self.i_R = self.i_R + 1
             if self.i_R < len(self.transTimeR_trial):
                 self.timeTransR = self.transTimeR_trial[self.i_R]
-            
+           
         if (timeNow - timeStartTrial > self.timeTransL) & (timeNow - timeStartTrial < self.timeTransL + self.timeRamp):
             self.deltaXaux2 = self.deltaX2 * (timeNow - timeStartTrial - self.timeTransL) / self.timeRamp
             self.Lon = 1
@@ -1255,10 +1257,12 @@ class Forced_struct():
             self.i_L = self.i_L + 1
             if self.i_L < len(self.transTimeL_trial):
                 self.timeTransL = self.transTimeL_trial[self.i_L]
-        
+       
         # update stereo value
         stereo1 = (-self.deltaXaux1/2 + self.deltaXaux2/2) * self.scale
         stereo2 =  (self.deltaXaux1/2 - self.deltaXaux2/2) * self.scale
+
+        # print '{3}\t{0}\t{1}\t{2}'.format(timeNow - timeStartTrial,stereo1,stereo2,self.trial)
 
         return stereo1, stereo2
 
