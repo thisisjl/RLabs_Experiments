@@ -3,7 +3,7 @@ import os, sys
 lib_path = os.path.abspath(os.path.join('..','_Libraries'))
 sys.path.append(lib_path)
 
-from rlabs_libutils import DataStruct 		# to read data file
+from rlabs_libutils import DataStruct, movingaverage
 
 import numpy as np
 from scipy import signal
@@ -14,6 +14,9 @@ import itertools
 
 from Tkinter import Tk 						# for open data file GUI
 from tkFileDialog import askopenfilenames 	# for open data file GUI
+
+from itertools import count 				# create counter for figures
+figcount = count()
 
 def main():
 	
@@ -46,8 +49,9 @@ def main():
 	# define parameters
 	wl_array 	= [5, 7, 9, 11] 									# array of window lengths
 	po_for_wl 	= 3 	 											# polynomial order used with different window lengths
-	po_array 	= [2,3,4]			 								# array of polynomial orders
-	wl_for_po 	= 2 * np.floor(np.array(po_array) / 2) + 1 			# array of window lengths to use with different polynomial order values
+	po_array 	= [2, 4]	 								# array of polynomial orders
+	#wl_for_po 	= 2 * np.floor(np.array(po_array) / 2) + 1 			# array of window lengths to use with different polynomial order values
+	wl_for_po  	= [7, 11]
 
 	savgol_plot(velocity, wl_array, po_for_wl, po_array, wl_for_po) 		
 
@@ -59,16 +63,23 @@ def main():
 	# Need to set the initial and maximum values for bins and divisor
 
 	# define parameters
-	bins_array 		= [2] 											# array of bins values
-	dvsr_for_bins 	= 3 											# divisor value used with different bins values
-	dvsr_array 		= [3,4] 										# array of divisors
+	bins_array 		= [1, 3, 5, 7]									# array of bins values
+	dvsr_for_bins 	= 5 											# divisor value used with different bins values
+	dvsr_array 		= [4,5,6] 										# array of divisors
 	bins_for_dvsr 	= 2 											# bins used with different divisors
 
 	differential_plot(data_deg, velocity, bins_array, 				# filter data
 		dvsr_for_bins, dvsr_array, bins_for_dvsr)
 
 
-	plt.show() 														# show plots
+	# Hayashi filter ----------------------------------------------------------------------------------------------
+
+	smooth_vel = hayashi(velocity, framerate, avg_win1 = 0.5, avg_win2 = 1)
+
+
+	
+
+	plt.show() 														# show all plots
 
 def differentialsmoothing(array, bins, divisor, fs = 120.0):
 	window = np.hstack((np.ones(bins),0,-np.ones(bins)))
@@ -134,7 +145,7 @@ def savgol_plot(velocity, wl_array, po_for_wl, po_array, wl_for_po):
 		vfilt_po_cv.append(vf_cv) 									# add cv
 
 	# plot --------------------------------------------------------------------------------------------------------------
-	f1 = plt.figure(1)
+	f1 = plt.figure(next(figcount))
 	plt.scatter(np.arange(len(velocity)), velocity, label = 'velocity (deg) SNR={0}dB.CV={1}'.format("%.2f" % v_snr,"%.2f" % v_cv))
 
 	for savgol_set, i, snr, cv in itertools.izip(vfilt_wl, wl_array, vfilt_wl_snr, vfilt_wl_cv):
@@ -144,7 +155,7 @@ def savgol_plot(velocity, wl_array, po_for_wl, po_array, wl_for_po):
 	plt.title('Velocity filtered by Savitzky-Golay. Different window lengths. polyorder = 2')		
 	plt.draw()
 
-	f2 = plt.figure(2)
+	f2 = plt.figure(next(figcount))
 	plt.scatter(np.arange(len(velocity)), velocity, label = 'velocity (deg) SNR={0}dB.CV={1}'.format("%.2f" % v_snr,"%.2f" % v_cv))
 
 	for savgol_set, i, w, snr, cv in itertools.izip(vfilt_po, po_array, wl_for_po, vfilt_po_snr, vfilt_po_cv):
@@ -200,7 +211,7 @@ def differential_plot(data_deg, velocity, bins_array, dvsr_for_bins, dvsr_array,
 		diff_dvsr_cv.append(vf_cv) 									# add cv
 
 	# plot --------------------------------------------------------
-	f1 = plt.figure(3)
+	f1 = plt.figure(next(figcount))
 	plt.scatter(np.arange(len(velocity)), velocity, label = 'velocity (deg) SNR={0}dB.CV={1}'.format("%.2f" % v_snr,"%.2f" % v_cv))
 
 	for v_filt, i, snr, cv in itertools.izip(diff_bins,bins_array,diff_bins_snr,diff_bins_cv):
@@ -210,7 +221,7 @@ def differential_plot(data_deg, velocity, bins_array, dvsr_for_bins, dvsr_array,
 	plt.title('Velocity filtered by Differential filter. divisor = {0}'.format(divisor_fixed))		
 	plt.draw()
 
-	f2 = plt.figure(4)
+	f2 = plt.figure(next(figcount))
 	plt.scatter(np.arange(len(velocity)), velocity, label = 'velocity (deg) SNR={0}dB.CV={1}'.format("%.2f" % v_snr,"%.2f" % v_cv))
 
 	for v_filt, i, snr, cv in itertools.izip(diff_dvsr,dvsr_array,diff_dvsr_snr,diff_dvsr_cv):
@@ -227,6 +238,58 @@ def differential_plot(data_deg, velocity, bins_array, dvsr_for_bins, dvsr_array,
 	vfdvsr_dict = {'divisors': dvsr_array, 'SNR': diff_dvsr_snr, 'CV': diff_dvsr_cv}
 
 	return vfbins_dict, vfdvsr_dict
+
+def hayashi(velocity, fr, avg_win1 = 0.3, avg_win2 = 0.3):
+	
+	num_samples 	= fr * avg_win1
+	num2_samples	= fr * avg_win2
+
+	# (1) "calculate sign of eye velocity": 
+	sign_vel = calculateSign(velocity) 
+	f2 = plt.figure(next(figcount))
+	plt.scatter(np.arange(len(sign_vel)), sign_vel)
+	plt.title('Sign of eye velocity')
+	plt.draw()
+
+	# (2) calculate sign of the moving average of sign_vel
+	# (within a 300-ms time window) 
+	vel_avg = movingaverage(sign_vel, num_samples)
+	sign_vel_avg = calculateSign(vel_avg)
+	f3 = plt.figure(next(figcount))
+	plt.scatter(np.arange(len(sign_vel_avg)), sign_vel_avg)
+	plt.title('Sign of average velocity')
+	plt.draw()
+
+	# (3) smooth the output using a 1-s time window
+	smooth_vel = movingaverage(sign_vel_avg, num2_samples)
+	f4 = plt.figure(next(figcount))
+	plt.scatter(np.arange(len(smooth_vel)), smooth_vel)
+	plt.title('Smoothed velocity')
+	plt.draw()
+
+	# (4) Calculate cross-correlation between button press reports 
+	# and the filtered velocity data to estimate optimal time shift
+
+	# (5) Filter output to [1, 0, -1] under the threshold of +/- 0.5
+	# to reproduce the button presss reports on perception
+
+	# (6) Calculate the matching index - the % of the number of time
+	# points within which the filtered output matches the actual button
+	# press reports if the filtered output was non-zero
+	
+	return smooth_vel
+
+def calculateSign(array):
+	signal 		= []
+	for value in array:
+		if value < 0:
+			signal.append(-1)
+		if value > 0:
+			signal.append(1)
+		if value == 0:
+			signal.append(0)
+	return signal
+
 
 if __name__ == '__main__':
 	main()
