@@ -47,14 +47,16 @@ import time                                                                 # fo
 from numpy.random import permutation as np_permutation                      # for random trials
 from collections import OrderedDict
 import ConfigParser                                                         # read parameter files
+
+from Tkinter import Tk                      # for open file GUI
+from tkFileDialog import askopenfilenames   # for open file GUI
+
 def main(
     ExpName = 'Plaid', 
     subjectname = '', 
     config_file = 'config_file.txt', 
     trials_file = 'trials_file.txt', 
-    transitions_file = 'datatestN_NR_5_trans.txt'
     ):
-    transitions_file = 'out.txt'
     # Load parameters ------------------------------------------------------------------------
     if getattr(sys, 'frozen', False):                                       # path is different
         application_path = os.path.dirname(sys.executable)                  # if its an executable
@@ -82,8 +84,11 @@ def main(
     trials_array = np_permutation(numtrials) if cp['randomize_trials'] else range(numtrials)    # randomize trials or not
 
     # read forced transitions file
-    transitions_file_full = os.path.join(application_path, transitions_file)
-    if cp['forced']: fs = Forced_struct(transfilename = transitions_file_full, timeRamp = cp['speed']) 
+    if cp['forced']:
+        Tk().withdraw()
+        transitions_file = askopenfilenames(title='Chose transition file', initialdir = application_path)[0]
+        transitions_file_full = os.path.join(application_path, transitions_file)
+        fs = Forced_struct(transfilename = transitions_file_full, timeRamp = cp['speed']) 
 
     # Initialize pyglet window ------------------------------------------------------------------------        
     screens = pyglet.window.get_platform().get_default_display().get_screens()
