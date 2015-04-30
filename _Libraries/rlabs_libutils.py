@@ -1277,6 +1277,7 @@ class Forced_struct():
         self.transTimeR_trial = np.array(self.transTimeR)[idx_trial]
 
 def create_transitions_file(infilename = None, outfilename = None, A_code = 1, B_code = 4, trial_code = 8, relative = 1):
+    from itertools import izip_longest
     
     ds = DataStruct(infilename, A_code = A_code, B_code = B_code, trial_code = trial_code)
 
