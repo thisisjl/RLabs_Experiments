@@ -115,6 +115,47 @@ def rgb2hex(color):
 
     return "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
 
+def filechooser(initial_dir = ''):
+    import pygtk
+    pygtk.require('2.0')
+
+    import gtk
+
+    # Check for new pygtk: this is new class in PyGtk 2.4
+    if gtk.pygtk_version < (2,3,90):
+       print "PyGtk 2.3.90 or later required for this example"
+       raise SystemExit
+
+    dialog = gtk.FileChooserDialog("Open..",
+                                   None,
+                                   gtk.FILE_CHOOSER_ACTION_OPEN,
+                                   (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
+                                    gtk.STOCK_OPEN, gtk.RESPONSE_OK))
+    dialog.set_default_response(gtk.RESPONSE_OK)
+    dialog.set_current_folder(initial_dir)
+
+    filter = gtk.FileFilter()
+    filter.set_name("All files")
+    filter.add_pattern("*")
+    dialog.add_filter(filter)
+
+    filter = gtk.FileFilter()
+    filter.set_name("Data file")
+    filter.add_pattern("*.txt")
+    filter.add_pattern("*.dat")
+    dialog.add_filter(filter)
+
+    response = dialog.run()
+    if response == gtk.RESPONSE_OK:
+        # print dialog.get_filename(), 'selected'
+        pass
+    elif response == gtk.RESPONSE_CANCEL:
+        print 'Closed, no files selected'
+    
+    return dialog.get_filename()
+    
+    dialog.destroy()
+
 # Data management functions and classes --------------------------------------------------------------------------
 
 class EventItem():
@@ -1268,6 +1309,9 @@ class Forced_struct():
         stereo2 =  (self.deltaXaux1/2 - self.deltaXaux2/2) * self.scale
 
         # print '{3}\t{0}\t{1}\t{2}'.format(timeNow - timeStartTrial,stereo1,stereo2,self.trial)
+        # print '{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}'.format(
+        #     self.trial, timeNow - timeStartTrial, stereo1, stereo2, self.i_R, self.i_L, self.Ron, self.Lon, 
+        #     self.timeTransR, self.timeTransL, self.deltaXaux1, self.deltaXaux2, self.deltaXaux1_ini, self.deltaXaux2_ini)
 
         return stereo1, stereo2
 
