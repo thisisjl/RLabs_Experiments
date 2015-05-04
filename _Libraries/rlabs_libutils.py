@@ -115,7 +115,7 @@ def rgb2hex(color):
 
     return "#{0:02x}{1:02x}{2:02x}".format(r, g, b)
 
-def filechooser(initial_dir = ''):
+def filechooser(title = 'Select files', initialdir = ''):
     import pygtk
     pygtk.require('2.0')
 
@@ -126,7 +126,7 @@ def filechooser(initial_dir = ''):
        print "PyGtk 2.3.90 or later required for this example"
        raise SystemExit
 
-    dialog = gtk.FileChooserDialog("Open..",
+    dialog = gtk.FileChooserDialog(title,
                                    None,
                                    gtk.FILE_CHOOSER_ACTION_OPEN,
                                    (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
