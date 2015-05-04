@@ -48,9 +48,6 @@ from numpy.random import permutation as np_permutation                      # fo
 from collections import OrderedDict
 import ConfigParser                                                         # read parameter files
 
-from Tkinter import Tk                      # for open file GUI
-from tkFileDialog import askopenfilenames   # for open file GUI
-
 def main(
     ExpName = 'Plaid', 
     subjectname = '', 
@@ -85,8 +82,7 @@ def main(
 
     # read forced transitions file
     if cp['forced']:
-        Tk().withdraw()
-        transitions_file = askopenfilenames(title='Chose transition file', initialdir = application_path)[0]
+        transitions_file = filechooser()
         transitions_file_full = os.path.join(application_path, transitions_file)
         fs = Forced_struct(transfilename = transitions_file_full, timeRamp = cp['speed']) 
 
@@ -111,6 +107,7 @@ def main(
     # Name of the data files
     eyetrackeroutput   = os.path.join(application_path, os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "eyetracker_data" + ".txt")))
     filename_data      = os.path.join(application_path, os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "button_press_data" + ".txt")))
+    filename_transtns  = os.path.join(application_path, os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "transitions_file" + ".txt")))
    
     # 3.4 - Initialize text to be shown at startup (not whown right now)
     textInstruc = "Continually report the motion of the grating in front.\nPress the left mouse button for left-ward motion.\nPress the right mouse button for right-ward motion\n\nClick mouse-wheel to start"
@@ -296,7 +293,10 @@ def main(
         controller.stopTracking()                                               # stop eye tracking and write output file
         controller.destroy()                                                    # destroy controller
 
-    write_data_file_with_parameters(filename_data, events_struct, parameters) # write data file, it has raw and formatted data
+    write_data_file_with_parameters(filename_data, events_struct, parameters)   # write data file, it has raw and formatted data
+    
+    if cp['create_transitions']:
+        create_transitions_file(infilename = filename_data, outfilename = filename_transtns)
 
     MyWin.close()                                                               # close pyglet window
 
