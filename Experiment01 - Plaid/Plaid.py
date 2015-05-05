@@ -67,11 +67,11 @@ def main(
     # trials_name_full = os.path.join(application_path, trials_name)  # Full path name of the trials file
 
     cp = ConfigParser.SafeConfigParser()                                                                            # create a configParser instance
-    cp.readfp(FakeSecHead(open(config_file)))                                                                       # read config_file and add fake header (INI file)
+    cp.readfp(FakeSecHead(open(os.path.join(application_path,config_file))))                                                                       # read config_file and add fake header (INI file)
     cp = OrderedDict([(k,float(v) if len(v) < 7 else (map(float,v.split(',')))) for k,v in cp.items('asection')])   # read parameters of config_file in OrderedDict
 
     tp = ConfigParser.SafeConfigParser()                                                                            # create a configParser instance
-    tp.readfp(FakeSecHead(open(trials_file)))                                                                       # read trials_file and add fake header (INI file)
+    tp.readfp(FakeSecHead(open(os.path.join(application_path,trials_file))))                                                                       # read trials_file and add fake header (INI file)
     tp = OrderedDict([(k,float(v) if len(v) < 5 else map(float,v.split(','))) for k,v in tp.items('asection')])     # read parameters of config_file in OrderedDict
 
     parameters = merge_dicts_ordered(cp, tp)                                                                        # join parameters (to write them later)
