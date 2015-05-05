@@ -156,6 +156,44 @@ def filechooser(title = 'Select files', initialdir = ''):
     
     dialog.destroy()
 
+def px2deg(px_val, h = 25, d = 60, r = 768):
+    """
+        Convert a value in pixels (px_val) to degrees (deg_val).
+        from: http://osdoc.cogsci.nl/miscellaneous/visual-angle/
+
+        h: Monitor height in cm
+        d: Distance between monitor and participant in cm
+        r: Vertical resolution of the monitor
+    """
+    # Calculate the number of degrees that correspond to a single pixel. This will
+    # generally be a very small value, something like 0.03.
+    deg_per_px = np.degrees(np.arctan2(.5*h, d)) / (.5*r)
+
+    # Convert value from pixes to degrees
+    deg_val = px_val * deg_per_px
+
+    return deg_val
+
+def deg2px(deg_val, h = 25, d = 60, r = 768):
+    """
+        Convert a value in degrees (deg_val) to pixels (px_val).
+        from: http://osdoc.cogsci.nl/miscellaneous/visual-angle/
+
+        h: Monitor height in cm
+        d: Distance between monitor and participant in cm
+        r: Vertical resolution of the monitor
+    """
+    # Calculate the number of degrees that correspond to a single pixel. This will
+    # generally be a very small value, something like 0.03.
+    deg_per_px = np.degrees(np.arctan2(.5*h, d)) / (.5*r)
+
+    # Calculate the size of the stimulus in degrees
+    px_val = deg_val / deg_per_px
+
+    return px_val
+
+
+
 # Data management functions and classes --------------------------------------------------------------------------
 
 class EventItem():
