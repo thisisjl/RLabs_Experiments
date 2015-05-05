@@ -280,8 +280,8 @@ class DataStruct():
                 print '{0}: eyetracker data (34 colums format). This does not have parameters'.format(os.path.split(self.filename)[1])
             except ValueError:
                 try:
-                    data = np.genfromtxt(self.filenamefp, delimiter="\t",                           # if that stil does not work,
-                    dtype=None, names=True)                                                         # only button presses file
+                    data = np.genfromtxt(self.filenamefp, delimiter="\t",                           # if that stil does not work
+                    dtype=None, names=True, usecols = range(6))                                     # try with 6 colums (only button presses file, no parameters)
                     print '{0}: button press data'.format(os.path.split(self.filename)[1])
                 except ValueError:                                                                  # if neither of these work, 
                     print 'cannot read data file {0}'.format(os.path.split(self.filenamefp)[1])     # cannot read data file
