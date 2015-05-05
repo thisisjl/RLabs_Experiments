@@ -132,7 +132,7 @@ def filechooser(title = 'Select files', initialdir = ''):
                                    (gtk.STOCK_CANCEL, gtk.RESPONSE_CANCEL,
                                     gtk.STOCK_OPEN, gtk.RESPONSE_OK))
     dialog.set_default_response(gtk.RESPONSE_OK)
-    dialog.set_current_folder(initial_dir)
+    dialog.set_current_folder(initialdir)
 
     filter = gtk.FileFilter()
     filter.set_name("All files")
