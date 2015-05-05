@@ -53,6 +53,7 @@ def main(
     subjectname = '', 
     config_file = 'config_file.txt', 
     trials_file = 'trials_file.txt', 
+    transitions_file = 'transitions_file.txt'
     ):
     # Load parameters ------------------------------------------------------------------------
     if getattr(sys, 'frozen', False):                                       # path is different
@@ -82,7 +83,7 @@ def main(
 
     # read forced transitions file
     if cp['forced']:
-        transitions_file = filechooser()
+        # transitions_file = filechooser()
         transitions_file_full = os.path.join(application_path, transitions_file)
         fs = Forced_struct(transfilename = transitions_file_full, timeRamp = cp['speed']) 
 
