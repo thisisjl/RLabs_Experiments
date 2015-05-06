@@ -5,19 +5,19 @@
 
 
 # number of trials
-numtrials = 3
+numtrials = 2
 
 # parameters for gratings 1
-mylambda1 = 100,100,100
+mylambda1_deg = 3.0646585760470431, 3.0646585760470431, 3.0646585760470431
 duty_cycle1 = 0.2, 0.2, 0.2
-speed1 = 60,70,80
+speed1_deg = 1.8387951456282259, 2.14526100323293, 2.4517268608376344
 orientation1 = 4,15,8
 
 # parameters for gratings 2
-mylambda2 = 100,100,100
+mylambda2_deg = 3.0646585760470431, 3.0646585760470431, 3.0646585760470431
 duty_cycle2 = 0.2,0.2,0.2
-speed2 = -60,-70,-80
+speed2_deg = -1.8387951456282259, -2.14526100323293, -2.4517268608376344
 orientation2 = -4,-15,-8
 
 # time for each trial
-timetrial = 20
+timetrial = 10
