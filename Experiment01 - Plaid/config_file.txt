@@ -4,9 +4,22 @@
 # Note: color parameters must follow the format:
 # color = R, G, B
 
-# screen_parameters
-xsize = 1366
-ysize = 768
+# IMPORTANT: set your monitor specifications as shown below:
+# mheight: monitor height in cm
+# mpdist: Distance between monitor and participant in cm
+# mvres:  Vertical resolution of the monitor
+#
+# Comment out the monitor you are not using and fill 'other monitor'
+
+# Samsung s24d390:
+mheight = 33.20
+mpdist = 60
+mvres = 1080
+
+# other monitor:
+# height =
+# mpdist =
+# mvres =
 
 # refresh rate
 framerate = 60.0 
@@ -46,8 +59,8 @@ speed = 0.5
 # time
 time_fixp = 0.7
 
-# mode
-forced = 1
+# forced mode yes: 1, no: 0
+forced = 0
 
 # 1 if connected to the eyetracker, 0 if not. Temporal variable. 
 eyetracker = 0
@@ -61,3 +74,7 @@ randomize_trials = 0
 # 2: Circle without protection zone
 # 3: Cross
 fixationpoint = 1
+
+# create transitions file yes: 1, no: 0
+create_transitions = 1
+
