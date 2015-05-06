@@ -61,21 +61,21 @@ def main(
     elif __file__:                                                          # or a Python script,
         application_path = os.path.dirname(__file__)                        # look for it
 
-    # config_name = "config_file"                                             # Name of the config file
-    # trials_name = "trials_file"                                             # Name of the trials file
-    
-    # config_name_full = os.path.join(application_path, config_name)  # Full path name of the config file
-    # trials_name_full = os.path.join(application_path, trials_name)  # Full path name of the trials file
-
-    cp = ConfigParser.SafeConfigParser()                                                                            # create a configParser instance
-    cp.readfp(FakeSecHead(open(os.path.join(application_path,config_file))))                                                                       # read config_file and add fake header (INI file)
-    cp = OrderedDict([(k, (map(float,v.split(','))) if 'color' in k else float(v)) for k,v in cp.items('asection')])   # read parameters of config_file in OrderedDict
+    cp = ConfigParser.SafeConfigParser()                                                                                # create a configParser instance
+    cp.readfp(FakeSecHead(open(os.path.join(application_path,config_file))))                                            # read config_file and add fake header (INI file)
+    cp = OrderedDict([(k, (map(float,v.split(','))) if 'color' in k else float(v)) for k,v in cp.items('asection')])    # read parameters of config_file in OrderedDict
    
-    tp = ConfigParser.SafeConfigParser()                                                                            # create a configParser instance
-    tp.readfp(FakeSecHead(open(os.path.join(application_path,trials_file))))                                                                       # read trials_file and add fake header (INI file)
-    tp = OrderedDict([(k, map(float,v.split(',')) if ',' in v else float(v)) for k,v in tp.items('asection')])     # read parameters of config_file in OrderedDict
+    tp = ConfigParser.SafeConfigParser()                                                                                # create a configParser instance
+    tp.readfp(FakeSecHead(open(os.path.join(application_path,trials_file))))                                            # read trials_file and add fake header (INI file)
+    tp = OrderedDict([(k, map(float,v.split(',')) if ',' in v else float(v)) for k,v in tp.items('asection')])          # read parameters of config_file in OrderedDict
 
-    parameters = merge_dicts_ordered(cp, tp)                                                                        # join parameters (to write them later)
+    # convert some parameters that are in degrees to pixels:
+    tp['mylambda1'] = [deg2px(l, h = cp['mheight'], d = cp['mpdist'], r = cp['mvres']) for l in tp['mylambda1_deg']]    # convert lambda1 in degrees to pixels
+    tp['speed1']    = [deg2px(l, h = cp['mheight'], d = cp['mpdist'], r = cp['mvres']) for l in tp['speed1_deg']]       # convert speed1 in degrees to pixels
+    tp['mylambda2'] = [deg2px(l, h = cp['mheight'], d = cp['mpdist'], r = cp['mvres']) for l in tp['mylambda2_deg']]    # convert lambda2 in degrees to pixels
+    tp['speed2']    = [deg2px(l, h = cp['mheight'], d = cp['mpdist'], r = cp['mvres']) for l in tp['speed2_deg']]       # convert speed2 in degrees to pixels
+
+    parameters = merge_dicts_ordered(cp, tp)                                                                            # join parameters (to write them later)
 
     # randomize trials ?
     numtrials = int(tp['numtrials'])                                                            # get number of trials
