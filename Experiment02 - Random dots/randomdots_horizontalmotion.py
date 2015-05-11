@@ -11,34 +11,36 @@ from pyglet.gl import *
 from pyglet import clock
 import time
 import numpy as np
-
+import ConfigParser                                                         			# read parameter files
+from collections import OrderedDict
 
 def main(
-	ExpName = 'random_dots',
-	num_dots=100, 
-	Tau = 100, 
-	haveeyetracker = 0,
-	bgcolor = (0.88,0.88,0.88), 
-	speed = 500,
-	framerate = 60.0,
-	subjectname = 'None',
-	timeCurrentTrial = 10,
-	dotcolor = (0,0,0)
+	ExpName          = 'random_dots',
+	subjectname      = 'None',
+	config_file  	 = 'config_file.txt'
 	):
 	
-	# Load parameters ------------------------------------------------------------------
+	# load parameters ------------------------------------------------------------------
     if getattr(sys, 'frozen', False):                                       			# path is different
         application_path = os.path.dirname(sys.executable)                  			# if its an executable
     elif __file__:                                                          			# or a Python script,
         application_path = os.path.dirname(__file__)                        			# look for it
 
+	# read config file
+	tp = ConfigParser.SafeConfigParser()                                                                                # create a configParser instance
+	tp.readfp(FakeSecHead(open(os.path.join(application_path,config_file))))                                            # read trials_file and add fake header (INI file)
+	tp = OrderedDict([(k, map(float,v.split(',')) if ',' in v else float(v)) for k,v in tp.items('asection')])          # read parameters of config_file in OrderedDict
+
+	num_dots = int(tp['num_dots']) 														# convert num_dots from float to int
+	speed    = deg2px(tp['speed']) 														# convert speed from degrees to pixels
+	dotcolor = map(int,tp['dotcolor']) 													# dotcolor must be int
+	
+	# initialize window ----------------------------------------------------------------
 	screens = pyglet.window.get_platform().get_default_display().get_screens()			# get number of screens
 	win = MyWindow(fullscreen = True, screen = screens[0], visible = 0)					# create window
 	clockDisplay = clock.ClockDisplay(color=(1,1,1,1))                      			# to display frames per second
-	clock.set_fps_limit(framerate)                                          			# set limit for frames per second
-	frameMs = 1.0/framerate                                        						# manual frame rate control: frameMs is the time in ms a frame will be displayed
-
-	parameters = {}
+	clock.set_fps_limit(tp['framerate'])                                          		# set limit for frames per second
+	frameMs = 1.0/tp['framerate']                                        				# manual frame rate control: frameMs is the time in ms a frame will be displayed
 
 	# Initialize text to be shown at startup (not whown right now)
 	textInstruc = "Continually report the predominant motion.\nPress the left mouse button for left-ward motion.\nPress the right mouse button for right-ward motion\n\nClick mouse-wheel to start"
@@ -59,7 +61,7 @@ def main(
 	x = np.random.rand(num_dots) * (limr - liml) + liml									# compute horizontal position, 
 	y = np.random.rand(num_dots) * (limd - limu) + limu 								# compute vertical position
 	z_fb = 2 * np.mod(np.random.permutation(num_dots),2) - 1 							# compute direction of movement
-	age = np.random.randint(Tau, size=num_dots) 										# compute dot ages
+	age = np.random.randint(tp['tau'], size=num_dots) 										# compute dot ages
 
 	vertices = np.empty((x.size + y.size,), dtype=x.dtype)               				# create empty array to allocate x and y coordinates	
 	dx = np.empty(z_fb.size) 															# initialize dx, to compute movement
@@ -80,9 +82,7 @@ def main(
 
 
     # prepare for eyetracker -----------------------------------------------------------
-	if haveeyetracker:
-		if not os.path.isdir('data'):                                           		# if there is not a folder called 'data',
-		    os.makedirs('data')                                                 		# create it
+	if tp['eyetracker']:
 		eyetrackeroutput   = os.path.join('data',										# eyetracker data file name
 			("Randomdots" + "-" + time.strftime( 			
 			"%y.%m.%d_%H.%M",
@@ -105,12 +105,12 @@ def main(
 	else:
 		win.events_handler = events_handler                               				# set window events_handler
 
-	# Wait for go Loop ---------------------------------------------------------------------------------------------
+	# Wait for go Loop -----------------------------------------------------------------
 	win.set_visible(True) 																# set window to visible
 	win.set_mouse_visible(False)                                          				# set mouse to not visible
 	wait = True                                                         				# wait for go condition: wait
 	while wait and not win.has_exit:
-		glClearColor(bgcolor[0],bgcolor[1],bgcolor[2],1)                 				# set background color
+		glClearColor(tp['bgcolor'][0],tp['bgcolor'][1],tp['bgcolor'][2],1)                 				# set background color
 		win.clear()                                                   					# clear window
 		win.dispatch_events()                                         					# dispatch window events (very important call)
 	    
@@ -124,8 +124,8 @@ def main(
 
 	# Stimulus loop  -------------------------------------------------------------------
 	timestart = time.time() 															# get time stamp for start
-	while (time.time() - timestart) < timeCurrentTrial and not win.has_exit:
-		glClearColor(bgcolor[0],bgcolor[1],bgcolor[2],1)                 				# set background color
+	while (time.time() - timestart) < tp['timecurrenttrial'] and not win.has_exit:
+		glClearColor(tp['bgcolor'][0],tp['bgcolor'][1],tp['bgcolor'][2],1)                 				# set background color
 		win.clear()                                                         			# clear window
 		win.dispatch_events()                                               			# dispatch window events (very important call)
 		timenow = time.time() 															# get time of iteration
@@ -143,7 +143,7 @@ def main(
 
 		# Update ages ------------------------------------------------------------------
 		age          = age - 1 															# decrease age
-		age[age==-1] = Tau - 1  														# resuscitate dots
+		age[age==-1] = tp['tau'] - 1  														# resuscitate dots
 		
 		# Draw dots --------------------------------------------------------------------
 		vertices[0::2] = dotxpos														# x coords will be in even indices
@@ -161,17 +161,17 @@ def main(
 		if delaytime > 0: time.sleep(delaytime)											# manual frame rate control: freeze frame
 
 
-	# Stop eyetracker processes, save data and close pyglet window ------------------------------------------------------------------------
-    if haveeyetracker:
+	# Stop eyetracker processes, save data and close pyglet window ---------------------
+    if tp['eyetracker']:
         controller.stopTracking()                                               		# stop eye tracking and write output file
         controller.destroy()                                                    		# destroy controller
 
-    write_data_file_with_parameters(filename_data, events_struct, parameters)   		# write data file, it has raw and formatted data
+    write_data_file_with_parameters(filename_data, events_struct, tp)   				# write data file, it has raw and formatted data
     
     win.close()                                                               			# close pyglet window
 
 if __name__ == '__main__':
-	print 'running Plaid'
+	print 'Running Random dots'
 
 	if len(sys.argv) > 1:                           									# optional: to add a subject name
 		subjectname = sys.argv[1]                   									# run as python Plaid subjectname
