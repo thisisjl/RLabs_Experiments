@@ -664,7 +664,7 @@ def write_data_file_with_parameters(data_namefile, data_struct, parameters, righ
     """ write data file including events (mouse, trials) and configuration and trials parameters"""
     from itertools import izip_longest                                  # import itertools to iterate over two variables
 
-    ntrials = int(parameters['numtrials'])                              # get number of trials
+    if parameters: ntrials = int(parameters['numtrials'])               # get number of trials
     timeStampStart = data_struct[0].timestamp                           # get time stamp of the start of trial 1
 
     fields = ['EventTimeStamp', 'EventName', 'EventType', 'EventID',    # create header
