@@ -161,11 +161,14 @@ def main(
 		if delaytime > 0: time.sleep(delaytime)											# manual frame rate control: freeze frame
 
 
-	if haveeyetracker:																	# Stop eyetracker processes
-		controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = 1, 
-			timestamp = time.time(), etype = 0, eid = 'END'))
-		controller.stopTracking()                                           			# stop eye tracking and write output file
-		controller.destroy()                                                			# destroy controller
+	# Stop eyetracker processes, save data and close pyglet window ------------------------------------------------------------------------
+    if haveeyetracker:
+        controller.stopTracking()                                               		# stop eye tracking and write output file
+        controller.destroy()                                                    		# destroy controller
+
+    write_data_file_with_parameters(filename_data, events_struct, parameters)   		# write data file, it has raw and formatted data
+    
+    win.close()                                                               			# close pyglet window
 
 if __name__ == '__main__':
     main()
