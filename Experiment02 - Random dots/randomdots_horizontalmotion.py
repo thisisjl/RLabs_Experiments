@@ -171,4 +171,11 @@ def main(
     win.close()                                                               			# close pyglet window
 
 if __name__ == '__main__':
-    main()
+	print 'running Plaid'
+
+	if len(sys.argv) > 1:                           									# optional: to add a subject name
+		subjectname = sys.argv[1]                   									# run as python Plaid subjectname
+	else:                                           									# if no subject name specified
+		subjectname = 'None'          													# this will be used
+
+	main(subjectname = subjectname)
