@@ -1,0 +1,53 @@
+# Define parameters
+
+# Note: color parameters must follow the format:
+# color = R, G, B
+# and not 
+# color = (R,G,B)
+
+# IMPORTANT: set your monitor specifications as shown below:
+# mheight: monitor height in cm
+# mpdist: Distance between monitor and participant in cm
+# mvres:  Vertical resolution of the monitor
+#
+# Comment out the monitor you are not using and fill 'other monitor'
+
+# Samsung s24d390:
+mheight = 33.20
+mpdist = 60
+mvres = 1080
+
+# monitor in sala G: Philips 109B2, resolution: 1280x960, width = 36.5cm, height = 27.5 cm
+# other monitor:
+# height =
+# mpdist =
+# mvres =
+
+# refresh rate
+framerate = 60.0 
+
+# colors
+# background color
+bgcolor = 0.8,0.8,0.8		
+dotcolor = 0.0,0.0,0.0
+
+# time
+timeCurrentTrial = 20
+
+# 1 if connected to the eyetracker, 0 if not. Temporal variable. 
+eyetracker = 0
+
+# Randomize trials?
+randomize_trials = 0
+
+# number of dots
+num_dots = 100
+
+# Tau: maximum lives for dots
+Tau = 100
+
+# Speed of the dots in degrees per second
+speed = 15.3232928802
+
+# number of trials
+numtrials = 0
