@@ -30,10 +30,10 @@ def main(num_dots=100, Tau = 100, haveeyetracker = 0):
 	
 	# define limits
 	liml, limr = win.width/4, win.width - win.width/4 									#
-	cyclestart, cycleend = 0, win.width 												#
+	cyclestart, cycleend = liml, limr 													#
 
 	# compute dots position: liml < x < limr
-	x = np.random.rand(num_dots) * win.width											#
+	x = np.random.rand(num_dots) * (cycleend - cyclestart) + cyclestart					#
 	y = np.random.rand(num_dots) * win.height 											#
 	z_fb = 2 * np.mod(np.random.permutation(num_dots),2) - 1 							#
 
@@ -80,10 +80,9 @@ def main(num_dots=100, Tau = 100, haveeyetracker = 0):
 		controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = 0, 
 			timestamp = time.time(), etype = 0, eid = 'START'))
 
-		win.events_handler = events_handler_with_ET                       					# set window events_handler with eye tracker
-
+		win.events_handler = events_handler_with_ET                       						# set window events_handler with eye tracker
 	else:
-		win.events_handler = events_handler                               				# set window events_handler
+		win.events_handler = events_handler                               						# set window events_handler
 
 	
 	# Stimulus loop  -------------------------------------------------------------------------------------------------------------
@@ -98,12 +97,12 @@ def main(num_dots=100, Tau = 100, haveeyetracker = 0):
 		
 		# Check if dots are dead ------------------------------------------------------------------------------------------------
 		newdots  = (age == 0) 															#
-		x[newdots]    = np.random.rand(np.sum(newdots)) * win.width           			#
+		x[newdots]    = np.random.rand(np.sum(newdots)) * (cycleend - cyclestart) + cyclestart           			#
 		y[newdots]    = np.random.rand(np.sum(newdots)) * win.height 					#
 
 		# update position --------------------------------------------------------------------------------------------------------
 		dividend       = x + z_fb * (speed * (timenow - timestart))  					#
-		dx[z_fb == 1]  = np.fmod(dividend[z_fb == 1], cycle) 							#
+		dx[z_fb == 1]  = np.fmod(dividend[z_fb == 1], cycle) + cyclestart 							#
 		dx[z_fb == -1] = cycleend - np.fmod(cycleend - dividend[z_fb == -1], cycle) 	#
 		dotxpos        = dx 															#
 
