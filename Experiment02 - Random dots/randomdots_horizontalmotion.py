@@ -38,7 +38,7 @@ def main(
 	clock.set_fps_limit(framerate)                                          			# set limit for frames per second
 	frameMs = 1.0/framerate                                        						# manual frame rate control: frameMs is the time in ms a frame will be displayed
 
-	parameters = []
+	parameters = {}
 
 	# Initialize text to be shown at startup (not whown right now)
 	textInstruc = "Continually report the predominant motion.\nPress the left mouse button for left-ward motion.\nPress the right mouse button for right-ward motion\n\nClick mouse-wheel to start"
