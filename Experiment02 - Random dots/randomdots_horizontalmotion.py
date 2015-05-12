@@ -31,9 +31,9 @@ def main(
 	tp.readfp(FakeSecHead(open(os.path.join(application_path,config_file))))                                            # read trials_file and add fake header (INI file)
 	tp = OrderedDict([(k, map(float,v.split(',')) if ',' in v else float(v)) for k,v in tp.items('asection')])          # read parameters of config_file in OrderedDict
 
-	num_dots = int(tp['num_dots']) 														# convert num_dots from float to int
-	speed    = deg2px(tp['speed']) 														# convert speed from degrees to pixels
-	dotcolor = map(int,tp['dotcolor']) 													# dotcolor must be int
+	dotcolor 	 = map(int,tp['dotcolor']) 														# dotcolor must be int
+	numtrials 	 = int(tp['numtrials'])															# get number of trials
+	trials_array = np.random.permutation(numtrials) if tp['randomize_trials'] else range(numtrials)    # randomize trials or not
 	
 	# initialize window ----------------------------------------------------------------
 	screens = pyglet.window.get_platform().get_default_display().get_screens()			# get number of screens
@@ -51,21 +51,7 @@ def main(
 	filename_data = os.path.join(application_path, os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "button_press_data" + ".txt")))
 	data_folder   = os.path.join(application_path, 'data')								# data folder name
 	if not os.path.isdir(data_folder): os.makedirs(data_folder)                    		# if there is not a folder called 'data', create it
-	
-	# define the limits of the area where the dots will move ---------------------------
-	liml, limr = win.width/4,  win.width - win.width/4 									# set left, liml, and right, limr, limits
-	limu, limd = win.height/4, win.height - win.height/4 								# set upper, limu, down, limd, limits
-	cycle      = limr - liml 															# compute cycle length
-
-	# compute dots position: liml < x < limr -------------------------------------------
-	x = np.random.rand(num_dots) * (limr - liml) + liml									# compute horizontal position, 
-	y = np.random.rand(num_dots) * (limd - limu) + limu 								# compute vertical position
-	z_fb = 2 * np.mod(np.random.permutation(num_dots),2) - 1 							# compute direction of movement
-	age = np.random.randint(tp['tau'], size=num_dots) 										# compute dot ages
-
-	vertices = np.empty((x.size + y.size,), dtype=x.dtype)               				# create empty array to allocate x and y coordinates	
-	dx = np.empty(z_fb.size) 															# initialize dx, to compute movement
-	
+		
 	# handling events ------------------------------------------------------------------
 	events_struct = []                                                      			# list that contains event that the event handler sends.
 	eventcount = 0                                                          			# counter of the events
@@ -79,7 +65,6 @@ def main(
 	    	controller.myRecordEvent2(event = e)),    
 	    'on_mouse_release'  : lambda e: (events_struct.append(e),						# call MyRecordEvent2 with the event
 	    	controller.myRecordEvent2(event = e)),}   
-
 
     # prepare for eyetracker -----------------------------------------------------------
 	if tp['eyetracker']:
@@ -105,70 +90,100 @@ def main(
 	else:
 		win.events_handler = events_handler                               				# set window events_handler
 
-	# Wait for go Loop -----------------------------------------------------------------
+
+	# stimulus loop -------------------------------------------------------------------	
 	win.set_visible(True) 																# set window to visible
 	win.set_mouse_visible(False)                                          				# set mouse to not visible
-	wait = True                                                         				# wait for go condition: wait
-	while wait and not win.has_exit:
-		glClearColor(tp['bgcolor'][0],tp['bgcolor'][1],tp['bgcolor'][2],1)                 				# set background color
-		win.clear()                                                   					# clear window
-		win.dispatch_events()                                         					# dispatch window events (very important call)
-	    
-		lbl_instr.draw()                                            					# show instructions number 1
 
-		last_event = win.get_last_event()                                                 	# get last event on MyWin
-		if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
-		    wait = False                                                                    # do not wait, exit wait for go loop
+	for trial_counter in range(numtrials):                                  			# for each trial 
 
-		win.flip()                                                    				# flip window
+		# Prepare variables before stimulus loop -------------------------------------------
+		trial 	 = trials_array[trial_counter] 												# get trial number
+		if numtrials > 1:
+			num_dots = int(tp['num_dots'][trial])											# convert num_dots from float to int
+			speed    = deg2px(tp['speed'][trial])											# convert speed from degrees to pixels
+			tau 	 = tp['tau'][trial] 														# get maximum life
+		else:
+			num_dots = int(tp['num_dots'])													# convert num_dots from float to int
+			speed    = deg2px(tp['speed'])													# convert speed from degrees to pixels
+			tau 	 = tp['tau'] 															# get maximum life
 
-	# Stimulus loop  -------------------------------------------------------------------
-	timestart = time.time() 															# get time stamp for start
-	while (time.time() - timestart) < tp['timecurrenttrial'] and not win.has_exit:
-		glClearColor(tp['bgcolor'][0],tp['bgcolor'][1],tp['bgcolor'][2],1)                 				# set background color
-		win.clear()                                                         			# clear window
-		win.dispatch_events()                                               			# dispatch window events (very important call)
-		timenow = time.time() 															# get time of iteration
-		
-		# Check if dots are dead -------------------------------------------------------
-		newdots    = (age == 0) 														# to the dots whose age is zero, 
-		x[newdots] = np.random.rand(np.sum(newdots)) * (limr - liml) + liml          	# compute new horizontal position
-		y[newdots] = np.random.rand(np.sum(newdots)) * (limd - limu) + limu				# compute new vertical position
+		# define the limits of the area where the dots will move ---------------------------
+		liml, limr = win.width/4,  win.width - win.width/4 									# set left, liml, and right, limr, limits
+		limu, limd = win.height/4, win.height - win.height/4 								# set upper, limu, down, limd, limits
+		cycle      = limr - liml 															# compute cycle length
 
-		# update position --------------------------------------------------------------
-		dividend       = x + z_fb * (speed * (timenow - timestart))  					#
-		dx[z_fb == 1]  = np.fmod(dividend[z_fb == 1], cycle) + liml 					#
-		dx[z_fb == -1] = limr - np.fmod(limr - dividend[z_fb == -1], cycle) 			#
-		dotxpos        = dx 															#
+		# compute dots position: liml < x < limr -------------------------------------------
+		x = np.random.rand(num_dots) * (limr - liml) + liml									# compute horizontal position, 
+		y = np.random.rand(num_dots) * (limd - limu) + limu 								# compute vertical position
+		z_fb = 2 * np.mod(np.random.permutation(num_dots),2) - 1 							# compute direction of movement
+		age = np.random.randint(tau, size=num_dots) 									# compute dot ages
 
-		# Update ages ------------------------------------------------------------------
-		age          = age - 1 															# decrease age
-		age[age==-1] = tp['tau'] - 1  														# resuscitate dots
-		
-		# Draw dots --------------------------------------------------------------------
-		vertices[0::2] = dotxpos														# x coords will be in even indices
-		vertices[1::2] = y																# y coords will be in odd indices
-		drawpoints(vertices, color = dotcolor, size = 5)  								# draw dots
+		vertices = np.empty((x.size + y.size,), dtype=x.dtype)               				# create empty array to allocate x and y coordinates	
+		dx = np.empty(z_fb.size) 															# initialize dx, to compute movement
 
-		# flip window and show fps -----------------------------------------------------
-		clock.tick() 																	# to show fps
-		clockDisplay.draw()                                                 			# display frames per second
-		win.flip()                                                          			# flip window
-		
-		# manual frame control ---------------------------------------------------------
-		endMs = time.time() 															# manual frame rate control: time point when frame ends.
-		delaytime = frameMs - (endMs - timenow) 										# manual frame rate control: time time frame must be frozen.
-		if delaytime > 0: time.sleep(delaytime)											# manual frame rate control: freeze frame
+		# Wait for go Loop -----------------------------------------------------------------
+		wait = True                                                         				# wait for go condition: wait
+		while wait and not win.has_exit:
+			glClearColor(tp['bgcolor'][0],tp['bgcolor'][1],tp['bgcolor'][2],1)            	# set background color
+			win.clear()                                                   					# clear window
+			win.dispatch_events()                                         					# dispatch window events (very important call)
+		    
+			lbl_instr.draw()                                            					# show instructions number 1
+
+			last_event = win.get_last_event()                                                 	# get last event on MyWin
+			if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
+			    wait = False                                                                    # do not wait, exit wait for go loop
+
+			win.flip()                                                    					# flip window
+
+		# Stimulus loop  -------------------------------------------------------------------
+		timestart = time.time() 															# get time stamp for start
+		while (time.time() - timestart) < tp['timecurrenttrial'] and not win.has_exit:
+			glClearColor(tp['bgcolor'][0],tp['bgcolor'][1],tp['bgcolor'][2],1)             	# set background color
+			win.clear()                                                         			# clear window
+			win.dispatch_events()                                               			# dispatch window events (very important call)
+			timenow = time.time() 															# get time of iteration
+			
+			# Check if dots are dead -------------------------------------------------------
+			newdots    = (age == 0) 														# to the dots whose age is zero, 
+			x[newdots] = np.random.rand(np.sum(newdots)) * (limr - liml) + liml          	# compute new horizontal position
+			y[newdots] = np.random.rand(np.sum(newdots)) * (limd - limu) + limu				# compute new vertical position
+
+			# update position --------------------------------------------------------------
+			dividend       = x + z_fb * (speed * (timenow - timestart))  					#
+			dx[z_fb == 1]  = np.fmod(dividend[z_fb == 1], cycle) + liml 					#
+			dx[z_fb == -1] = limr - np.fmod(limr - dividend[z_fb == -1], cycle) 			#
+			dotxpos        = dx 															#
+
+			# Update ages ------------------------------------------------------------------
+			age          = age - 1 															# decrease age
+			age[age==-1] = tau - 1  													# resuscitate dots
+			
+			# Draw dots --------------------------------------------------------------------
+			vertices[0::2] = dotxpos														# x coords will be in even indices
+			vertices[1::2] = y																# y coords will be in odd indices
+			drawpoints(vertices, color = dotcolor, size = 5)  								# draw dots
+
+			# flip window and show fps -----------------------------------------------------
+			clock.tick() 																	# to show fps
+			clockDisplay.draw()                                                 			# display frames per second
+			win.flip()                                                          			# flip window
+			
+			# manual frame control ---------------------------------------------------------
+			endMs = time.time() 															# manual frame rate control: time point when frame ends.
+			delaytime = frameMs - (endMs - timenow) 										# manual frame rate control: time time frame must be frozen.
+			if delaytime > 0: time.sleep(delaytime)											# manual frame rate control: freeze frame
 
 
 	# Stop eyetracker processes, save data and close pyglet window ---------------------
-    if tp['eyetracker']:
-        controller.stopTracking()                                               		# stop eye tracking and write output file
-        controller.destroy()                                                    		# destroy controller
+	if tp['eyetracker']:
+	    controller.stopTracking()                                               		# stop eye tracking and write output file
+	    controller.destroy()                                                    		# destroy controller
 
-    write_data_file_with_parameters(filename_data, events_struct, tp)   				# write data file, it has raw and formatted data
-    
-    win.close()                                                               			# close pyglet window
+	write_data_file_with_parameters(filename_data, events_struct, tp)   				# write data file, it has raw and formatted data
+
+	win.close()                                                               			# close pyglet window
 
 if __name__ == '__main__':
 	print 'Running Random dots'
