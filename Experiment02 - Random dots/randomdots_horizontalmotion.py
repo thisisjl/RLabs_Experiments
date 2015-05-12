@@ -134,6 +134,7 @@ def main(
 			last_event = win.get_last_event()                                                 	# get last event on MyWin
 			if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
 			    wait = False                                                                    # do not wait, exit wait for go loop
+			    win.reset_last_event()
 
 			win.flip()                                                    					# flip window
 
