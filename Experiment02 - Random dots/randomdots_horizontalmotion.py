@@ -34,7 +34,7 @@ def main(
 	dotcolor 	 = map(int,tp['dotcolor']) 														# dotcolor must be int
 	numtrials 	 = int(tp['numtrials'])															# get number of trials
 	trial_idx = np.random.permutation(numtrials) if tp['randomize_trials'] else range(numtrials)# randomize trials or not
-	
+
 	# initialize window ------------------------------------------------------------------------
 	screens = pyglet.window.get_platform().get_default_display().get_screens()					# get number of screens
 	win = MyWindow(fullscreen = True, screen = screens[0], visible = 0)							# create window
@@ -45,7 +45,8 @@ def main(
 	# Initialize text to be shown at startup (not whown right now)
 	textInstruc = "Continually report the predominant motion.\nPress the left mouse button for left-ward motion.\nPress the right mouse button for right-ward motion\n\nClick mouse-wheel to start"
 	lbl_instr = pyglet.text.Label(text=textInstruc, font_name='Times New Roman', font_size=36,
-		color=(0, 0, 0, 255), x = win.width/2+120, y = win.height/2, anchor_x='center', anchor_y='center', width=win.width/1, multiline=True)
+		color=(0, 0, 0, 255), x=win.width/1.4, y=win.height/2, anchor_x='center', 
+		anchor_y='center', width=win.width/1, multiline=True)
 
 	# Initialize variables for data file -------------------------------------------------------
 	filename_data = os.path.join(application_path, os.path.join('data',(ExpName + "-" + time.strftime("%y.%m.%d_%H.%M", time.localtime()) + "_" + subjectname + "_" + "button_press_data" + ".txt")))
@@ -77,7 +78,7 @@ def main(
 
 		controller = MyTobiiController( 												# create Tobii controller
 			datafilename=eyetrackeroutput, 												# pass it data file name
-			parameters=parameters)       												# pass it parameters
+			parameters=tp)       												# pass it parameters
 		controller.waitForFindEyeTracker()                                  			# wait to find eyetracker
 		controller.activate(controller.eyetrackers.keys()[0])               			# activate eyetracker
 
@@ -109,8 +110,8 @@ def main(
 			tau 	 = tp['tau'] 																# get maximum life
 
 		# define the limits of the area where the dots will move -------------------------------
-		liml, limr = win.width/4,  win.width - win.width/4 										# set left, liml, and right, limr, limits
-		limu, limd = win.height/4, win.height - win.height/4 									# set upper, limu, down, limd, limits
+		liml, limr = 0,  win.width 										# set left, liml, and right, limr, limits
+		limu, limd = win.height, 0 									# set upper, limu, down, limd, limits
 		cycle      = limr - liml 																# compute cycle length
 
 		# compute dots position: liml < x < limr -----------------------------------------------
@@ -140,6 +141,9 @@ def main(
 
 		# Stimulus loop  -----------------------------------------------------------------------
 		timestart = time.time() 																# get time stamp for start
+		eventcount += 1
+		events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timestart, etype = trial, eid = 'START'))
+		if tp['eyetracker']: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timestart, etype = trial, eid = 'START'))
 		while (time.time() - timestart) < tp['timecurrenttrial'] and not win.has_exit:
 			glClearColor(tp['bgcolor'][0],tp['bgcolor'][1],tp['bgcolor'][2],1)             		# set background color
 			win.clear()                                                         				# clear window
@@ -174,7 +178,12 @@ def main(
 			# manual frame control -------------------------------------------------------------
 			endMs = time.time() 																# manual frame rate control: time point when frame ends.
 			delaytime = frameMs - (endMs - timenow) 											# manual frame rate control: time time frame must be frozen.
-			if delaytime > 0: time.sleep(delaytime)												# manual frame rate control: freeze frame
+			#if delaytime > 0: time.sleep(delaytime)												# manual frame rate control: freeze frame
+
+		timeNow = time.time()
+		eventcount += 1
+		events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = trial, eid = 'END'))
+		if tp['eyetracker']: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = trial, eid ='END'))
 
 
 	# Stop eyetracker processes, save data and close pyglet window ----------------------------
