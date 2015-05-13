@@ -412,7 +412,8 @@ class MyCalibration:
         self.eyetracker = eyetracker
         calibration_sequence_completed=False        
         
-        MyWin = Window(fullscreen=True, visible = 0)
+        #MyWin = Window(fullscreen=True, visible = 0)
+        MyWin = MyWindow(fullscreen = True, visible = 0)
 
         instuction_text="Press mouse MIDDLE button to Start Calibration; ESCAPE to Exit."           # instructions to show before calibration
         mylabel = pyglet.text.Label(instuction_text, font_name = 'Times New Roman', font_size = 36, # create label that contain instructions
@@ -434,6 +435,7 @@ class MyCalibration:
         # Wait for go Loop ---------------------------------------------------------------------------------------------
         wait = True                                                                                 # wait for go condition: wait
         while wait and not MyWin.has_exit:
+            glClearColor(fg_color[0],fg_color[1],fg_color[2],1)
             MyWin.clear()                                                                           # clear window
             MyWin.dispatch_events()                                                                 # dispatch window events (very important call)
 
@@ -441,9 +443,11 @@ class MyCalibration:
             if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':      # if id and type match to the release of middle button,
                 continue_calibration = True
                 wait = False                                                                        # do not wait, exit wait for go loop
+                MyWin.reset_last_event()
             if last_event and last_event.id == key.ESCAPE and last_event.type == 'Key_UP':          # if id and type match to the release of escape key,
                 continue_calibration = False                                                        # do not continue to calibration
                 wait = False                                                                        # do not wait, exit wait for go loop
+                MyWin.reset_last_event()
 
             mylabel.draw()                                                                          # show message
             MyWin.flip()                                                                            # flip window
@@ -468,9 +472,9 @@ class MyCalibration:
                 MyWin.dispatch_events()                                                             # dispatch window events (very important call)
 
                 ## Check events (mouse input)
-                last_event = win.get_last_event()                                                   # get last event on MyWin
+                last_event = MyWin.get_last_event()                                                   # get last event on MyWin
                 if last_event and last_event.id == mouse.MIDDLE and last_event.type == 'Mouse_UP':  # if id and type match to the release of middle button,
-                    win.reset_last_event()                                                          # reset last_event
+                    MyWin.reset_last_event()                                                          # reset last_event
                     break                                                                           # break while loop (move point to new location)
 
                 # Draw point
