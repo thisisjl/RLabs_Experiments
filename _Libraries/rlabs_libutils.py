@@ -310,7 +310,7 @@ class DataStruct():
         try:
             data = np.genfromtxt(self.filenamefp, delimiter="\t",                                   # read data file, dtype allows mixed types of data,
             dtype=None, names=True, usecols = range(38))                                            # names reads first row as header, usecols will read just 38 columns
-            print '{0}: eyetracker data (38 colums format)'.format(os.path.split(filename)[1])
+            print '{0}: eyetracker data (38 colums format)'.format(os.path.split(self.filename)[1])
         except ValueError:                                                                          
             try:                                                                                    # if file does not have 38 columns, try 
                 data = np.genfromtxt(self.filenamefp, delimiter="\t", 
@@ -783,7 +783,7 @@ class MyWindow(pyglet.window.Window):
         self.events_handler = None
 
         self.last_event = None
-        self.prev_events_len = None
+        self.prev_events_len = 0
 
     def on_mouse_press(self, x, y, button, modifiers):
         e = EventItem(name = 'InputEvent', timestamp = time.time(), etype = 'Mouse_DW', eid = button)
