@@ -1,3 +1,6 @@
 [submodule "analyzeButtonPresses"]
 	path = analyzeButtonPresses
 	url = https://github.com/ErBa508/analyzeButtonPresses
+[submodule "analyzeAlternations_Python"]
+	path = analyzeAlternations_Python
+	url = https://github.com/ErBa508/analyzeAlternations_Python
