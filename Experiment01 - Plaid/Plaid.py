@@ -75,11 +75,12 @@ def main(
     tp['mylambda2'] = [deg2px(l, h = cp['mheight'], d = cp['mpdist'], r = cp['mvres']) for l in tp['mylambda2_deg']]    # convert lambda2 in degrees to pixels
     tp['speed2']    = [deg2px(l, h = cp['mheight'], d = cp['mpdist'], r = cp['mvres']) for l in tp['speed2_deg']]       # convert speed2 in degrees to pixels
 
-    parameters = merge_dicts_ordered(cp, tp)                                                                            # join parameters (to write them later)
-
     # randomize trials ?
     numtrials = int(tp['numtrials'])                                                            # get number of trials
     trials_array = np_permutation(numtrials) if cp['randomize_trials'] else range(numtrials)    # randomize trials or not
+    tp['trialsorder'] = trials_array + 1 
+
+    parameters = merge_dicts_ordered(cp, tp)                                                                            # join parameters (to write them later)
 
     # read forced transitions file
     if cp['forced']:
