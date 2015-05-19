@@ -82,9 +82,6 @@ def main(
 
     parameters = merge_dicts_ordered(cp, tp)                                                                            # join parameters (to write them later)
 
-    print parameters
-    sys.exit()
-
     # read forced transitions file
     if cp['forced']:
         # transitions_file = filechooser()
