@@ -78,9 +78,12 @@ def main(
     # randomize trials ?
     numtrials = int(tp['numtrials'])                                                            # get number of trials
     trials_array = np_permutation(numtrials) if cp['randomize_trials'] else range(numtrials)    # randomize trials or not
-    tp['trialsorder'] = trials_array + 1 
+    tp['trialsorder'] = trials_array
 
     parameters = merge_dicts_ordered(cp, tp)                                                                            # join parameters (to write them later)
+
+    print parameters
+    sys.exit()
 
     # read forced transitions file
     if cp['forced']:
