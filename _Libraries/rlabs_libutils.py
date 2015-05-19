@@ -663,11 +663,24 @@ def write_data_file(data_namefile, data_struct, right_keys = [4], left_keys = [1
 def write_data_file_with_parameters(data_namefile, data_struct, parameters, right_keys = [4], left_keys = [1], codes = [1, 4, 8, 999]):
     """ write data file including events (mouse, trials) and configuration and trials parameters"""
     from itertools import izip_longest                                  # import itertools to iterate over two variables
+    from collections import OrderedDict                                 # for the parameters by trials dictionary
 
     if parameters: 
         ntrials = int(parameters['numtrials'])                          # get number of trials
     else:
         ntrials = 0
+
+    # order parameters by the order of trials --------------------------
+    trialsorder = parameters['trialsorder']                             # get order of trials
+    prmtsbytrials = OrderedDict()                                       # parameters ordered by trial order
+    for k,v in parameters.items():                                      # for each parameter
+        if type(v) == list and not 'color' in k:                        # if it is a list and it is not a color
+            prmtsbytrials[k] = [(v[i] if type(v) == list else v)\
+                for i in trialsorder]                                   # order it
+        else:                                                           # if it is a color, int or float,
+            prmtsbytrials[k] = v                                        # copy it as it is
+    prmtsbytrials['trialsorder'] = sorted(parameters['trialsorder'])    # put sorted trials order
+
 
     timeStampStart = data_struct[0].timestamp                           # get time stamp of the start of trial 1
 
@@ -680,7 +693,7 @@ def write_data_file_with_parameters(data_namefile, data_struct, parameters, righ
     with open(data_namefile, 'w' ) as f:                                # open or create text file 'data_namefile' to write
         f.write('\t'.join(fields)+'\n')                                 # write header. Separate the fields with tabs
 
-        for e, b in izip_longest(data_struct, parameters.items()):      # iterate over data_struct and parameters until longest is over
+        for e, b in izip_longest(data_struct, prmtsbytrials.items()):   # iterate over data_struct and parameters until longest is over
         
             if e is not None:                                           # if event in data_struct is not None
                 e = compute_event_code(e, codes = codes)                # compute code for each one
