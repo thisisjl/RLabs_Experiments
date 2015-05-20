@@ -297,6 +297,8 @@ class DataStruct():
         self.winwidth_cm  = winwidth_cm     #
         self.fixdist      = fixdist         #
         self.framerate    = dataframerate   #
+
+        self.order = []                     # number of the trials from the trials_file.txt in the order they appeared
       
 
         self.read_data()                    # read data
@@ -360,6 +362,7 @@ class DataStruct():
         B_off     = ets[ecode == -self.B_code]                                                      # get timestamp of percept B off (RIGHT release)
 
         self.numtrials = len(Trial_on)                                                              # compute number of trials
+        self.order  = data['EventType'][ecode ==  self.trial_code]                                  # number of the trials from the trials_file in the order they appeared
 
         # datastruct
         self.trial_ts = np.empty((Trial_on.size + Trial_off.size,), dtype=Trial_on.dtype)           # create empty matrix of specific lenght
@@ -1433,19 +1436,19 @@ def create_transitions_file(infilename = None, outfilename = None, A_code = 1, B
         if A_dur_trial[trial] != [] and B_dur_trial[trial] != []:                           # if there are percepts for A and B in this trial,                         
             for a, b in izip_longest(np.array(A_dur_trial[trial])[:,1],                     # write them
                 np.array(B_dur_trial[trial])[:,1]):
-                output_array.append([a,b,trial])
+                output_array.append([a,b,trial,ds.order[trial]])
         
-        elif A_dur_trial[trial] == [] and and B_dur_trial[trial] != []:                     # if there are no precepts for A in this trial,
+        elif A_dur_trial[trial] == [] and B_dur_trial[trial] != []:                     # if there are no precepts for A in this trial,
             for b in np.array(B_dur_trial[trial])[:,1]:                                     # just write the ones that are of B
-                output_array.append([None,b,trial])
+                output_array.append([None,b,trial,ds.order[trial]])
         
         elif B_dur_trial[trial] == [] and A_dur_trial[trial] != []:                         # if there are no precepts for B in this trial,
             for a in np.array(A_dur_trial[trial])[:,1]:                                     # just write the ones that are for A
-                output_array.append([a,None,trial])
+                output_array.append([a,None,trial,ds.order[trial]])
                 
     with open(outfilename, 'w' ) as f:                                                      # open or create text file 'outfilename' to write
         for out in output_array:                                                            # write contents of output_array
-            f.write('{0}\t{1}\t{2}\n'.format(out[0],out[1],out[2]))                         #
+            f.write('{0}\t{1}\t{2}\t{3}\n'.format(out[0],out[1],out[2],out[3]))             #
 
 # Camera (from http://tartley.com/?p=378) ---------------------------------------------------------------------------
 
