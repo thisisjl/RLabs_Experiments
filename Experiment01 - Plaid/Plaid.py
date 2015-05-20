@@ -86,7 +86,8 @@ def main(
     if cp['forced']:
         # transitions_file = filechooser()
         transitions_file_full = os.path.join(application_path, transitions_file)
-        fs = Forced_struct(transfilename = transitions_file_full, timeRamp = cp['speed']) 
+        fs = Forced_struct(transfilename = transitions_file_full, timeRamp = cp['speed'])
+        forced_order = fs.order
 
     # Initialize pyglet window ------------------------------------------------------------------------        
     screens = pyglet.window.get_platform().get_default_display().get_screens()
@@ -205,7 +206,7 @@ def main(
         # Start stimulus loop -------------------------------------------------------------------------------------------------------------
 
         if cp['forced']:
-            fs.reset_forced_values(trial = trial)                           # Initialize forced variables
+            fs.reset_forced_values_in_order(trial = trial)                  # Initialize forced variables
 
 
         timeStart = time.time()                                             # get trial start time
