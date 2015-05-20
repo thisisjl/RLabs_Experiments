@@ -1375,22 +1375,20 @@ class Forced_struct():
         self.transTimeL_trial = np.array(self.transTimeL)[idx_trial]
         self.transTimeR_trial = np.array(self.transTimeR)[idx_trial]
 
-def create_transitions_file(infilename = None, outfilename = None, A_code = 1, B_code = 4, trial_code = 8, relative = 1):
+def create_transitions_file(infilename = None, outfilename = None, A_code = 1, B_code = 4, trial_code = 8, relative = 1, min_dur = 0.3):
     from itertools import izip_longest
-    
-    ds = DataStruct(infilename, A_code = A_code, B_code = B_code, trial_code = trial_code)
 
-    min_dur = 0.3
+    ds = DataStruct(infilename, A_code = A_code, B_code = B_code, trial_code = trial_code)  # read data and put it in datastruct format
 
     # compute durations for each trial
     A_dur = []
     B_dur = []
 
-    x, y, z = 2, 0, ds.numtrials                                            # size of percept matrix
-    A_dur_trial = [[[] for j in xrange(y)] for i in xrange(z)]              # matrix for A percept of each trial 
-    B_dur_trial = [[[] for j in xrange(y)] for i in xrange(z)]              # matrix for B percept of each trial
+    x, y, z = 2, 0, ds.numtrials                                                            # size of percept matrix
+    A_dur_trial = [[[] for j in xrange(y)] for i in xrange(z)]                              # matrix for A percept of each trial 
+    B_dur_trial = [[[] for j in xrange(y)] for i in xrange(z)]                              # matrix for B percept of each trial
 
-    output_array = []
+    output_array = []                                                                       # initialize array to write in outfilename
 
     sumdurA = 0
     sumdurB = 0
@@ -1398,21 +1396,22 @@ def create_transitions_file(infilename = None, outfilename = None, A_code = 1, B
     sumdurB_trial = []
 
     for trial in range(ds.numtrials):
-        start = ds.trial_ts[2 * trial]                                                        # timestamp start of trial
-        end   = ds.trial_ts[2 * trial + 1]                                                    # timestamp start of trial
 
-        for a in ds.A_trial[trial]:                                         # compute A durations in trial
+        start = ds.trial_ts[2 * trial]                                                      # timestamp start of trial
+        end   = ds.trial_ts[2 * trial + 1]                                                  # timestamp start of trial
+
+        for a in ds.A_trial[trial]:                                                         # compute A durations in trial
             dur = a[1] - a[0]
             sumdurA += dur
-            a_on = a[0] - start if relative else a[0]                       # time stamp of A_on event relative to start of trial 
+            a_on = a[0] - start if relative else a[0]                                       # time stamp of A_on event relative to start of trial 
             if dur > min_dur: 
                 A_dur.append([dur, a_on, trial])
                 A_dur_trial[trial].append([dur,a_on, trial])
         
-        for b in ds.B_trial[trial]:                                         # compute B durations in trial
+        for b in ds.B_trial[trial]:                                                         # compute B durations in trial
             dur = b[1] - b[0]
             sumdurB += dur
-            b_on = b[0] - start if relative else b[0]                       # time stamp of B_on event relative to start of trial
+            b_on = b[0] - start if relative else b[0]                                       # time stamp of B_on event relative to start of trial
             if dur > min_dur: 
                 B_dur.append([dur, b_on, trial])
                 B_dur_trial[trial].append([dur, b_on, trial])
@@ -1429,14 +1428,24 @@ def create_transitions_file(infilename = None, outfilename = None, A_code = 1, B
             print 'Warning: summed durations more than expected in Trial {0}'.format(trial)
             print 'sumdurA + sumdurB = {0}'.format(sumdurA + sumdurB)
             print 'end - start = {0}\n'.format(end - start)
-
-        for a, b in izip_longest(np.array(A_dur_trial[trial])[:,1], np.array(B_dur_trial[trial])[:,1]):
-            output_array.append([a,b,trial])
+                   
+        # write durations of A and B of this trial to output array -------------------------
+        if A_dur_trial[trial] != [] and B_dur_trial[trial] != []:                           # if there are percepts for A and B in this trial,                         
+            for a, b in izip_longest(np.array(A_dur_trial[trial])[:,1],                     # write them
+                np.array(B_dur_trial[trial])[:,1]):
+                output_array.append([a,b,trial])
+        
+        elif A_dur_trial[trial] == [] and and B_dur_trial[trial] != []:                     # if there are no precepts for A in this trial,
+            for b in np.array(B_dur_trial[trial])[:,1]:                                     # just write the ones that are of B
+                output_array.append([None,b,trial])
+        
+        elif B_dur_trial[trial] == [] and A_dur_trial[trial] != []:                         # if there are no precepts for B in this trial,
+            for a in np.array(A_dur_trial[trial])[:,1]:                                     # just write the ones that are for A
+                output_array.append([a,None,trial])
                 
-
-    with open(outfilename, 'w' ) as f:                                          # open or create text file 'data_namefile' to write
-        for out in output_array:
-            f.write('{0}\t{1}\t{2}\n'.format(out[0],out[1],out[2]))
+    with open(outfilename, 'w' ) as f:                                                      # open or create text file 'outfilename' to write
+        for out in output_array:                                                            # write contents of output_array
+            f.write('{0}\t{1}\t{2}\n'.format(out[0],out[1],out[2]))                         #
 
 # Camera (from http://tartley.com/?p=378) ---------------------------------------------------------------------------
 
