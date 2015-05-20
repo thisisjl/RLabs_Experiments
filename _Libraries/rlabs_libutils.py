@@ -1280,17 +1280,22 @@ class _Forced_struct():
 
 class Forced_struct():
     def __init__(self, transfilename = 'forcedtransitions.txt', timeRamp = 0.5, scale = 500):
+        from collections import OrderedDict                             # to get the order without duplicates
+
         self.transfilename = transfilename                              # get transitions file name
         self.timeRamp = timeRamp                                        # get stereo speeed
         self.scale = scale
         self.transTimeL = []                                            # initialize Left  timestamps array
         self.transTimeR = []                                            # initialize Right timestamps array
         self.transTrial = []
+        self.order = []
 
         self.read_forced_transitions()                                  # read transition time stamps
+        
+        #self.order = list(OrderedDict.fromkeys(self.order))             # get order without duplicates
 
         # initialize forced variables
-        self. reset_forced_values(trial = 0)
+        self.reset_forced_values(trial = 0)
 
         self.deltaX1 = 0.01
         self.deltaX2 = 0.01
@@ -1302,7 +1307,7 @@ class Forced_struct():
             with open(self.transfilename, 'r') as f:                    # open transitions file
                 reader = csv.reader(f, delimiter='\t')                  # reader is a csv class to parse data files
 
-                for L_item, R_item, trial in reader:                    # L_item and R_item are the time stamps
+                for L_item, R_item, trial, order in reader:             # L_item and R_item are the time stamps
                     if L_item != 'None':
                         self.transTimeL.append(float(L_item))           # append left time stamp to array
                     else:
@@ -1312,6 +1317,8 @@ class Forced_struct():
                     else:
                         self.transTimeR.append(np.nan)                  # append right time stamp to array
                     self.transTrial.append(int(trial))                  # append trial number to array
+
+                    self.order.append(int(order))                            # append order number to array
 
         except EnvironmentError:                                        # except: if the file name is wrong
             print '{0} could not be opened'.format(self.transfilename)  # print error
@@ -1375,6 +1382,24 @@ class Forced_struct():
 
     def get_values_for_trial(self, trial = 0):
         idx_trial = np.where(np.array(self.transTrial) == trial)[0]
+        self.transTimeL_trial = np.array(self.transTimeL)[idx_trial]
+        self.transTimeR_trial = np.array(self.transTimeR)[idx_trial]
+
+    def reset_forced_values_in_order(self, trial = 0):
+        self.get_values_for_trial_in_order(trial)
+        self.trial = trial
+
+        self.i_R = 0
+        self.i_L = 0
+        self.Ron = 0
+        self.Lon = 0
+        self.timeTransR = self.transTimeL_trial[0]
+        self.timeTransL = self.transTimeR_trial[0]
+        self.deltaXaux1 = 0
+        self.deltaXaux2 = 0
+
+    def get_values_for_trial_in_order(self, trial = 0):
+        idx_trial = np.where(np.array(self.order) == trial)[0]
         self.transTimeL_trial = np.array(self.transTimeL)[idx_trial]
         self.transTimeR_trial = np.array(self.transTimeR)[idx_trial]
 
