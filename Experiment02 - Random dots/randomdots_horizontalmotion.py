@@ -34,6 +34,7 @@ def main(
 	dotcolor 	 = map(int,tp['dotcolor']) 														# dotcolor must be int
 	numtrials 	 = int(tp['numtrials'])															# get number of trials
 	trial_idx = np.random.permutation(numtrials) if tp['randomize_trials'] else range(numtrials)# randomize trials or not
+	tp['trialsorder'] = trial_idx 																# add trial order to parameters
 
 	# initialize window ------------------------------------------------------------------------
 	screens = pyglet.window.get_platform().get_default_display().get_screens()					# get number of screens
