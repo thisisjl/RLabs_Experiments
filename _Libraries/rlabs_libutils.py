@@ -192,6 +192,14 @@ def deg2px(deg_val, h = 25, d = 60, r = 768):
 
     return px_val
 
+def select_data():
+    from Tkinter import Tk                                          # for open data file GUI
+    from tkFileDialog import askopenfilenames                       # for open data file GUI
+    Tk().withdraw()                                                 # we don't want a full GUI, so keep the root window from appearing
+    datafile = askopenfilenames(title='Choose file',                # show an "Open" dialog box and return the path to the selected file
+        initialdir = '..')[0] 
+    return datafile
+
 
 
 # Data management functions and classes --------------------------------------------------------------------------
