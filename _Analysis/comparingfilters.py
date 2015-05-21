@@ -37,6 +37,11 @@ def main():
 	data_pix = data * pix 											# convert from arbitrary units to pixels
 	data_deg = data_pix * DPP 										# convert from pixels to degrees
 
+	# show raw data -----------------------------------------------------------------------------------------------
+	f0 = plt.figure(next(figcount))
+	plt.plot(np.arange(len(data)), data_deg, label = 'raw data')
+	plt.draw()
+
 	# compute velocity ---------------------------------------------------------------------------------------------
 	velocity  = np.diff(data_deg,  n=1) * framerate; 				# compute velocity
 
