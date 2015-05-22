@@ -1296,7 +1296,7 @@ class Forced_struct():
         self.transTimeL = []                                            # initialize Left  timestamps array
         self.transTimeR = []                                            # initialize Right timestamps array
         self.transTrial = []
-        self.order = []
+        self.transOrder = []
 
         self.read_forced_transitions()                                  # read transition time stamps
         
@@ -1310,7 +1310,7 @@ class Forced_struct():
         self.deltaXaux1_ini = 0
         self.deltaXaux2_ini = 0
 
-    def read_forced_transitions(self):   
+    def OLD_read_forced_transitions(self):   
         try:                                                            # try/except used to handle errors
             with open(self.transfilename, 'r') as f:                    # open transitions file
                 reader = csv.reader(f, delimiter='\t')                  # reader is a csv class to parse data files
@@ -1329,6 +1329,41 @@ class Forced_struct():
                     self.order.append(int(order))                            # append order number to array
 
         except EnvironmentError:                                        # except: if the file name is wrong
+            print '{0} could not be opened'.format(self.transfilename)  # print error
+            sys.exit()                                                  # exit python
+
+    def read_forced_transitions(self):
+        """
+            takes into account header formatting:
+            format: sptrial  L_item   R_item  sptrial2    ptrial
+                sptrial: number of trial from spontaneos experiment
+                L_item: left on time stamp
+                R_item: right on time stamp
+                sptrial2: number of trial from spontaneos experiment 
+                ptrial: prameters from the trial in trials_file.txt
+        """
+
+        try:
+            with open(self.transfilename,'r') as f:                     # open transitions file
+                reader = csv.reader(f,delimiter='\t')                   # read it with csv
+                headers = reader.next()                                 # ignore headers
+                
+                for sptrial, L_item, R_item, sptrial2, ptrial in reader:# for each item in file
+                    if L_item != 'None':                                # if Left is not none,
+                        self.transTimeL.append(float(L_item))           # append left time stamp to array
+                    else:
+                        self.transTimeL.append(np.nan)                  # put a nan otherwise
+                    
+                    if R_item != 'None':                                # if right is not none,
+                        self.transTimeR.append(float(R_item))           # append right time stamp to array
+                    else:
+                        self.transTimeR.append(np.nan)                  # put a nan otherwise
+                    
+                    self.transTrial.append(int(sptrial))                # append trial number to array
+
+                    self.transOrder.append(int(ptrial))                 # append order number to array
+
+        except EnvironmentError:
             print '{0} could not be opened'.format(self.transfilename)  # print error
             sys.exit()                                                  # exit python
 
@@ -1407,7 +1442,7 @@ class Forced_struct():
         self.deltaXaux2 = 0
 
     def get_values_for_trial_in_order(self, trial = 0):
-        idx_trial = np.where(np.array(self.order) == trial)[0]
+        idx_trial = np.where(np.array(self.transOrder) == trial)[0]
         self.transTimeL_trial = np.array(self.transTimeL)[idx_trial]
         self.transTimeR_trial = np.array(self.transTimeR)[idx_trial]
 
@@ -1480,8 +1515,10 @@ def create_transitions_file(infilename = None, outfilename = None, A_code = 1, B
                 output_array.append([a,None,trial,ds.order[trial]])
                 
     with open(outfilename, 'w' ) as f:                                                      # open or create text file 'outfilename' to write
-        for out in output_array:                                                            # write contents of output_array
-            f.write('{0}\t{1}\t{2}\t{3}\n'.format(out[0],out[1],out[2],out[3]))             #
+        fields = ['Spontaneous trial', 'L_item', 'R_item', 'trial (timestamp from)', 'trial (parameters from)']
+        f.write('\t'.join(fields)+'\n')                                                     # write header. Separate the fields into tabs
+        for out in output_array:                                                            # write contents of output_array:
+            f.write('{2}\t{0}\t{1}\t{2}\t{3}\n'.format(out[0],out[1],out[2],out[3]))             #
 
 # Camera (from http://tartley.com/?p=378) ---------------------------------------------------------------------------
 
