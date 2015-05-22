@@ -2,7 +2,3 @@
 	path = analyzeButtonPresses
 	url = https://github.com/ErBa508/analyzeButtonPresses
 	ignore = dirty
-[submodule "analyzeAlternations_Python"]
-	path = analyzeAlternations_Python
-	url = https://github.com/ErBa508/analyzeAlternations_Python
-	ignore = dirty
