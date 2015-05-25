@@ -6,3 +6,5 @@
 /_Analysis/Experiment01 - Plaid/
 /_Analysis/Experiment02 - Random dots/
 /_Analysis/Experiment03 - Calibration simulation/
+/*.pyc
+/*.ipynb
