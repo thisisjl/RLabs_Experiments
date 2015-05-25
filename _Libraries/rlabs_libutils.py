@@ -790,6 +790,53 @@ def create_unique_name(subject_info):
 
     return out_file_name    
 
+
+# Analysis functions ------------------------------------------------------------------------------------------------
+
+def genTimeSeries(trialNum, ds, startTime = 0):
+    # modified from: https://github.com/ErBa508/analyzeAlternations_Python/blob/master/timeSeries_lib.py
+
+    # keep startTime at 0 because we need to refer to specific frames that we can only access if time starts at 0
+    endTime = ds.trial_ts[2 * trialNum + 1]                                         # retrieve endTime from array such as [trial1start, trial1end, trial2start, trial2end, etc]
+    endTime = np.around(endTime*ds.framerate)/ds.framerate                          # round endTime to sample at framerate
+
+    # make new timeSeries vector at resolution of eye-tracker (120 hz)
+    timeSeriesTime = np.arange(startTime, endTime+1/ds.framerate, 1/ds.framerate)
+    timeMaxTS = np.amax(timeSeriesTime)
+
+    # get the frame #'s in which the keys were pressed and released
+    indicesAon, indicesAoff = mygetPressIndices(trialNum, ds.A_trial, ds.framerate)
+    indicesBon, indicesBoff = mygetPressIndices(trialNum, ds.B_trial, ds.framerate)
+
+    # create new column for key press A and add 1's to the frames when key A is pressed
+    timeSeriesA = np.zeros(timeSeriesTime.size)
+    for ind in range(indicesAon.size):
+        timeSeriesA[indicesAon[ind]:indicesAoff[ind]] = 1
+
+    # create new column for key press B and add 1's to the frames when key B is pressed
+    timeSeriesB = np.zeros(timeSeriesTime.size)
+    for ind in range(indicesBon.size):
+        timeSeriesB[indicesBon[ind]:indicesBoff[ind]] = 1
+
+    return timeSeriesA, timeSeriesB
+
+def getPressIndices(trialNum, pressData, framerate):
+    # modified from: https://github.com/ErBa508/analyzeAlternations_Python/blob/master/timeSeries_lib.py
+    # make two vectors consisting of times (sec) of (1) press on and (2) press off
+    pressON = []
+    pressOFF = []
+
+    for val in pressData[trialNum]:
+        pressON.append(val[0])
+        pressOFF.append(val[1])
+        
+    # find the frame #'s when press on and off
+    pressON_ind = np.around(np.array(pressON)/(1/framerate))
+    pressOFF_ind = np.around(np.array(pressOFF)/(1/framerate))
+
+    return pressON_ind, pressOFF_ind
+
+
 # -------------------------------------------------------------------------------------------------------------------
 
 class MyWindow(pyglet.window.Window): 
