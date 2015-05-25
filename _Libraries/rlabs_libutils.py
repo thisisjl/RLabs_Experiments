@@ -200,8 +200,6 @@ def select_data():
         initialdir = '..')[0] 
     return datafile
 
-
-
 # Data management functions and classes --------------------------------------------------------------------------
 
 class EventItem():
@@ -612,8 +610,8 @@ def genTimeSeries(trialNum, ds, startTime = 0):
     timeMaxTS = np.amax(timeSeriesTime)
 
     # get the frame #'s in which the keys were pressed and released
-    indicesAon, indicesAoff = mygetPressIndices(trialNum, ds.A_trial, ds.framerate)
-    indicesBon, indicesBoff = mygetPressIndices(trialNum, ds.B_trial, ds.framerate)
+    indicesAon, indicesAoff = getPressIndices(trialNum, ds.A_trial, ds.framerate)
+    indicesBon, indicesBoff = getPressIndices(trialNum, ds.B_trial, ds.framerate)
 
     # create new column for key press A and add 1's to the frames when key A is pressed
     timeSeriesA = np.zeros(timeSeriesTime.size)
