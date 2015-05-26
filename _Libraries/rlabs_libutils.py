@@ -598,48 +598,32 @@ def compute_event_code(e, codes = [1, 4, 8, 999], downcode = 'DW', upcode = 'UP'
 
 # Analysis functions ------------------------------------------------------------------------------------------------
 
-def genTimeSeries(trialNum, ds, startTime = 0):
-    # modified from: https://github.com/ErBa508/analyzeAlternations_Python/blob/master/timeSeries_lib.py
-
-    # keep startTime at 0 because we need to refer to specific frames that we can only access if time starts at 0
-    endTime = ds.trial_ts[2 * trialNum + 1]                                         # retrieve endTime from array such as [trial1start, trial1end, trial2start, trial2end, etc]
-    endTime = np.around(endTime*ds.framerate)/ds.framerate                          # round endTime to sample at framerate
-
-    # make new timeSeries vector at resolution of eye-tracker (120 hz)
-    timeSeriesTime = np.arange(startTime, endTime+1/ds.framerate, 1/ds.framerate)
-    timeMaxTS = np.amax(timeSeriesTime)
-
-    # get the frame #'s in which the keys were pressed and released
-    indicesAon, indicesAoff = getPressIndices(trialNum, ds.A_trial, ds.framerate)
-    indicesBon, indicesBoff = getPressIndices(trialNum, ds.B_trial, ds.framerate)
-
-    # create new column for key press A and add 1's to the frames when key A is pressed
-    timeSeriesA = np.zeros(timeSeriesTime.size)
-    for ind in range(indicesAon.size):
-        timeSeriesA[indicesAon[ind]:indicesAoff[ind]] = 1
-
-    # create new column for key press B and add 1's to the frames when key B is pressed
-    timeSeriesB = np.zeros(timeSeriesTime.size)
-    for ind in range(indicesBon.size):
-        timeSeriesB[indicesBon[ind]:indicesBoff[ind]] = 1
-
-    return timeSeriesA, timeSeriesB
-
-def getPressIndices(trialNum, pressData, framerate):
-    # modified from: https://github.com/ErBa508/analyzeAlternations_Python/blob/master/timeSeries_lib.py
-    # make two vectors consisting of times (sec) of (1) press on and (2) press off
-    pressON = []
-    pressOFF = []
-
-    for val in pressData[trialNum]:
-        pressON.append(val[0])
-        pressOFF.append(val[1])
+def gentimeseries(timestamps, percepts):
+    """
+        Generate a time series array of percepts
+        input:
+            timestamps: array 1xN containing time stamps at a constant sampling rate, where N is the number of samples.
+                        In our case, it is the array of the eyetracker time stamps (DataStruct.timestamps).
+            percepts:   array Mx2 containing time stamps indicating the start and the end of a percept.
+                        In our case, it is the array with the button presses (DataStruct.A_ts for a complete experiment, ds.A_trial[i] for trial i and percept A)
+        output:
+            timeseries: boolean array 1xN, it is 1 when the percept was on, 0 otherwise.
+    """
+    on  = []
+    off = []
+    
+    for p in percepts:
+        val_on,  idx_on  = find_nearest_above(timestamps,p[0])
+        val_off, idx_off = find_nearest_above(timestamps,p[1])
+        if idx_off is None: idx_off = len(timestamps)
+        on.append(idx_on)
+        off.append(idx_off)
         
-    # find the frame #'s when press on and off
-    pressON_ind = np.around(np.array(pressON)/(1/framerate))
-    pressOFF_ind = np.around(np.array(pressOFF)/(1/framerate))
-
-    return pressON_ind, pressOFF_ind
+    timeseries = np.zeros(len(timestamps))
+    for i in range(len(on)):
+        timeseries[on[i]:off[i]] = 1
+    
+    return timeseries
 
 
 # -------------------------------------------------------------------------------------------------------------------
