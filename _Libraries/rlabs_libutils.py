@@ -625,6 +625,28 @@ def gentimeseries(timestamps, percepts):
     
     return timeseries
 
+def gencontinuousoutliers(Aoutliers, Boutliers):
+    """
+        Generate a continuous Aoutlier array
+        
+        input:
+            Aoutliers, Boutliers
+                boolean arrays indicating percept (A or B) outliers in eyetracker data
+        output:
+            c
+                will be 1 starting when Aoutliers is 1 until when Boutliers is 1
+    """
+    from itertools import izip                  # izip to iterate over two arrays until shortest ends
+    
+    c = np.zeros(len(Aoutliers),dtype=int)      # initialize output array
+
+    idxa = np.where(Aoutliers==1)[0]            # get indices when A is 1
+    idxb = np.where(Boutliers==1)[0]            # get indices when B is 1
+
+    for ia, ib in izip(idxa,idxb):              # for each index
+        c[ia:ib] = 1                            # set c to 1
+    
+    return c                                    # return
 
 # -------------------------------------------------------------------------------------------------------------------
 
