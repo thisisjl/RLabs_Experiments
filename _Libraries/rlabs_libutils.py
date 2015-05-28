@@ -641,9 +641,12 @@ def gencontinuousoutliers(Aoutliers, Boutliers):
     c = np.zeros(len(Aoutliers),dtype=int)      # initialize output array
 
     idxa = np.where(Aoutliers==1)[0]            # get indices when A is 1
-    idxb = np.where(Boutliers[idxa[0]:])[0]     # get indices when B is 1 starting at idxa[0]
+    idxb_tmp = np.where(Boutliers==1)[0]        # get indices when B is 1 (temporal variable)
 
-    # idxb = np.where(Boutliers==1)[0]            # get indices when B is 1
+    idxb = []                                   # initialize array
+    for ia in idxa:                             # for each index of A outlier
+        val,idx = find_nearest_above(idxb_tmp,ia)   # get B outlier above it
+        idxb.append(val)                        # append value to array
 
     for ia, ib in izip(idxa,idxb):              # for each index
         c[ia:ib] = 1                            # set c to 1
