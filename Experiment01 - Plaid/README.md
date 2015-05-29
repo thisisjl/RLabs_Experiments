@@ -1,9 +1,12 @@
 # Details for Plaid stimulus
 **Execution**: python Plaid.py [optional name]. The optional name will be in the ouput data files, if no specified "defaultsubjectname" will be used.
 
-**Input**: config_file.txt, trials_file.txt (written in INI format, read using Python's ConfigParser module (https://docs.python.org/2/library/configparser.html))
+**Input**: 
+- config_file.txt (INI format, read using Python's ConfigParser module (https://docs.python.org/2/library/configparser.html))
+- trials_file.txt (INI format) 
+- transitions_file.txt (only used with forced mode)
 
-**Output**: file for button presses data and, if used, eyetracker data.
+**Output**: data file for button presses and, if used, eyetracker data.
 - The format of the button press (event) data (7 + n columns, where n is the number of trials).
   - column 1: time stamp. Time when the event was recorded
   - column 2: event name. "InputEvent" for button presses, "TrialEvent" for start and end of trial.
