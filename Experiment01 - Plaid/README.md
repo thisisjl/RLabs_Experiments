@@ -2,7 +2,7 @@
 **Execution**: python Plaid.py [optional name]. The optional name will be in the ouput data files, if no specified "defaultsubjectname" will be used.
 
 **Input**: 
-- config_file.txt (INI format, read using Python's ConfigParser module (https://docs.python.org/2/library/configparser.html))
+- config_file.txt (INI format, read using [Python's ConfigParser module](https://docs.python.org/2/library/configparser.html))
 - trials_file.txt (INI format) 
 - transitions_file.txt (only used with forced mode)
 
