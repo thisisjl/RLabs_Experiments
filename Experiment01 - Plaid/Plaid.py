@@ -79,6 +79,7 @@ def main(
     numtrials = int(tp['numtrials'])                                                            # get number of trials
     trials_array = np_permutation(numtrials) if cp['randomize_trials'] else range(numtrials)    # randomize trials or not
     tp['trialsorder'] = trials_array
+    tp['labelfromtrialsfile'] = trials_array
 
     parameters = merge_dicts_ordered(cp, tp)                                                                            # join parameters (to write them later)
 
@@ -283,7 +284,6 @@ def main(
             
         #     # if cp['eyetracker']: controller.myRecordEvent2(event = e)    # write event to eyetracker data file
         
-        eventcount += 1
         events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = trial, eid = 'END'))
         if cp['eyetracker']: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = trial, eid ='END'))
 
