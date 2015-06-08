@@ -136,7 +136,6 @@ def main(
         'on_mouse_press'    : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),    # to events_struct and also it will 
         'on_mouse_release'  : lambda e: (events_struct.append(e), controller.myRecordEvent2(event = e)),}   # call MyRecordEvent2 with the event
 
-
     # Initialize eyetracker communication ----------------------------------------------------------------------
     if cp['eyetracker']:
         eb = EyetrackerBrowser()                                            # Create an EyetrackerBrowser
@@ -208,7 +207,6 @@ def main(
         if cp['forced']:
             fs.reset_forced_values_in_order(trial = trial)                  # Initialize forced variables
 
-
         timeStart = time.time()                                             # get trial start time
         
         eventcount += 1
@@ -228,16 +226,36 @@ def main(
             MyWin.dispatch_events()                                         # dispatch window events (very important call)
 
             
-            # Update position of objects ---------------------------------------------------------------------------------------------------
+            # Update objects ---------------------------------------------------------------------------------------------------
 
+            # apply forced to stereo
             if cp['forced']:
                 stereo1, stereo2 = fs.compute_forced_values(timeStart, timeNow)
+
+                if 1:#forced_speed:
+                    if fs.Ron:
+                        grating11.speed *= 1
+                        grating12.speed *= 1
+                        grating21.speed *= 1
+                        grating22.speed *= 1
+
+                    if fs.Lon:
+                        grating11.speed *= -1
+                        grating12.speed *= -1
+                        grating21.speed *= -1
+                        grating22.speed *= -1
+
+
+
+
+
 
 
             else:
                 stereo1 = cp['stereo1']
                 stereo2 = cp['stereo2']
 
+            # update gratings
             grating11.update_position(timeStart, stereo1)
             grating12.update_position(timeStart, stereo2)
             grating21.update_position(timeStart, stereo2)
