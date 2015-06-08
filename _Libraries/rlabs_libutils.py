@@ -918,6 +918,7 @@ class Grating():
         self.duty_cycle   = duty_cycle
         self.apertRad_pix = apertRad_pix
         self.speed        = speed
+        self.bar_length   = 1000
 
         # decide if horizontal or vertical motion, depending on orientation:
         # self.threshold_angle = 50
@@ -934,43 +935,33 @@ class Grating():
         pass
      
     def draw(self):
-        x            = self.x
-        y            = self.y
-        fill_color   = self.fill_color
-        orientation  = self.orientation
-        mylambda     = self.mylambda
-        duty_cycle   = self.duty_cycle
-        apertRad_pix = self.apertRad_pix
-         
-         
-        bar_length = 1000
-     
-        radio_aux = (2 * apertRad_pix) + mylambda #diameter 
-        num_bars = int(1 + math.floor(radio_aux / mylambda))+3
+
+        radio_aux = (2 * self.apertRad_pix) + self.mylambda #diameter 
+        num_bars = int(1 + math.floor(radio_aux / self.mylambda)) + 3
        
         glStencilFunc (GL_EQUAL, 0x1, 0x1) 
         glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP)
              
         glLoadIdentity() #replace current matrix with the identity matrix
-        glTranslatef(x, y, 0)
-        glRotatef(orientation,0,0,1)    
-        glTranslatef(-x, -y, 0)
+        glTranslatef(self.x, self.y, 0)
+        glRotatef(self.orientation,0,0,1)    
+        glTranslatef(-self.x, -self.y, 0)
      
-        glColor3f(fill_color[0] , fill_color[1], fill_color[2] )
+        glColor3f(self.fill_color[0] , self.fill_color[1], self.fill_color[2] )
          
         glBlendFunc(GL_ZERO, GL_SRC_COLOR)  
          
         for i in range(int(-num_bars/2),int(num_bars/2)):    
              
-            x1 = mylambda * i + x
-            x2 = (duty_cycle * mylambda) + (mylambda * i + x)
+            x1 = self.mylambda * i + self.x
+            x2 = (self.duty_cycle * self.mylambda) + (self.mylambda * i + self.x)
              
             glBegin(GL_QUADS)
              
-            glVertex2f(x1, y - bar_length) 
-            glVertex2f(x1, y + bar_length) 
-            glVertex2f(x2, y + bar_length) 
-            glVertex2f(x2, y - bar_length)
+            glVertex2f(x1, self.y - self.bar_length) 
+            glVertex2f(x1, self.y + self.bar_length) 
+            glVertex2f(x2, self.y + self.bar_length) 
+            glVertex2f(x2, self.y - self.bar_length)
              
             glEnd()
          
@@ -980,23 +971,17 @@ class Grating():
         pass
      
     def update_position(self, runningTime, stereo):
-        motion_cycle = self.motion_cycle
-        speed        = self.speed
-        initialpos   = self.initialpos
-         
+
         timeNow = time.time()
 
-        position = initialpos + stereo
+        position = self.initialpos + stereo
 
-        self.x = position + math.fmod(speed*(timeNow-runningTime), motion_cycle)
+        self.x = position + math.fmod(self.speed*(timeNow-runningTime), self.motion_cycle)
         # if self.orientation < self.threshold_angle:
         #     self.x = position + math.fmod(speed*(timeNow-runningTime), motion_cycle)
         # elif self.orientation >= self.threshold_angle:
         #     self.y = initialpos + math.fmod(speed*(timeNow-runningTime), motion_cycle)
 
-        pass
-     
-    pass    
 
 class mycoords():
     # OpenGL coordinate system (0,0) is at the bottom left of the screen
