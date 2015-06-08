@@ -1146,6 +1146,9 @@ class Forced_struct():
         self.transTrial = []
         self.transOrder = []
 
+        self.stereo1 = 0
+        self.stereo2 = 0
+
         self.read_forced_transitions()                                  # read transition time stamps
         
         #self.order = list(OrderedDict.fromkeys(self.order))             # get order without duplicates
@@ -1261,15 +1264,13 @@ class Forced_struct():
                 self.timeTransL = self.transTimeL_trial[self.i_L]
        
         # update stereo value
-        stereo1 = (-self.deltaXaux1/2 + self.deltaXaux2/2) * self.scale
-        stereo2 =  (self.deltaXaux1/2 - self.deltaXaux2/2) * self.scale
+        self.stereo1 = (-self.deltaXaux1/2 + self.deltaXaux2/2) * self.scale
+        self.stereo2 =  (self.deltaXaux1/2 - self.deltaXaux2/2) * self.scale
 
         # print '{3}\t{0}\t{1}\t{2}'.format(timeNow - timeStartTrial,stereo1,stereo2,self.trial)
         # print '{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}'.format(
         #     self.trial, timeNow - timeStartTrial, stereo1, stereo2, self.i_R, self.i_L, self.Ron, self.Lon, 
         #     self.timeTransR, self.timeTransL, self.deltaXaux1, self.deltaXaux2, self.deltaXaux1_ini, self.deltaXaux2_ini)
-
-        return stereo1, stereo2
 
     def get_values_for_trial(self, trial = 0):
         idx_trial = np.where(np.array(self.transTrial) == trial)[0]
