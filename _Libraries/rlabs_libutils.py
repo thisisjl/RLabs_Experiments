@@ -513,13 +513,13 @@ def write_data_file_with_parameters(data_namefile, data_struct, parameters, righ
                 for i in trialsorder]                                   # order it
         else:                                                           # if it is a color, int or float,
             prmtsbytrials[k] = v                                        # copy it as it is
-    prmtsbytrials['trialsorder'] = sorted(parameters['trialsorder'])    # put sorted trials order
-
+        prmtsbytrials['trialsorder'] = sorted(
+            np.array(parameters['trialsorder']) + 1)                    # put sorted trials order
 
     timeStampStart = data_struct[0].timestamp                           # get time stamp of the start of trial 1
 
     fields = ['EventTimeStamp', 'EventName', 'EventType', 'EventID',    # create header
-    'Code', 'EventCount', 'Parameters']
+    'Code', 'TrialsCount', 'Parameters']
 
     for n in range(ntrials):                                            # for each trial
         fields.append('Value-trial-{0}'.format(n+1))                    # add field in header 
