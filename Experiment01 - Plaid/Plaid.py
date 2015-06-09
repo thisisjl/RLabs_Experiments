@@ -238,6 +238,9 @@ def main(
 
                 if cp['forced_stereo']:                             # if forced stereo
                     stereo1, stereo2 = fs.stereo1, fs.stereo2       # get new stereo values
+                else:                                                   # if not forced,
+                    stereo1 = cp['stereo1']                             # use stereo from config_file
+                    stereo2 = cp['stereo2']                             #
 
                 if cp['forced_speed']:                              # if forced speed
 
