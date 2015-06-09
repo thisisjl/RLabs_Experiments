@@ -1,5 +1,6 @@
 # Details for Plaid stimulus
 ![Plaid stimulus look like this](http://i.imgur.com/TldzA1b.png?2)
+
 **Execution**: python Plaid.py [optional name]. The optional name will be in the ouput data files, if no specified "defaultsubjectname" will be used.
 
 **Input**: 
