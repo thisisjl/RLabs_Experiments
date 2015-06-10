@@ -157,11 +157,16 @@ def main():
 
 	# # FIG 3, subplot 1
 	ax3[0].scatter(df_int.time, df_int.LEpos, color = 'r')
+	for event in ds.trial_ts:															# for each event time stamp
+	 	ax3[0].plot((event, event), (-10,10), 'k-')										# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
+
 	ax3[0].set_title('Interpolated position trace in degrees')
 
 	# FIG 2, subplot 2
 	ax3[1].scatter(vel_subset_a_int.time, vel_subset_a_int.LEvel, color = 'r', label='outliers')
 	ax3[1].scatter(vel_subset_b_int.time, vel_subset_b_int.LEvel, color ='g', label='non-outliers') 
+	for event in ds.trial_ts:															# for each event time stamp
+	 	ax3[1].plot((event, event), (-800,800), 'k-')										# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
 	ax3[1].set_title('Interpolated velocity with outliers determined 1.96 * SD')
 	ax3[1].legend()
 	fname = 'rawdata_outliers.pdf'
