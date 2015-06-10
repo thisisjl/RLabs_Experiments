@@ -16,163 +16,169 @@ import itertools
 
 import math
 
-# from Tkinter import Tk 						# for open data file GUI
-# from tkFileDialog import askopenfilenames 	# for open data file GUI
+from Tkinter import Tk 						# for open data file GUI
+from tkFileDialog import askopenfilenames 	# for open data file GUI
 
 # from itertools import count 				# create counter for figures
 # figcount = count()
 
-def main():
+def main(datafileslist=''):
 
-	# define constants --------------------------------------------------------------------------------------------
-	pix = 1280
-	DPP = 0.03
-	framerate = 120.0
+	for datafile in datafileslist:
+		print'datafile used: {0}\n'.format(os.path.split(datafile)[1])		# print the name of the current data file 
+		name = os.path.splitext(os.path.split(datafile)[1])[0]				# remove path information; remove .txt extension
+		# define constants --------------------------------------------------------------------------------------------
+		pix = 1280
+		DPP = 0.03
+		framerate = 120.0
 
-	# read data ---------------------------------------------------------------------------------------------------
-	# path = os.path.join('SampleData', 'Plaid_v19-15.03.09_17.26_EB1_newdata_eyet.txt') 	# read data
-	path = os.path.join('SampleData', 'Randomdots-15.05.13_16.52_EB2_Rdots_eyetracker_data.txt')
-	# path = os.path.join('SampleData', 'Randomdots-15.05.13_16.54_JL2_Rdots_eyetracker_data.txt')
-	# path = os.path.join('SampleData', 'Randomdots-15.05.13_16.53_JL_Rdots_eyetracker_data.txt')
-	# path = os.path.join('SampleData', 'Plaid-15.03.25_16.19_JL_fixplusprotectionzone_eyetracker_data.txt')
+		# read data ---------------------------------------------------------------------------------------------------
+		path = datafile
+		# path = os.path.join('SampleData', 'Plaid_v19-15.03.09_17.26_EB1_newdata_eyet.txt') 	# read data
+		# path = os.path.join('SampleData', 'Randomdots-15.05.13_16.52_EB2_Rdots_eyetracker_data.txt')
+		# path = os.path.join('SampleData', 'Randomdots-15.05.13_16.54_JL2_Rdots_eyetracker_data.txt')
+		# path = os.path.join('SampleData', 'Randomdots-15.05.13_16.53_JL_Rdots_eyetracker_data.txt')
+		# path = os.path.join('SampleData', 'Plaid-15.03.25_16.19_JL_fixplusprotectionzone_eyetracker_data.txt')
 
-	ds = DataStruct(path)
-	time = pd.Series(ds.timestamps)
-	leftgazeX = pd.Series(ds.leftgazeX)
-	df = pd.DataFrame({'time': time, 'LEpos': leftgazeX})
+		ds = DataStruct(path)
+		time = pd.Series(ds.timestamps)
+		leftgazeX = pd.Series(ds.leftgazeX)
+		df = pd.DataFrame({'time': time, 'LEpos': leftgazeX})
 
-	# remove NaN's -------------------------------------------------------------------------------------------
-	mask = df['LEpos'] == -1.1
-	df.loc[mask] = None
+		# remove NaN's -------------------------------------------------------------------------------------------
+		mask = df['LEpos'] == -1.1
+		df.loc[mask] = None
 
-	# convert to degrees -------------------------------------------------------------------------------------------
-	
-	df["LEpos"]= df["LEpos"] * pix					# convert from arbitrary units to pixels
-	df["LEpos"]= df["LEpos"] * DPP				# convert from pixels to degrees
+		# convert to degrees -------------------------------------------------------------------------------------------
+		
+		df["LEpos"]= df["LEpos"] * pix					# convert from arbitrary units to pixels
+		df["LEpos"]= df["LEpos"] * DPP				# convert from pixels to degrees
 
-	# Interpolate --------------------------------------------------------------------------------------------
-	df_int = df.interpolate()
+		# Interpolate --------------------------------------------------------------------------------------------
+		df_int = df.interpolate()
 
-	# Calculate velocity -------------------------------------------------------------------------------------
+		# Calculate velocity -------------------------------------------------------------------------------------
 
-	# VELOCITY from RAW POSITION TRACE 
-	dfVel = calcVel(df.time, df.LEpos, framerate) 			# three arguments: (1) time vector from dataframe, 
-															# (2) position vector from dataframe (3) framerate	 
+		# VELOCITY from RAW POSITION TRACE 
+		dfVel = calcVel(df.time, df.LEpos, framerate) 			# three arguments: (1) time vector from dataframe, 
+																# (2) position vector from dataframe (3) framerate	 
 
-	# VELOCITY from INTERPOLATED POSITION TRACE
-	dfVel_int = calcVel(df_int.time, df_int.LEpos, framerate) 	# three arguments: (1) time vector from dataframe, 
-																# (2) position vector from dataframe (3) framerate	
-
-
-	# Calculate Outliers -------------------------------------------------------------------------------------
-
-	# Velocity without interpolation
-	dfVel, vel_subset_a, vel_subset_b = calcOutl(dfVel, dfVel.LEvel)
-
-	# Velocity with interpolation
-	dfVel_int, vel_subset_a_int, vel_subset_b_int = calcOutl(dfVel_int, dfVel_int.LEvel)
+		# VELOCITY from INTERPOLATED POSITION TRACE
+		dfVel_int = calcVel(df_int.time, df_int.LEpos, framerate) 	# three arguments: (1) time vector from dataframe, 
+																	# (2) position vector from dataframe (3) framerate	
 
 
-	# Hayashi filter -----------------------------------------------------------------------------------------
+		# Calculate Outliers -------------------------------------------------------------------------------------
 
-	smooth_vel, sign_vel_avg, vel_avg, sign_vel, num2_samples, num_samples = hayashi(dfVel_int.LEvel, framerate, avg_win1 = 0.3, avg_win2 = 0.5, val1 = 30, val2 = 0.1)
-	start1 = math.ceil(num_samples/2.) - 1 # because index starts at 0 and not 1
-	end1 = start1 + len(vel_avg)
-	time_start = start1 + math.ceil(num2_samples/2.) - 1 # because index starts at 0 and not 1
-	time_end = time_start + len(smooth_vel)
+		# Velocity without interpolation
+		dfVel, vel_subset_a, vel_subset_b = calcOutl(dfVel, dfVel.LEvel)
 
-	# Plotting -----------------------------------------------------------------------------------------------
-
-	# FIGURE 1 - Effect of interpolation on detection of outliers
-	f, ax = plt.subplots(3, 2, sharex = True, figsize = (20,10))
-
-	# # FIG 1, subplot 1
-	ax[0,0].scatter(df.time, df.LEpos, color = 'r')
-	ax[0,0].set_title('Position trace in degrees')
-
-	# # FIG 1, subplot 2
-	ax[0,1].scatter(df_int.time, df_int.LEpos, color = 'r')
-	ax[0,1].set_title('Interpolated position trace in degrees')
-
-	# # FIG 1, subplot 3
-	ax[1,0].scatter(dfVel.time, dfVel.LEvel, color = 'g')
-	ax[1,0].plot(dfVel.time, dfVel.LEvel)
-	ax[1,0].set_title('Velocity trace (deg/s) using Pandas differentiation')
-
-	# # FIG 1, subplot 4
-	ax[1,1].scatter(dfVel_int.time, dfVel_int.LEvel, color = 'g')
-	ax[1,1].plot(dfVel_int.time, dfVel_int.LEvel)
-	ax[1,1].set_title('Interpolated velocity trace (deg/s) using Pandas differentiation')
-
-	# FIG 1, subplot 5
-	ax[2,0].scatter(vel_subset_a.time, vel_subset_a.LEvel, color = 'r', label='outliers')
-	ax[2,0].scatter(vel_subset_b.time, vel_subset_b.LEvel, color ='g', label='non-outliers') 
-	ax[2,0].set_title('Velocity with outliers determined 1.96 * SD')
-	ax[2,0].legend()
-
-	# FIG 1, subplot 6
-	ax[2,1].scatter(vel_subset_a_int.time, vel_subset_a_int.LEvel, color = 'r', label='outliers')
-	ax[2,1].scatter(vel_subset_b_int.time, vel_subset_b_int.LEvel, color ='g', label='non-outliers') 
-	ax[2,1].set_title('Interpolated velocity with outliers determined 1.96 * SD')
-	ax[2,1].legend()
+		# Velocity with interpolation
+		dfVel_int, vel_subset_a_int, vel_subset_b_int = calcOutl(dfVel_int, dfVel_int.LEvel)
 
 
+		# Hayashi filter -----------------------------------------------------------------------------------------
 
-	# FIGURE 2 - comparison of Hayashi filter to interpolated outlier method
-	f2, ax2 = plt.subplots(3, 2, sharex = True, figsize = (20,10))
+		smooth_vel, sign_vel_avg, vel_avg, sign_vel, num2_samples, num_samples = hayashi(dfVel_int.LEvel, framerate, avg_win1 = 0.3, avg_win2 = 0.5, val1 = 30, val2 = 0.1)
+		start1 = math.ceil(num_samples/2.) - 1 # because index starts at 0 and not 1
+		end1 = start1 + len(vel_avg)
+		time_start = start1 + math.ceil(num2_samples/2.) - 1 # because index starts at 0 and not 1
+		time_end = time_start + len(smooth_vel)
 
-	# # FIG 2, subplot 1
-	ax2[0,0].scatter(df_int.time, df_int.LEpos, color = 'r')
-	ax2[0,0].set_title('Interpolated position trace in degrees')
+		# Plotting -----------------------------------------------------------------------------------------------
 
-	# # FIG 2, subplot 3
-	ax2[1,0].scatter(dfVel_int.time, dfVel_int.LEvel, color = 'g')
-	ax2[1,0].plot(dfVel_int.time, dfVel_int.LEvel)
-	ax2[1,0].set_title('Interpolated velocity trace (deg/s) using Pandas differentiation')
+		# FIGURE 1 - Effect of interpolation on detection of outliers
+		f, ax = plt.subplots(3, 2, sharex = True, figsize = (20,10))
 
-	# FIG 2, subplot 5
-	ax2[2,0].scatter(vel_subset_a_int.time, vel_subset_a_int.LEvel, color = 'r', label='outliers')
-	ax2[2,0].scatter(vel_subset_b_int.time, vel_subset_b_int.LEvel, color ='g', label='non-outliers') 
-	ax2[2,0].set_title('Interpolated velocity with outliers determined 1.96 * SD')
-	ax2[2,0].legend()
+		# # FIG 1, subplot 1
+		ax[0,0].scatter(df.time, df.LEpos, color = 'r')
+		ax[0,0].set_title('Position trace in degrees')
 
-	# FIG 2, subplot 2
-	ax2[0,1].scatter(df_int.time, df_int.LEpos, color = 'r')
-	ax2[0,1].set_title('Interpolated position trace in degrees (same as subplot 1)')
+		# # FIG 1, subplot 2
+		ax[0,1].scatter(df_int.time, df_int.LEpos, color = 'r')
+		ax[0,1].set_title('Interpolated position trace in degrees')
 
-	# FIG 2, subplot 4
-	# ax2[1,1].scatter(df_int.time, sign_vel, color = 'g')
-	# ax2[1,1].set_title('Step 1: calculated sign of interpolated velocity for Hayashi filter')
-	ax2[1,1].scatter(dfVel_int.time[int(start1):int(end1)], vel_avg, color = 'g')
-	ax2[1,1].set_title('Smoothed output after first averaging window from Hayashi')
+		# # FIG 1, subplot 3
+		ax[1,0].scatter(dfVel.time, dfVel.LEvel, color = 'g')
+		ax[1,0].plot(dfVel.time, dfVel.LEvel)
+		ax[1,0].set_title('Velocity trace (deg/s) using Pandas differentiation')
 
-	# FIG 2, subplot 6
-	ax2[2,1].scatter(dfVel_int.time[int(time_start):int(time_end)], smooth_vel, color = 'g')
-	ax2[2,1].set_title('Smoothed output after 2nd avg win from Hayashi filter')
+		# # FIG 1, subplot 4
+		ax[1,1].scatter(dfVel_int.time, dfVel_int.LEvel, color = 'g')
+		ax[1,1].plot(dfVel_int.time, dfVel_int.LEvel)
+		ax[1,1].set_title('Interpolated velocity trace (deg/s) using Pandas differentiation')
+
+		# FIG 1, subplot 5
+		ax[2,0].scatter(vel_subset_a.time, vel_subset_a.LEvel, color = 'r', label='outliers')
+		ax[2,0].scatter(vel_subset_b.time, vel_subset_b.LEvel, color ='g', label='non-outliers') 
+		ax[2,0].set_title('Velocity with outliers determined 1.96 * SD')
+		ax[2,0].legend()
+
+		# FIG 1, subplot 6
+		ax[2,1].scatter(vel_subset_a_int.time, vel_subset_a_int.LEvel, color = 'r', label='outliers')
+		ax[2,1].scatter(vel_subset_b_int.time, vel_subset_b_int.LEvel, color ='g', label='non-outliers') 
+		ax[2,1].set_title('Interpolated velocity with outliers determined 1.96 * SD')
+		ax[2,1].legend()
 
 
 
-	# FIG 3 - for printing
-	f3, ax3 = plt.subplots(2, 1, sharex = True, figsize = (20,10))
+		# FIGURE 2 - comparison of Hayashi filter to interpolated outlier method
+		f2, ax2 = plt.subplots(3, 2, sharex = True, figsize = (20,10))
 
-	# # FIG 3, subplot 1
-	ax3[0].scatter(df_int.time, df_int.LEpos, color = 'r')
-	for event in ds.trial_ts:															# for each event time stamp
-	 	ax3[0].plot((event, event), (-10,10), 'k-')										# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
+		# # FIG 2, subplot 1
+		ax2[0,0].scatter(df_int.time, df_int.LEpos, color = 'r')
+		ax2[0,0].set_title('Interpolated position trace in degrees')
 
-	ax3[0].set_title('Interpolated position trace in degrees')
+		# # FIG 2, subplot 3
+		ax2[1,0].scatter(dfVel_int.time, dfVel_int.LEvel, color = 'g')
+		ax2[1,0].plot(dfVel_int.time, dfVel_int.LEvel)
+		ax2[1,0].set_title('Interpolated velocity trace (deg/s) using Pandas differentiation')
 
-	# FIG 2, subplot 2
-	ax3[1].scatter(vel_subset_a_int.time, vel_subset_a_int.LEvel, color = 'r', label='outliers')
-	ax3[1].scatter(vel_subset_b_int.time, vel_subset_b_int.LEvel, color ='g', label='non-outliers') 
-	for event in ds.trial_ts:															# for each event time stamp
-	 	ax3[1].plot((event, event), (-800,800), 'k-')										# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
-	ax3[1].set_title('Interpolated velocity with outliers determined 1.96 * SD')
-	ax3[1].legend()
-	fname = 'rawdata_outliers.pdf'
-	plt.savefig(fname)
+		# FIG 2, subplot 5
+		ax2[2,0].scatter(vel_subset_a_int.time, vel_subset_a_int.LEvel, color = 'r', label='outliers')
+		ax2[2,0].scatter(vel_subset_b_int.time, vel_subset_b_int.LEvel, color ='g', label='non-outliers') 
+		ax2[2,0].set_title('Interpolated velocity with outliers determined 1.96 * SD')
+		ax2[2,0].legend()
 
-	plt.show()
+		# FIG 2, subplot 2
+		ax2[0,1].scatter(df_int.time, df_int.LEpos, color = 'r')
+		ax2[0,1].set_title('Interpolated position trace in degrees (same as subplot 1)')
+
+		# FIG 2, subplot 4
+		# ax2[1,1].scatter(df_int.time, sign_vel, color = 'g')
+		# ax2[1,1].set_title('Step 1: calculated sign of interpolated velocity for Hayashi filter')
+		ax2[1,1].scatter(dfVel_int.time[int(start1):int(end1)], vel_avg, color = 'g')
+		ax2[1,1].set_title('Smoothed output after first averaging window from Hayashi')
+
+		# FIG 2, subplot 6
+		ax2[2,1].scatter(dfVel_int.time[int(time_start):int(time_end)], smooth_vel, color = 'g')
+		ax2[2,1].set_title('Smoothed output after 2nd avg win from Hayashi filter')
+
+
+
+		# FIG 3 - for printing
+		f3, ax3 = plt.subplots(2, 1, sharex = True, figsize = (20,10))
+
+		# # FIG 3, subplot 1
+		ax3[0].scatter(df_int.time, df_int.LEpos, color = 'r')
+		for event in ds.trial_ts:															# for each event time stamp
+		 	ax3[0].plot((event, event), (-10,10), 'k-')										# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
+
+		ax3[0].set_title('Interpolated position trace in degrees')
+
+		# FIG 2, subplot 2
+		ax3[1].scatter(vel_subset_a_int.time, vel_subset_a_int.LEvel, color = 'r', label='outliers')
+		ax3[1].scatter(vel_subset_b_int.time, vel_subset_b_int.LEvel, color ='g', label='non-outliers') 
+		for event in ds.trial_ts:															# for each event time stamp
+		 	ax3[1].plot((event, event), (-800,800), 'k-')										# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
+		ax3[1].set_title('Interpolated velocity with outliers determined 1.96 * SD')
+		ax3[1].legend()
+		fname = '%s.pdf' % name
+		plt.savefig(fname)
+
+		plt.show()
+
+	pass
 
 def calcVel(dft, dfp, fr):
 
@@ -247,3 +253,14 @@ def calculateSign(dfv, val):
 
 if __name__ == '__main__':
 	main()
+
+	if len(sys.argv) < 2:
+		print 'Choose which data files to analyze'
+	else:
+		pass
+	
+	## Create GUI to open files
+	Tk().withdraw() 																	# we don't want a full GUI, so keep the root window from appearing
+	datafileslist = askopenfilenames(title='Choose file to analyze', initialdir = '..') # show an "Open" dialog box and return the path to the selected file
+
+	main(datafileslist = datafileslist)
