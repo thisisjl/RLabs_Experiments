@@ -30,8 +30,8 @@ def main():
 	framerate = 120.0
 
 	# read data ---------------------------------------------------------------------------------------------------
-	path = os.path.join('SampleData', 'Plaid_v19-15.03.09_17.26_EB1_newdata_eyet.txt') 	# read data
-	# path = os.path.join('SampleData', 'Randomdots-15.05.13_16.52_EB2_Rdots_eyetracker_data.txt')
+	# path = os.path.join('SampleData', 'Plaid_v19-15.03.09_17.26_EB1_newdata_eyet.txt') 	# read data
+	path = os.path.join('SampleData', 'Randomdots-15.05.13_16.52_EB2_Rdots_eyetracker_data.txt')
 	# path = os.path.join('SampleData', 'Randomdots-15.05.13_16.54_JL2_Rdots_eyetracker_data.txt')
 	# path = os.path.join('SampleData', 'Randomdots-15.05.13_16.53_JL_Rdots_eyetracker_data.txt')
 	# path = os.path.join('SampleData', 'Plaid-15.03.25_16.19_JL_fixplusprotectionzone_eyetracker_data.txt')
@@ -149,6 +149,23 @@ def main():
 	# FIG 2, subplot 6
 	ax2[2,1].scatter(dfVel_int.time[int(time_start):int(time_end)], smooth_vel, color = 'g')
 	ax2[2,1].set_title('Smoothed output after 2nd avg win from Hayashi filter')
+
+
+
+	# FIG 3 - for printing
+	f3, ax3 = plt.subplots(2, 1, sharex = True, figsize = (20,10))
+
+	# # FIG 3, subplot 1
+	ax3[0].scatter(df_int.time, df_int.LEpos, color = 'r')
+	ax3[0].set_title('Interpolated position trace in degrees')
+
+	# FIG 2, subplot 2
+	ax3[1].scatter(vel_subset_a_int.time, vel_subset_a_int.LEvel, color = 'r', label='outliers')
+	ax3[1].scatter(vel_subset_b_int.time, vel_subset_b_int.LEvel, color ='g', label='non-outliers') 
+	ax3[1].set_title('Interpolated velocity with outliers determined 1.96 * SD')
+	ax3[1].legend()
+	fname = 'rawdata_outliers.pdf'
+	plt.savefig(fname)
 
 	plt.show()
 
