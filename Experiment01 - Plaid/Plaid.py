@@ -79,6 +79,7 @@ def main(
     numtrials = int(tp['numtrials'])                                                            # get number of trials
     trials_array = np_permutation(numtrials) if cp['randomize_trials'] else range(numtrials)    # randomize trials or not
     tp['trialsorder'] = trials_array
+    tp['labelfromtrialsfile'] = trials_array
 
     parameters = merge_dicts_ordered(cp, tp)                                                                            # join parameters (to write them later)
 
@@ -227,20 +228,48 @@ def main(
             MyWin.dispatch_events()                                         # dispatch window events (very important call)
 
             
-            # Update position of objects ---------------------------------------------------------------------------------------------------
+            # Update objects ---------------------------------------------------------------------------------------------------
 
-            if cp['forced']:
-                stereo1, stereo2 = fs.compute_forced_values(timeStart, timeNow)
+            if cp['forced']:                                        # if forced mode on
+                fs.compute_forced_values(timeStart, timeNow)        # update forced values (stereo)
+                
+                go_right = fs.Ron                                   # Ron means that plaid was perceived going to the right
+                go_left  = fs.Lon                                   # Lon for left
 
+                if cp['forced_stereo']:                             # if forced stereo
+                    stereo1, stereo2 = fs.stereo1, fs.stereo2       # get new stereo values
+                else:                                                   # if not forced,
+                    stereo1 = cp['stereo1']                             # use stereo from config_file
+                    stereo2 = cp['stereo2']                             #
 
-            else:
-                stereo1 = cp['stereo1']
-                stereo2 = cp['stereo2']
+                if cp['forced_speed']:                              # if forced speed
 
-            grating11.update_position(timeStart, stereo1)
-            grating12.update_position(timeStart, stereo2)
-            grating21.update_position(timeStart, stereo2)
-            grating22.update_position(timeStart, stereo1)
+                    if go_right:                                    # change direction of plaid to the right
+                        grating11.speed = tp['speed1'][trial]       
+                        grating12.speed = tp['speed1'][trial]       
+                        grating21.speed = tp['speed2'][trial]
+                        grating22.speed = tp['speed2'][trial]
+                
+                        go_right = 0                                # set to 0, in order to avoid computing speed it again
+
+                    if go_left:                                     # change direction of plaid to the right
+                        grating11.speed = -tp['speed1'][trial]       
+                        grating12.speed = -tp['speed1'][trial]       
+                        grating21.speed = -tp['speed2'][trial]
+                        grating22.speed = -tp['speed2'][trial]
+                        
+                        go_left = 0                                 # set to 0, in order to avoid computing speed it again
+
+            else:                                                   # if not forced,
+                stereo1 = cp['stereo1']                             # use stereo from config_file
+                stereo2 = cp['stereo2']                             #
+
+            # update position of gratings
+            grating11.update_position(timeStart, stereo1)           # draw grating 1
+            grating12.update_position(timeStart, stereo2)           #
+            if cp['draw2gts']:                                      # if drawing two gratings,
+                grating21.update_position(timeStart, stereo2)       # draw grating 2
+                grating22.update_position(timeStart, stereo1)       #
             
         
             # Draw objects ---------------------------------------------------------------------------------------------------
@@ -251,8 +280,9 @@ def main(
 
             grating11.draw()
             grating12.draw()
-            grating21.draw()
-            grating22.draw()
+            if cp['draw2gts']:
+                grating21.draw()
+                grating22.draw()
             
             glDisable(GL_BLEND)
 
@@ -283,7 +313,6 @@ def main(
             
         #     # if cp['eyetracker']: controller.myRecordEvent2(event = e)    # write event to eyetracker data file
         
-        eventcount += 1
         events_struct.append(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = trial, eid = 'END'))
         if cp['eyetracker']: controller.myRecordEvent2(EventItem(name = 'TrialEvent', counter = eventcount, timestamp = timeNow, etype = trial, eid ='END'))
 

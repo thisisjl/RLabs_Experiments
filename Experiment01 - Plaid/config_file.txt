@@ -16,6 +16,11 @@ mheight = 33.20
 mpdist = 60
 mvres = 1080
 
+# monitor in sala G: Philips 109B2, resolution: 1600x1200, width = 36.5cm, height = 27.5 cm
+#mheight = 27.5
+#mpdist = 60
+#mvres = 1200
+
 # other monitor:
 # height =
 # mpdist =
@@ -30,7 +35,7 @@ bit_per_pixel = 32
 
 FPsize = 5
 aperture_switch = 1
-# monitor in sala G: Philips 109B2, resolution: 1280x960, width = 36.5cm, height = 27.5 cm
+
 
 # aperture
 # proportion of the aperture respect the size of window. (proportion = 3)
@@ -59,22 +64,28 @@ speed = 0.5
 # time
 time_fixp = 0.7
 
+# Gratings: draw two gratings or not
+# 0 for one grating, 1 for two
+draw2gts = 0
+
 # forced mode yes: 1, no: 0
-forced = 0
+forced = 1
+forced_stereo = 1
+forced_speed = 1
 
 # 1 if connected to the eyetracker, 0 if not. Temporal variable. 
 eyetracker = 0
 
 # Randomize trials?
-randomize_trials = 0
+randomize_trials = 1
 
 # fixation point, options:
 # 0: No fixation point
 # 1: Circle with protection zone
 # 2: Circle without protection zone
 # 3: Cross
-fixationpoint = 1
+fixationpoint = 0
 
 # create transitions file yes: 1, no: 0
-create_transitions = 1
+create_transitions = 0
 

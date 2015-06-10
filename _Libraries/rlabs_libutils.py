@@ -513,13 +513,13 @@ def write_data_file_with_parameters(data_namefile, data_struct, parameters, righ
                 for i in trialsorder]                                   # order it
         else:                                                           # if it is a color, int or float,
             prmtsbytrials[k] = v                                        # copy it as it is
-    prmtsbytrials['trialsorder'] = sorted(parameters['trialsorder'])    # put sorted trials order
-
+        prmtsbytrials['trialsorder'] = sorted(
+            np.array(parameters['trialsorder']) + 1)                    # put sorted trials order
 
     timeStampStart = data_struct[0].timestamp                           # get time stamp of the start of trial 1
 
     fields = ['EventTimeStamp', 'EventName', 'EventType', 'EventID',    # create header
-    'Code', 'EventCount', 'Parameters']
+    'Code', 'TrialsCount', 'Parameters']
 
     for n in range(ntrials):                                            # for each trial
         fields.append('Value-trial-{0}'.format(n+1))                    # add field in header 
@@ -641,9 +641,12 @@ def gencontinuousoutliers(Aoutliers, Boutliers):
     c = np.zeros(len(Aoutliers),dtype=int)      # initialize output array
 
     idxa = np.where(Aoutliers==1)[0]            # get indices when A is 1
-    idxb = np.where(Boutliers[idxa[0]:])[0]     # get indices when B is 1 starting at idxa[0]
+    idxb_tmp = np.where(Boutliers==1)[0]        # get indices when B is 1 (temporal variable)
 
-    # idxb = np.where(Boutliers==1)[0]            # get indices when B is 1
+    idxb = []                                   # initialize array
+    for ia in idxa:                             # for each index of A outlier
+        val,idx = find_nearest_above(idxb_tmp,ia)   # get B outlier above it
+        idxb.append(val)                        # append value to array
 
     for ia, ib in izip(idxa,idxb):              # for each index
         c[ia:ib] = 1                            # set c to 1
@@ -914,6 +917,7 @@ class Grating():
         self.duty_cycle   = duty_cycle
         self.apertRad_pix = apertRad_pix
         self.speed        = speed
+        self.bar_length   = 1000
 
         # decide if horizontal or vertical motion, depending on orientation:
         # self.threshold_angle = 50
@@ -930,43 +934,33 @@ class Grating():
         pass
      
     def draw(self):
-        x            = self.x
-        y            = self.y
-        fill_color   = self.fill_color
-        orientation  = self.orientation
-        mylambda     = self.mylambda
-        duty_cycle   = self.duty_cycle
-        apertRad_pix = self.apertRad_pix
-         
-         
-        bar_length = 1000
-     
-        radio_aux = (2 * apertRad_pix) + mylambda #diameter 
-        num_bars = int(1 + math.floor(radio_aux / mylambda))+3
+
+        radio_aux = (2 * self.apertRad_pix) + self.mylambda #diameter 
+        num_bars = int(1 + math.floor(radio_aux / self.mylambda)) + 3
        
         glStencilFunc (GL_EQUAL, 0x1, 0x1) 
         glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP)
              
         glLoadIdentity() #replace current matrix with the identity matrix
-        glTranslatef(x, y, 0)
-        glRotatef(orientation,0,0,1)    
-        glTranslatef(-x, -y, 0)
+        glTranslatef(self.x, self.y, 0)
+        glRotatef(self.orientation,0,0,1)    
+        glTranslatef(-self.x, -self.y, 0)
      
-        glColor3f(fill_color[0] , fill_color[1], fill_color[2] )
+        glColor3f(self.fill_color[0] , self.fill_color[1], self.fill_color[2] )
          
         glBlendFunc(GL_ZERO, GL_SRC_COLOR)  
          
         for i in range(int(-num_bars/2),int(num_bars/2)):    
              
-            x1 = mylambda * i + x
-            x2 = (duty_cycle * mylambda) + (mylambda * i + x)
+            x1 = self.mylambda * i + self.x
+            x2 = (self.duty_cycle * self.mylambda) + (self.mylambda * i + self.x)
              
             glBegin(GL_QUADS)
              
-            glVertex2f(x1, y - bar_length) 
-            glVertex2f(x1, y + bar_length) 
-            glVertex2f(x2, y + bar_length) 
-            glVertex2f(x2, y - bar_length)
+            glVertex2f(x1, self.y - self.bar_length) 
+            glVertex2f(x1, self.y + self.bar_length) 
+            glVertex2f(x2, self.y + self.bar_length) 
+            glVertex2f(x2, self.y - self.bar_length)
              
             glEnd()
          
@@ -976,23 +970,17 @@ class Grating():
         pass
      
     def update_position(self, runningTime, stereo):
-        motion_cycle = self.motion_cycle
-        speed        = self.speed
-        initialpos   = self.initialpos
-         
+
         timeNow = time.time()
 
-        position = initialpos + stereo
+        position = self.initialpos + stereo
 
-        self.x = position + math.fmod(speed*(timeNow-runningTime), motion_cycle)
+        self.x = position + math.fmod(self.speed*(timeNow-runningTime), self.motion_cycle)
         # if self.orientation < self.threshold_angle:
         #     self.x = position + math.fmod(speed*(timeNow-runningTime), motion_cycle)
         # elif self.orientation >= self.threshold_angle:
         #     self.y = initialpos + math.fmod(speed*(timeNow-runningTime), motion_cycle)
 
-        pass
-     
-    pass    
 
 class mycoords():
     # OpenGL coordinate system (0,0) is at the bottom left of the screen
@@ -1158,6 +1146,9 @@ class Forced_struct():
         self.transTrial = []
         self.transOrder = []
 
+        self.stereo1 = 0
+        self.stereo2 = 0
+
         self.read_forced_transitions()                                  # read transition time stamps
         
         #self.order = list(OrderedDict.fromkeys(self.order))             # get order without duplicates
@@ -1273,15 +1264,13 @@ class Forced_struct():
                 self.timeTransL = self.transTimeL_trial[self.i_L]
        
         # update stereo value
-        stereo1 = (-self.deltaXaux1/2 + self.deltaXaux2/2) * self.scale
-        stereo2 =  (self.deltaXaux1/2 - self.deltaXaux2/2) * self.scale
+        self.stereo1 = (-self.deltaXaux1/2 + self.deltaXaux2/2) * self.scale
+        self.stereo2 =  (self.deltaXaux1/2 - self.deltaXaux2/2) * self.scale
 
         # print '{3}\t{0}\t{1}\t{2}'.format(timeNow - timeStartTrial,stereo1,stereo2,self.trial)
         # print '{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}'.format(
         #     self.trial, timeNow - timeStartTrial, stereo1, stereo2, self.i_R, self.i_L, self.Ron, self.Lon, 
         #     self.timeTransR, self.timeTransL, self.deltaXaux1, self.deltaXaux2, self.deltaXaux1_ini, self.deltaXaux2_ini)
-
-        return stereo1, stereo2
 
     def get_values_for_trial(self, trial = 0):
         idx_trial = np.where(np.array(self.transTrial) == trial)[0]
