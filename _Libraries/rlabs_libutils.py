@@ -653,6 +653,32 @@ def gencontinuousoutliers(Aoutliers, Boutliers):
     
     return c                                    # return
 
+def filteroutliers(array, samples = 2):
+    """
+        Given a boolean array, filteroutliers will turn to FALSE those
+        values that are in within 'samples' distance from a TRUE value.
+        - a:       boolean array
+        - samples: integer
+    """
+    import numpy as np
+
+    out = np.zeros(array.size, dtype = bool)            # initialize output array, all set to False
+    s = 0                                               # initialize samples counter
+    startcounting = 0                                   # do not start counting samples yet
+
+    for idx, val in enumerate(array):                   # for each item in array, get index and value
+        if val == True and s == 0:                      # if value is True and counter is 0
+            out[idx] = True                             # set output at idx to True
+            startcounting = 1                           # and enable counting samples
+            
+        if startcounting: s += 1                        # count samples
+              
+        if s == samples + 1:                            # if s counter is bigger than samples, 
+            s = 0                                       # reset counter
+            startcounting = 0                           # do not count
+
+    return out                                          # return output array
+
 # -------------------------------------------------------------------------------------------------------------------
 
 class MyWindow(pyglet.window.Window): 
