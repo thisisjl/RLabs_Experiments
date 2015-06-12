@@ -34,12 +34,16 @@ df['LEpos_int'] = df['LEpos'].interpolate()
 # compute velocity for interpolated position:
 df['velocity'] = df['LEpos_int'].diff() * framerate
 
-# compute outliers (boolean array)
-df['Outlier'] = abs(df['velocity'] - df['velocity'].mean()) > 1.96*df['velocity'].std()
+# compute outliers (boolean array):
+df['isOutlier'] = abs(df['velocity'] - df['velocity'].mean()) > 1.96*df['velocity'].std()
+
+# create two new DataFrames: for outliers and non-outliers:
+outliers = df[df['Outlier']].dropna()
+nonoutliers = df[~df['Outlier']].dropna()
 
 # compute A or B given outliers
-df['A percept'] = [v>0 if o else 0 for v,o in izip(df['velocity'],df['Outlier'])]
-df['B percept'] = [v<0 if o else 0 for v,o in izip(df['velocity'],df['Outlier'])]
+df['A percept'] = [v>0 if o else 0 for v,o in izip(df['velocity'],df['isOutlier'])]
+df['B percept'] = [v<0 if o else 0 for v,o in izip(df['velocity'],df['isOutlier'])]
 
 # compute continuous A or B percepts
 df['A percept continuous'] = gencontinuousoutliers(df['A percept'],df['B percept'])
@@ -49,29 +53,31 @@ df['B percept continuous'] = gencontinuousoutliers(df['B percept'],df['A percept
 df['A press'] = gentimeseries(ds.timestamps, ds.A_ts)
 df['B press'] = gentimeseries(ds.timestamps, ds.B_ts)
 
-# plot it
-showlegend = 1
 
-ax1 = plt.subplot(3, 1, 1)
+# plot it --------------------------------------------------------------------------------
+
+ax1 = plt.subplot(4, 1, 1)
 ax1.plot(df['time'], df['LEpos_int'], label = 'leftgazeX (interpolated)')
 
-plt.title('')
-plt.ylabel('')
+ax2 = plt.subplot(4, 1, 2, sharex = ax1)
+ax2.scatter(outliers['time'], outliers['velocity'], color = 'r', label='outliers')
+ax2.scatter(nonoutliers['time'], nonoutliers['velocity'], color ='g', label='non-outliers') 
+# ax2.set_title('Velocity with outliers determined 1.96 * SD')
+ax2.set_ylim()
+ax2.legend()
+plt.xlabel('time (s)')
 
-ax2 = plt.subplot(3, 1, 2,sharex = ax1)
-ax2.plot(df['time'], df['A press'], color = 'r',linewidth=2, label = 'A button press')
-ax2.plot(df['time'], df['A percept continuous'], color = 'lightsalmon',linewidth=1, label = 'A eye outlier')
-plt.ylim(ymax = 1.05)
+ax3 = plt.subplot(4, 1, 3,sharex = ax1)
+ax3.plot(df['time'], df['A press'], color = 'r',linewidth=2, label = 'A button press')
+ax3.plot(df['time'], df['A percept continuous'], color = 'lightsalmon',linewidth=1, label = 'A eye outlier')
+ax3.set_ylim([0, 1.05])
+ax3.legend()
 
-ax3 = plt.subplot(3, 1, 3, sharex = ax1, sharey = ax2)
-ax3.plot(df['time'], df['B press'], color = 'b',linewidth=2, label = 'B button press')
-ax3.plot(df['time'], df['B percept continuous'], color = 'lightblue',linewidth=1, label = 'B eye outlier')
-
-if showlegend:
-	ax1.legend(loc='upper right')
-	ax2.legend(loc='upper right')
-	ax3.legend(loc='upper right')
-plt.ylim(ymax = 1.05)
+ax4 = plt.subplot(4, 1, 4, sharex = ax1, sharey = ax3)
+ax4.plot(df['time'], df['B press'], color = 'b',linewidth=2, label = 'B button press')
+ax4.plot(df['time'], df['B percept continuous'], color = 'lightblue',linewidth=1, label = 'B eye outlier')
+ax4.set_ylim([0, 1.05])
+ax4.legend()
 
 plt.xlabel('time (s)')
 plt.show()
