@@ -18,6 +18,8 @@ print path
 
 # get raw data
 ds = DataStruct(path)
+fn = ds.filename.split()[0] # get filename
+
 time = pd.Series(ds.timestamps)
 leftgazeX = pd.Series(ds.leftgazeX)
 df = pd.DataFrame({'time': time, 'LEpos': leftgazeX})
@@ -84,7 +86,6 @@ for event in ds.trial_ts:
 ax2.set_title('Velocity with outliers determined 1.96 * SD')
 ax2.set_ylim()
 ax2.legend()
-plt.xlabel('time (s)')
 
 ax3 = plt.subplot(4, 1, 3,sharex = ax1)
 ax3.plot(df['time'], df['A press'], color = 'r',linewidth=2, label = 'A button press')
@@ -105,6 +106,7 @@ ax4.set_ylim([0, 1.05])
 ax4.legend()
 
 plt.xlabel('time (s)')
+plt.suptitle(fn)
 
 # --------------------------------------------------------------------------------------------
 # figure 2: 4 subplots with a) gaze position, 
@@ -136,7 +138,7 @@ ax7.set_ylim()
 ax7.legend()
 
 plt.xlabel('time (s)')
-
+plt.suptitle(fn)
 
 # show both figures
 plt.show()
