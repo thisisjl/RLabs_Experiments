@@ -74,13 +74,14 @@ ax1 = plt.subplot(4, 1, 1)
 ax1.plot(df['time'], df['LEpos_int'], label = 'leftgazeX (interpolated)')
 for event in ds.trial_ts:															# for each event time stamp
 	ax1.plot((event, event), (np.min(df['LEpos_int']),np.max(df['LEpos_int'])), 'k-')
+ax1.set_title('Position trace')
 
 ax2 = plt.subplot(4, 1, 2, sharex = ax1)
 ax2.scatter(nonoutliers['time'], nonoutliers['velocity'], color ='g', label='non-outliers') 
 ax2.scatter(outliers['time'], outliers['velocity'], color = 'r', label='outliers')
 for event in ds.trial_ts:
 	ax2.plot((event, event), (np.min(outliers['velocity']),np.max(outliers['velocity'])), 'k-')
-# ax2.set_title('Velocity with outliers determined 1.96 * SD')
+ax2.set_title('Velocity with outliers determined 1.96 * SD')
 ax2.set_ylim()
 ax2.legend()
 plt.xlabel('time (s)')
@@ -90,6 +91,7 @@ ax3.plot(df['time'], df['A press'], color = 'r',linewidth=2, label = 'A button p
 ax3.plot(df['time'], df['A percept continuous'], color = 'lightsalmon',linewidth=1, label = 'A eye outlier')
 for event in ds.trial_ts:
 	ax3.plot((event, event), (np.min(df['A press'])-0.05,np.max(df['A press'])+0.05), 'k-')
+ax3.set_title('A percept: buttons vs eye outliers')
 ax3.set_ylim([0, 1.05])
 ax3.legend()
 
@@ -98,6 +100,7 @@ ax4.plot(df['time'], df['B press'], color = 'b',linewidth=2, label = 'B button p
 ax4.plot(df['time'], df['B percept continuous'], color = 'lightblue',linewidth=1, label = 'B eye outlier')
 for event in ds.trial_ts:
 	ax4.plot((event, event), (np.min(df['B press'])-0.05,np.max(df['B press'])+0.05), 'k-')
+ax4.set_title('B percept: buttons vs eye outliers')
 ax4.set_ylim([0, 1.05])
 ax4.legend()
 
@@ -112,13 +115,14 @@ ax5 = plt.subplot(3, 1, 1)
 ax5.plot(df['time'], df['LEpos_int'], label = 'leftgazeX (interpolated)')
 for event in ds.trial_ts:
 	ax5.plot((event, event), (np.min(df['LEpos_int']),np.max(df['LEpos_int'])), 'k-')
+ax5.set_title('Position trace')
 
 ax6 = plt.subplot(3, 1, 2, sharex = ax5)
 ax6.scatter(outliers['time'], outliers['velocity'], color = 'r', label='outliers')
 ax6.scatter(nonoutliers['time'], nonoutliers['velocity'], color ='g', label='non-outliers') 
 for event in ds.trial_ts:
 	ax6.plot((event, event), (np.min(outliers['velocity']),np.max(outliers['velocity'])), 'k-')
-# ax2.set_title('Velocity with outliers determined 1.96 * SD')
+ax6.set_title('Velocity with outliers determined 1.96 * SD')
 ax6.set_ylim()
 ax6.legend()
 
@@ -127,7 +131,7 @@ ax7.scatter(filtnonoutliers['time'], filtnonoutliers['velocity'], color ='g', la
 ax7.scatter(filtoutliers['time'], filtoutliers['velocity'], color = 'r', label='filt-outliers')
 for event in ds.trial_ts:
 	ax7.plot((event, event), (np.min(filtnonoutliers['velocity']),np.max(filtnonoutliers['velocity'])), 'k-')
-# ax2.set_title('Velocity with outliers determined 1.96 * SD')
+ax7.set_title('Velocity with filtered outliers determined 1.96 * SD')
 ax7.set_ylim()
 ax7.legend()
 
