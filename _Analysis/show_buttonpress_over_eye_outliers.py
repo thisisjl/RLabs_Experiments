@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from itertools import izip
 import numpy as np
 
-def main():
+def main(outlier_threshold = 125, ambiguousoutlier_th = 100, filter_samples = 5):
 	# define convert-to-degrees constants
 	pix = 1280
 	DPP = 0.03
@@ -39,11 +39,18 @@ def main():
 	df['velocity'] = df['LEpos_int'].diff() * framerate
 
 	# compute outliers (boolean array):
-	df['isOutlier'] = abs(df['velocity'] - df['velocity'].mean()) > 1.96*df['velocity'].std()
+	df['isOutlier'] = abs(df['velocity'] - df['velocity'].mean()) > outlier_threshold
 
 	# create two new DataFrames: for outliers and non-outliers:
 	outliers = df[df['isOutlier']].dropna()
 	nonoutliers = df[~df['isOutlier']].dropna()
+
+	# compute ambiguous outliers
+	df['isAmbiguousOutlier'] = (abs(df['velocity'] - df['velocity'].mean()) > ambiguousoutlier_th) & (~df['isOutlier'])
+
+	# create two new DataFrames: for ambiguous-outliers and non-outliers:
+	ambg_outliers = df[df['isAmbiguousOutlier']].dropna()
+	notevenambg_outliers = df[~df['isAmbiguousOutlier']].dropna()
 
 	# compute A or B given outliers
 	df['A percept'] = [v>0 if o else 0 for v,o in izip(df['velocity'],df['isOutlier'])]
@@ -57,9 +64,9 @@ def main():
 	# 	so outliers will only be valid if are separated from previous outliers
 	# 	by a X time distance.
 	# 	compute time:
-	mintime = 0.3 			# seconds
-	samples = framerate * mintime
-	df['Outlierfiltered'] = filteroutliers(df['isOutlier'], samples = samples)
+	# mintime = 0.3 			# seconds
+	# samples = framerate * mintime
+	df['Outlierfiltered'] = filteroutliers(df['isOutlier'], samples = filter_samples)
 
 	# create two new DataFrames: for filtered outliers and filtered non-outliers:
 	filtoutliers = df[df['Outlierfiltered']].dropna()
@@ -121,8 +128,9 @@ def main():
 	ax2[0].set_title('Position trace in degrees')
 	ax2[0].legend()
 
+	ax2[1].scatter(notevenambg_outliers['time'], notevenambg_outliers['velocity'], color = 'g', label='non-outliers')
+	ax2[1].scatter(ambg_outliers['time'], ambg_outliers['velocity'], color = 'b', label='ambg_outliers')
 	ax2[1].scatter(outliers['time'], outliers['velocity'], color = 'r', label='outliers')
-	ax2[1].scatter(nonoutliers['time'], nonoutliers['velocity'], color = 'g', label='non-outliers')
 	for event in ds.trial_ts:
 		ax2[1].plot((event, event), (np.min(outliers['velocity']),np.max(outliers['velocity'])), 'k-')
 	ax2[1].set_title('Velocity with outliers determined 1.96 * SD')
