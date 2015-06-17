@@ -84,14 +84,15 @@ def main(outlier_threshold = 125, ambiguousoutlier_th = 100, filter_samples = 5)
 	ax1[0].plot(df['time'], df['LEpos_int'], label = 'leftgazeX (interpolated)')
 	for event in ds.trial_ts:															# for each event time stamp
 		ax1[0].plot((event, event), (np.min(df['LEpos_int']),np.max(df['LEpos_int'])), 'k-')
-	ax1[0].set_title('Position trace')
+	ax1[0].set_title('Position trace (degrees)')
 	ax1[0].legend()
 
-	ax1[1].scatter(nonoutliers['time'], nonoutliers['velocity'], color ='g', label='non-outliers') 
+	ax1[1].scatter(notevenambg_outliers['time'], notevenambg_outliers['velocity'], color = 'g', label='non-outliers')
+	ax1[1].scatter(ambg_outliers['time'], ambg_outliers['velocity'], color = 'b', label='ambg_outliers')
 	ax1[1].scatter(outliers['time'], outliers['velocity'], color = 'r', label='outliers')
 	for event in ds.trial_ts:
 		ax1[1].plot((event, event), (np.min(outliers['velocity']),np.max(outliers['velocity'])), 'k-')
-	ax1[1].set_title('Velocity with outliers. th:{0}'.format(outlier_threshold))
+	ax1[1].set_title('Velocity with outliers. th1:{0} th2:{1}'.format(outlier_threshold,ambiguousoutlier_th))
 	ax1[1].set_ylim()
 	ax1[1].legend()
 
@@ -123,7 +124,7 @@ def main(outlier_threshold = 125, ambiguousoutlier_th = 100, filter_samples = 5)
 	ax2[0].plot(df['time'], df['LEpos_int'], label = 'leftgazeX (interpolated)')
 	for event in ds.trial_ts:
 		ax2[0].plot((event, event), (np.min(df['LEpos_int']),np.max(df['LEpos_int'])), 'k-')
-	ax2[0].set_title('Position trace in degrees')
+	ax2[0].set_title('Position trace (degrees)')
 	ax2[0].legend()
 
 	ax2[1].scatter(notevenambg_outliers['time'], notevenambg_outliers['velocity'], color = 'g', label='non-outliers')
@@ -131,14 +132,14 @@ def main(outlier_threshold = 125, ambiguousoutlier_th = 100, filter_samples = 5)
 	ax2[1].scatter(outliers['time'], outliers['velocity'], color = 'r', label='outliers')
 	for event in ds.trial_ts:
 		ax2[1].plot((event, event), (np.min(outliers['velocity']),np.max(outliers['velocity'])), 'k-')
-	ax2[1].set_title('Velocity with outliers determined 1.96 * SD')
+	ax2[1].set_title('Velocity with outliers. th1:{0} th2:{1}'.format(outlier_threshold,ambiguousoutlier_th))
 	ax2[1].legend()
 
 	ax2[2].scatter(filtnonoutliers['time'], filtnonoutliers['velocity'], color = 'g', label='filt-non-outliers')
 	ax2[2].scatter(filtoutliers['time'], filtoutliers['velocity'], color = 'r', label='filt-outliers')
 	for event in ds.trial_ts:
 		ax2[2].plot((event, event), (np.min(filtnonoutliers['velocity']),np.max(filtnonoutliers['velocity'])), 'k-')
-	ax2[2].set_title('Velocity with filtered outliers determined 1.96 * SD')
+	ax2[2].set_title('Velocity with outliers. th1:{0} filter samples:{1}'.format(outlier_threshold, filter_samples))
 	ax2[2].legend()
 	
 	ax2[2].set_xlabel('time (ms)')
