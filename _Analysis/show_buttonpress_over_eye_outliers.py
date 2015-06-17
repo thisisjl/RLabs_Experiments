@@ -85,17 +85,16 @@ def main(outlier_threshold = 125, ambiguousoutlier_th = 100, filter_samples = 5)
 	for event in ds.trial_ts:															# for each event time stamp
 		ax1[0].plot((event, event), (np.min(df['LEpos_int']),np.max(df['LEpos_int'])), 'k-')
 	ax1[0].set_title('Position trace')
+	ax1[0].legend()
 
-	ax1[1] = plt.subplot(4, 1, 2)
 	ax1[1].scatter(nonoutliers['time'], nonoutliers['velocity'], color ='g', label='non-outliers') 
 	ax1[1].scatter(outliers['time'], outliers['velocity'], color = 'r', label='outliers')
 	for event in ds.trial_ts:
 		ax1[1].plot((event, event), (np.min(outliers['velocity']),np.max(outliers['velocity'])), 'k-')
-	ax1[1].set_title('Velocity with outliers determined 1.96 * SD')
+	ax1[1].set_title('Velocity with outliers. th:{0}'.format(outlier_threshold))
 	ax1[1].set_ylim()
 	ax1[1].legend()
 
-	ax1[2] = plt.subplot(4, 1, 3)
 	ax1[2].plot(df['time'], df['A press'], color = 'r',linewidth=2, label = 'A button press')
 	ax1[2].plot(df['time'], df['A percept continuous'], color = 'lightsalmon',linewidth=1, label = 'A eye outlier')
 	for event in ds.trial_ts:
@@ -104,16 +103,15 @@ def main(outlier_threshold = 125, ambiguousoutlier_th = 100, filter_samples = 5)
 	ax1[2].set_ylim([0, 1.05])
 	ax1[2].legend()
 
-	ax1[2] = plt.subplot(4, 1, 4, sharey = ax1[2])
-	ax1[2].plot(df['time'], df['B press'], color = 'b',linewidth=2, label = 'B button press')
-	ax1[2].plot(df['time'], df['B percept continuous'], color = 'lightblue',linewidth=1, label = 'B eye outlier')
+	ax1[3].plot(df['time'], df['B press'], color = 'b',linewidth=2, label = 'B button press')
+	ax1[3].plot(df['time'], df['B percept continuous'], color = 'lightblue',linewidth=1, label = 'B eye outlier')
 	for event in ds.trial_ts:
-		ax1[2].plot((event, event), (np.min(df['B press'])-0.05,np.max(df['B press'])+0.05), 'k-')
-	ax1[2].set_title('B percept: buttons vs eye outliers')
-	ax1[2].set_ylim([0, 1.05])
-	ax1[2].legend()
+		ax1[3].plot((event, event), (np.min(df['B press'])-0.05,np.max(df['B press'])+0.05), 'k-')
+	ax1[3].set_title('B percept: buttons vs eye outliers')
+	ax1[3].set_ylim([0, 1.05])
+	ax1[3].legend()
 
-	ax1[2].set_xlabel('time (ms)')
+	ax1[3].set_xlabel('time (ms)')
 	f1.suptitle(fn)
 
 	# # --------------------------------------------------------------------------------------------
@@ -122,7 +120,7 @@ def main(outlier_threshold = 125, ambiguousoutlier_th = 100, filter_samples = 5)
 	# # 							c) filtered outliers vs no-outliers
 	f2, ax2 = plt.subplots(3, sharex = True)
 
-	ax2[0].scatter(df['time'], df['LEpos_int'], label = 'leftgazeX (interpolated)')
+	ax2[0].plot(df['time'], df['LEpos_int'], label = 'leftgazeX (interpolated)')
 	for event in ds.trial_ts:
 		ax2[0].plot((event, event), (np.min(df['LEpos_int']),np.max(df['LEpos_int'])), 'k-')
 	ax2[0].set_title('Position trace in degrees')
