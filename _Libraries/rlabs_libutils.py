@@ -679,6 +679,32 @@ def filteroutliers(array, samples = 2):
 
     return out                                          # return output array
 
+def timestampsfromcontinouosoutliers(contoutlier, timearray):
+    """
+        input:
+        - contoutlier: boolean array. 1 for outlier, 0 for no-outlier
+        - timearray: time stamps
+        output:
+        - output: 
+        
+        example:
+        contoulier = [0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0]
+        timearray  = [1, 2, 3, 4, 5, 6, 7, 8, 9,10,11]
+        output     = [3,5,7,10]
+        
+    """
+    contoutlier = np.array(contoutlier)
+    timearray = np.array(timearray)
+        
+    idx = np.where(contoutlier[:-1] != contoutlier[1:])[0]
+    
+    # create alternate 1 and 0 array
+    c = np.empty(len(idx),int)
+    c[::2]=1
+    c[1::2]=0
+    
+    return timearray[idx+c]
+
 # -------------------------------------------------------------------------------------------------------------------
 
 class MyWindow(pyglet.window.Window): 
