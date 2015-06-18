@@ -200,6 +200,16 @@ def select_data():
         initialdir = '..')[0] 
     return datafile
 
+def uniquelist_withidx(seq):
+    unique = []
+    uidx = []
+    for idx,item in enumerate(seq):
+        if item not in unique:
+            unique.append(item)
+            uidx.append(idx)
+
+    return uidx, unique
+
 # Data management functions and classes --------------------------------------------------------------------------
 
 class EventItem():
