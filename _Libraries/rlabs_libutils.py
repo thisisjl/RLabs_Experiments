@@ -715,6 +715,63 @@ def timestampsfromcontinouosoutliers(contoutlier, timearray):
     
     return timearray[idx+c]
 
+def create_outier_df(ds, pix = 1280, DPP = 0.03, framerate = 120.0, outlier_threshold = 125, ambiguousoutlier_th = 100, filter_samples = 5):
+    """
+        create a pandas.DataFrame with the fields:
+            - 'LEpos':                  left gaze X in degrees
+            - 'LEpos_int':              LEpos interpolated with pandas.Series.interpolate()
+            - 'velocity':               velocity of LEpos_int
+            - 'isOutlier':              True if velocity sample is greater than outlier_threshold, False otherwise
+            - 'isAmbiguousOutlier':     True if velocity sample between ambiguousoutlier_th and outlier_threshold, False otherwise
+            - 'Outlierfiltered':        given a number of samples, the samples following an outlier will not be allowed to be outliers
+            - 'A percept':              True if velocity sample is a positive outlier
+            - 'B percept':              True if velocity sample is a negative outlier
+            - 'A percept continuous':   True from a sample of value True of 'A percept' until a sample of value True of 'B percept', False otherwise
+            - 'B percept continuous':   True from a sample of value True of 'B percept' until a sample of value True of 'A percept', False otherwise
+            - 'A press':                given eyetracker time stamps and time stamps for A reported percepts, True when A was on
+            - 'B press':                given eyetracker time stamps and time stamps for B reported percepts, True when B was on
+            
+    """
+    # create pandas DataFrame with time and position
+    df = pd.DataFrame({'time': ds.timestamps, 'LEpos': ds.leftgazeX})
+
+    # get rid of -1.1 (NaN's)
+    mask = df['LEpos'] == -1.1
+    df['LEpos'].loc[mask] = None
+
+    # convert LEpos to degs
+    df['LEpos'] = df['LEpos'] * pix * DPP
+
+    # interpolate eye position
+    df['LEpos_int'] = df['LEpos'].interpolate()
+
+    # compute velocity for interpolated position:
+    df['velocity'] = df['LEpos_int'].diff() * framerate
+
+    # compute outliers (boolean array):
+    df['isOutlier'] = abs(df['velocity'] - df['velocity'].mean()) > outlier_threshold
+
+    # compute ambiguous outliers
+    df['isAmbiguousOutlier'] = (abs(df['velocity'] - df['velocity'].mean()) > ambiguousoutlier_th) & (~df['isOutlier'])
+
+    # compute A or B given outliers
+    df['A percept'] = [v>0 if o else 0 for v,o in izip(df['velocity'],df['isOutlier'])]
+    df['B percept'] = [v<0 if o else 0 for v,o in izip(df['velocity'],df['isOutlier'])]
+
+    # compute continuous A or B percepts
+    df['A percept continuous'] = gencontinuousoutliers(df['A percept'],df['B percept'])
+    df['B percept continuous'] = gencontinuousoutliers(df['B percept'],df['A percept'])
+
+    # filter outliers so outliers will only be valid if are separated from previous outliers by a X sample distance.
+    df['Outlierfiltered'] = filteroutliers(df['isOutlier'], samples = filter_samples)
+
+    # generate percept time series (button presses)
+    df['A press'] = gentimeseries(ds.timestamps, ds.A_ts)
+    df['B press'] = gentimeseries(ds.timestamps, ds.B_ts)
+
+    return df
+
+
 # -------------------------------------------------------------------------------------------------------------------
 
 class MyWindow(pyglet.window.Window): 
