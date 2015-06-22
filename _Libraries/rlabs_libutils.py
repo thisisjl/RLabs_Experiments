@@ -715,7 +715,7 @@ def timestampsfromcontinouosoutliers(contoutlier, timearray):
     
     return timearray[idx+c]
 
-def create_outier_df(ds, pix = 1280, DPP = 0.03, framerate = 120.0, outlier_threshold = 125, ambiguousoutlier_th = 100, filter_samples = 5):
+def create_outlier_df(ds, pix = 1280, DPP = 0.03, framerate = 120.0, outlier_threshold = 125, ambiguousoutlier_th = 100, filter_samples = 5):
     """
         create a pandas.DataFrame with the fields:
             - 'LEpos':                  left gaze X in degrees
