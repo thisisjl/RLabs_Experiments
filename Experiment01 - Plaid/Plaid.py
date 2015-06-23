@@ -172,10 +172,10 @@ def main(
 
         apertRad_pix = MyWin.height / cp['aperturediv']
         
-        grating11 = Grating(MyWin, mycoords(0,0, MyWin).x + cp['stereo1'], mycoords(0,0, MyWin).y, cp['red_color'],  tp['orientation1'][trial], tp['mylambda1'][trial], tp['duty_cycle1'][trial], apertRad_pix, tp['speed1'][trial])
-        grating12 = Grating(MyWin, mycoords(0,0, MyWin).x - cp['stereo1'], mycoords(0,0, MyWin).y, cp['cyan_color'], tp['orientation1'][trial], tp['mylambda1'][trial], tp['duty_cycle1'][trial], apertRad_pix, tp['speed1'][trial])
-        grating21 = Grating(MyWin, mycoords(0,0, MyWin).x + cp['stereo2'], mycoords(0,0, MyWin).y, cp['red_color'],  tp['orientation2'][trial], tp['mylambda2'][trial], tp['duty_cycle2'][trial], apertRad_pix, tp['speed2'][trial])
-        grating22 = Grating(MyWin, mycoords(0,0, MyWin).x - cp['stereo2'], mycoords(0,0, MyWin).y, cp['cyan_color'], tp['orientation2'][trial], tp['mylambda2'][trial], tp['duty_cycle2'][trial], apertRad_pix, tp['speed2'][trial])
+        grating11 = Grating(MyWin, mycoords(0,0, MyWin).x + cp['stereo1'], mycoords(0,0, MyWin).y, cp['red_color'],  tp['orientation1'][trial], tp['mylambda1'][trial], tp['duty_cycle1'][trial], apertRad_pix, tp['speed1'][trial],cp['blendyn'])
+        grating12 = Grating(MyWin, mycoords(0,0, MyWin).x - cp['stereo1'], mycoords(0,0, MyWin).y, cp['cyan_color'], tp['orientation1'][trial], tp['mylambda1'][trial], tp['duty_cycle1'][trial], apertRad_pix, tp['speed1'][trial],cp['blendyn'])
+        grating21 = Grating(MyWin, mycoords(0,0, MyWin).x + cp['stereo2'], mycoords(0,0, MyWin).y, cp['red_color'],  tp['orientation2'][trial], tp['mylambda2'][trial], tp['duty_cycle2'][trial], apertRad_pix, tp['speed2'][trial],cp['blendyn'])
+        grating22 = Grating(MyWin, mycoords(0,0, MyWin).x - cp['stereo2'], mycoords(0,0, MyWin).y, cp['cyan_color'], tp['orientation2'][trial], tp['mylambda2'][trial], tp['duty_cycle2'][trial], apertRad_pix, tp['speed2'][trial],cp['blendyn'])
         
         # Wait for go Loop ---------------------------------------------------------------------------------------------
         wait = True                                                         # wait for go condition: wait
@@ -274,7 +274,7 @@ def main(
         
             # Draw objects ---------------------------------------------------------------------------------------------------
 
-            glEnable(GL_BLEND)
+            # glEnable(GL_BLEND)
             
             drawAperture(xcenter, ycenter, apertRad_pix, cp['aperture_color'])
 
@@ -284,7 +284,7 @@ def main(
                 grating21.draw()
                 grating22.draw()
             
-            glDisable(GL_BLEND)
+            # glDisable(GL_BLEND)
 
             if cp['fixationpoint'] == 1: #'Circle with protection zone':
                 drawCircle(xcenter, ycenter, cp['fpsize'] * 4, cp['surrp_color'])
