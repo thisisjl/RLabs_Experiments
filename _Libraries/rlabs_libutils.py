@@ -732,6 +732,8 @@ def create_outlier_df(ds, pix = 1280, DPP = 0.03, framerate = 120.0, outlier_thr
             - 'B press':                given eyetracker time stamps and time stamps for B reported percepts, True when B was on
             
     """
+    import pandas as pd
+    from itertools import izip
     # create pandas DataFrame with time and position
     df = pd.DataFrame({'time': ds.timestamps, 'LEpos': ds.leftgazeX})
 
@@ -1027,7 +1029,7 @@ def drawAperture(x0_pix, y0_pix, radius_pix, color):
     pass
 
 class Grating():
-    def __init__(self, MyWin, x, y, fill_color, orientation, mylambda, duty_cycle, apertRad_pix, speed):
+    def __init__(self, MyWin, x, y, fill_color, orientation, mylambda, duty_cycle, apertRad_pix, speed, blendyn):
         self.x            = x
         self.y            = y
         self.fill_color   = fill_color
@@ -1037,6 +1039,10 @@ class Grating():
         self.apertRad_pix = apertRad_pix
         self.speed        = speed
         self.bar_length   = 1000
+        self.blendyn      = blendyn
+
+        if blendyn == 0: self.fill_color = (0.7,0.7,0.7)
+
 
         # decide if horizontal or vertical motion, depending on orientation:
         # self.threshold_angle = 50
@@ -1066,8 +1072,10 @@ class Grating():
         glTranslatef(-self.x, -self.y, 0)
      
         glColor3f(self.fill_color[0] , self.fill_color[1], self.fill_color[2] )
-         
-        glBlendFunc(GL_ZERO, GL_SRC_COLOR)  
+        
+        if self.blendyn: 
+            glEnable(GL_BLEND)
+            glBlendFunc(GL_ZERO, GL_SRC_COLOR)  
          
         for i in range(int(-num_bars/2),int(num_bars/2)):    
              
@@ -1082,12 +1090,11 @@ class Grating():
             glVertex2f(x2, self.y - self.bar_length)
              
             glEnd()
-         
+        # glDisable(GL_BLEND)
         # glRotatef(-orientation, 0, 0, 1)#Is it necessary?
         #glBlendFunc(GL_ONE, GL_ZERO) #150116 comment out NR
         glLoadIdentity()
-        pass
-     
+        
     def update_position(self, runningTime, stereo):
 
         timeNow = time.time()
