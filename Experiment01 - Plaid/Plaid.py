@@ -92,7 +92,7 @@ def main(
     # Initialize pyglet window ------------------------------------------------------------------------        
     screens = pyglet.window.get_platform().get_default_display().get_screens()
     if cp['aperture_switch']:
-        allowstencil = pyglet.gl.Config(stencil_size = 8, double_buffer=True)
+        allowstencil = pyglet.gl.Config(stencil_size = 8, double_buffer=True, sample_buffers=1, samples=4)
         MyWin = MyWindow(config=allowstencil, fullscreen = True, screen = screens[0], visible = 0)
     else:
         MyWin = MyWindow(fullscreen = True, screen = screens[0], visible = 0)
