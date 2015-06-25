@@ -68,9 +68,7 @@ time_fixp = 0.7
 # 0 for one grating, 1 for two
 draw2gts = 1
 
-# Blend Yes or No:
-# 1 for gratings that blend colors
-# 0 for gratings of solid gray color (no blending, no overlap)
+# Blend Yes or No: 1 for gratings that blend colors 0 for gratings of solid gray color (no blending, no overlap)
 blendyn = 0
 
 # forced mode yes: 1, no: 0
