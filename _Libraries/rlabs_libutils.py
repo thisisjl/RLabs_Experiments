@@ -1076,6 +1076,9 @@ class Grating():
         if self.blendyn: 
             glEnable(GL_BLEND)
             glBlendFunc(GL_ZERO, GL_SRC_COLOR)  
+
+        glEnable(GL_POINT_SMOOTH)
+        glHint(GL_POINT_SMOOTH_HINT, GL_NICEST)
          
         for i in range(int(-num_bars/2),int(num_bars/2)):    
              
@@ -1094,6 +1097,9 @@ class Grating():
         # glRotatef(-orientation, 0, 0, 1)#Is it necessary?
         #glBlendFunc(GL_ONE, GL_ZERO) #150116 comment out NR
         glLoadIdentity()
+
+
+
         
     def update_position(self, runningTime, stereo):
 
