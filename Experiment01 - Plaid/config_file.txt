@@ -12,14 +12,14 @@
 # Comment out the monitor you are not using and fill 'other monitor'
 
 # Samsung s24d390:
-mheight = 33.20
-mpdist = 60
-mvres = 1080
+#mheight = 33.20
+#mpdist = 60
+#mvres = 1080
 
 # monitor in sala G: Philips 109B2, resolution: 1600x1200, width = 36.5cm, height = 27.5 cm
-#mheight = 27.5
-#mpdist = 60
-#mvres = 1200
+mheight = 27.5
+mpdist = 70
+mvres = 1024
 
 # other monitor:
 # height =
@@ -66,18 +66,23 @@ time_fixp = 0.7
 
 # Gratings: draw two gratings or not
 # 0 for one grating, 1 for two
-draw2gts = 0
+draw2gts = 1
+
+# Blend Yes or No:
+# 1 for gratings that blend colors
+# 0 for gratings of solid gray color (no blending, no overlap)
+blendyn = 0
 
 # forced mode yes: 1, no: 0
-forced = 1
-forced_stereo = 1
-forced_speed = 1
+forced = 0
+forced_stereo = 0
+forced_speed = 0
 
 # 1 if connected to the eyetracker, 0 if not. Temporal variable. 
 eyetracker = 0
 
 # Randomize trials?
-randomize_trials = 1
+randomize_trials = 0
 
 # fixation point, options:
 # 0: No fixation point
@@ -87,5 +92,5 @@ randomize_trials = 1
 fixationpoint = 0
 
 # create transitions file yes: 1, no: 0
-create_transitions = 0
+create_transitions = 1
 
