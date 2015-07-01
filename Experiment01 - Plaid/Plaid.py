@@ -82,6 +82,7 @@ def main(
     tp['labelfromtrialsfile'] = trials_array
 
     parameters = merge_dicts_ordered(cp, tp)                                                                            # join parameters (to write them later)
+    parameters['start_time'] = time.strftime("%H:%M:%S", time.localtime())                              # get local time and write it in parameters (start time)
 
     # read forced transitions file
     if cp['forced']:
@@ -92,7 +93,7 @@ def main(
     # Initialize pyglet window ------------------------------------------------------------------------        
     screens = pyglet.window.get_platform().get_default_display().get_screens()
     if cp['aperture_switch']:
-        allowstencil = pyglet.gl.Config(stencil_size = 8, double_buffer=True, sample_buffers=1, samples=4)
+        allowstencil = pyglet.gl.Config(stencil_size = 8, double_buffer=True)#, sample_buffers=1, samples=4)
         MyWin = MyWindow(config=allowstencil, fullscreen = True, screen = screens[0], visible = 0)
     else:
         MyWin = MyWindow(fullscreen = True, screen = screens[0], visible = 0)
@@ -326,6 +327,7 @@ def main(
         controller.stopTracking()                                               # stop eye tracking and write output file
         controller.destroy()                                                    # destroy controller
 
+    parameters['end_time'] = time.strftime("%H:%M:%S", time.localtime())        # get local time and write it in parameters (end time)
     write_data_file_with_parameters(filename_data, events_struct, parameters)   # write data file, it has raw and formatted data
     
     if cp['create_transitions']:
