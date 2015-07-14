@@ -1267,7 +1267,16 @@ class _Forced_struct():
         return stereo1, stereo2
 
 class Forced_struct():
-    def __init__(self, transfilename = 'forcedtransitions.txt', timeRamp = 0.5, scale = 500):
+    def __init__(
+        self, 
+        transfilename = 'forcedtransitions.txt', 
+        timeRamp = 0.5, 
+        scale = 600, 
+        stereo_off_after_a_while = 1,
+        timer_off = 10
+        ):
+        # stereo_off_after_a_while will turn stereo to 0 after timer_off seconds
+
         from collections import OrderedDict                             # to get the order without duplicates
 
         self.transfilename = transfilename                              # get transitions file name
@@ -1277,6 +1286,9 @@ class Forced_struct():
         self.transTimeR = []                                            # initialize Right timestamps array
         self.transTrial = []
         self.transOrder = []
+
+        self.stereo_off = stereo_off_after_a_while
+        self.timer_off  = timer_off
 
         self.stereo1 = 0
         self.stereo2 = 0
@@ -1398,6 +1410,15 @@ class Forced_struct():
         # update stereo value
         self.stereo1 = (-self.deltaXaux1/2 + self.deltaXaux2/2) * self.scale
         self.stereo2 =  (self.deltaXaux1/2 - self.deltaXaux2/2) * self.scale
+
+        if self.stereo_off & (timeNow - timeStartTrial > self.timeTransR + self.timeRamp + self.timer_off):
+            self.stereo1 = 0
+            self.stereo2 = 0
+
+        if self.stereo_off & (timeNow - timeStartTrial > self.timeTransL + self.timeRamp + self.timer_off):
+            self.stereo1 = 0
+            self.stereo2 = 0
+
 
         # print '{3}\t{0}\t{1}\t{2}'.format(timeNow - timeStartTrial,stereo1,stereo2,self.trial)
         # print '{0}\t{1}\t{2}\t{3}\t{4}\t{5}\t{6}\t{7}\t{8}\t{9}\t{10}\t{11}\t{12}\t{13}'.format(
