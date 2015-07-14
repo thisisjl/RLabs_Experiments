@@ -88,7 +88,12 @@ def main(
     if cp['forced']:
         # transitions_file = filechooser()
         transitions_file_full = os.path.join(application_path, transitions_file)
-        fs = Forced_struct(transfilename = transitions_file_full, timeRamp = cp['speed'])
+        fs = Forced_struct(
+            transfilename = transitions_file_full, 
+            timeRamp = cp['speed'], 
+            stereo_off_after_a_while = int(cp['stereo_off_after_a_while']),
+            timer_off = cp['timer_off']
+            )
 
     # Initialize pyglet window ------------------------------------------------------------------------        
     screens = pyglet.window.get_platform().get_default_display().get_screens()
@@ -97,6 +102,7 @@ def main(
         MyWin = MyWindow(config=allowstencil, fullscreen = True, screen = screens[0], visible = 0)
     else:
         MyWin = MyWindow(fullscreen = True, screen = screens[0], visible = 0)
+
     
     xcenter = MyWin.width/2
     ycenter = MyWin.height/2
@@ -275,7 +281,7 @@ def main(
         
             # Draw objects ---------------------------------------------------------------------------------------------------
 
-            # glEnable(GL_BLEND)
+            glEnable(GL_BLEND)
             
             drawAperture(xcenter, ycenter, apertRad_pix, cp['aperture_color'])
 
@@ -285,7 +291,7 @@ def main(
                 grating21.draw()
                 grating22.draw()
             
-            # glDisable(GL_BLEND)
+            glDisable(GL_BLEND)
 
             if cp['fixationpoint'] == 1: #'Circle with protection zone':
                 drawCircle(xcenter, ycenter, cp['fpsize'] * 4, cp['surrp_color'])
