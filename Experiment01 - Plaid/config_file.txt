@@ -22,9 +22,9 @@ mpdist = 70
 mvres = 1024
 
 # other monitor:
-# height =
-# mpdist =
-# mvres =
+#mheight = 22.70
+#mpdist = 60
+#mvres = 800
 
 # refresh rate
 framerate = 60.0 
@@ -49,7 +49,7 @@ fg_color = 0.8,0.8,0.8
 red_color = 1.0,0.88,0.88
 cyan_color = 0.88,1.0,1.0
 # fixation point color
-fixp_color = 1.0,1.0,1.0	
+fixp_color = 0.9,0.9,0.9	
 # fixation surround protection color
 surrp_color = 0.0,0.0,0.0	
 
@@ -69,12 +69,16 @@ time_fixp = 0.7
 draw2gts = 1
 
 # Blend Yes or No: 1 for gratings that blend colors 0 for gratings of solid gray color (no blending, no overlap)
-blendyn = 0
+blendyn = 1
 
 # forced mode yes: 1, no: 0
-forced = 0
-forced_stereo = 0
+forced = 1
+forced_stereo = 1
 forced_speed = 0
+
+# turn stereo off after a while
+stereo_off_after_a_while = 1
+timer_off = 10.0
 
 # 1 if connected to the eyetracker, 0 if not. Temporal variable. 
 eyetracker = 0
@@ -87,7 +91,7 @@ randomize_trials = 0
 # 1: Circle with protection zone
 # 2: Circle without protection zone
 # 3: Cross
-fixationpoint = 0
+fixationpoint = 1
 
 # create transitions file yes: 1, no: 0
 create_transitions = 1
