@@ -1,5 +1,6 @@
 import numpy as np
 from scipy import stats
+from rlabs_libutils import find_nearest_above
 
 def regressionbtwpoints(df, start, end, xlabel = 'time', ylabel = 'LEpos_int'):
     """
