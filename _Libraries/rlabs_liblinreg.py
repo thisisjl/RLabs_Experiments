@@ -2,6 +2,9 @@ import numpy as np
 from scipy import stats
 from rlabs_libutils import find_nearest_above
 
+from itertools import count
+iid = count()
+
 def regressionbtwpoints(df, start, end, xlabel = 'time', ylabel = 'LEpos_int'):
     """
         Compute the linear regression of df between start and end points.
@@ -51,8 +54,8 @@ def method1_useamboutls(df, itvl_start, itvl_end, btwpoints):
 
         Input:
         - df: data frame
-        - itvl_start: interval start (first outlier)
-        - itvl_end: interval end (second outlier)
+        - itvl_start: interval start index (first outlier)
+        - itvl_end: interval end index (second outlier)
         - btwpoints: samples between points (threshold)
         
         Output:
@@ -89,8 +92,8 @@ def method2_splitintrvl(df, itvl_start, itvl_end, maxdivisions, minsamples, fs =
 
         Input:
         - df: data frame
-        - itvl_start: interval start (first outlier)
-        - itvl_end: interval end (second outlier)
+        - itvl_start: interval start index (first outlier)
+        - itvl_end: interval end index (second outlier)
         - maxdivisions: maximum number of divisions allowed
         - minsamples: minimum number of samples in a segment
         - fs: sampling frequency of the data (120 Hz for Tobii X120)
@@ -156,3 +159,137 @@ def getbestjointfit(segm1, segm2):
     max_idx = np.where(joint_rsquared == np.max(joint_rsquared))[0]
    
     return max_idx
+
+# Main refinement algorithm:
+
+def refineregression(fit, df, minintervallen = 30, thresrsq = 0.3, thresslo = 0.0007, fs = 120.0, btwpoints = 5, maxdivisions = 12):
+    """
+        Given a linear regression fit, compute its refinement if necessary.
+        
+        See refinement algorithm diagram in trello board.
+
+        Input:
+        - fit:              dictionary ouput of regressionbtwpoints()
+        - df:               pandas.DataFrame output of rlabs_libutils.create_outlier_df()
+        - minintervallen:   the minimum number of samples that a fit interval has to contain to be refined
+        - thresrsq:         r squared threshold. If the r squared of a fit is below thresrsq, the fit will be refined (if long enough), or clasified as ambiguous.
+        - thresslo:         slope threshold. Used in classifyfit() to classify the percept.
+        - fs:               sampling frequency of the data (120.0 Hz is Tobii's fs)
+        - btwpoints:        number of samples between ambiguous outliers. To be considered they will have to be separated by btwpoints samples.
+        - maxdivisions:     maximum number of divisions of the method 2 algorithm.
+
+
+        Output:
+        - refinedout:       list of fits refined from input fit
+        - fit:              if not refined, fit will be outputed with its percept.
+    """
+    minsamples = minintervallen / 2                                                 # minimum number of samples in a segment
+    
+    if fit['r_squared'] < thresrsq:                                                         # is the r squared value below r squared threshold?
+        outlier_idx = np.where(df['Outlierfiltered'])[0]                                            # indexes where are outliers
+        amb_outlier_idx = np.where(df['isAmbiguousOutlier'])[0]                                     # idexes where are ambiguous outliers
+        nsamples = (df['time'][fit['end_idx']] - df['time'][fit['start_idx']])/1000.0 * fs  # if yes, then get bad fit number of samples
+
+        if nsamples > minintervallen:                                                       # is the interval larger than length threshold?
+
+            itvl_start = fit['start_idx']                                                       # get interval start
+            itvl_end = fit['end_idx']                                                           # get interval end
+            
+            # can we use ambiguous outliers? -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
+            use_m1 = (np.sum((amb_outlier_idx >= itvl_start+minsamples)\
+                &(amb_outlier_idx <= itvl_end-minsamples))) > 0                              # check if there are ambiguous outliers in the interval
+            
+            if use_m1:                                                                      # if yes,
+                m1_struct = method1_useamboutls(df, itvl_start, itvl_end, btwpoints)        # use method 1
+
+            # use splitting algorithm (method 2) -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
+
+            sgmts1, sgmts2, bfidx = method2_splitintrvl(df, itvl_start, itvl_end, maxdivisions, minsamples)
+
+
+            # compare results and use the best -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+            if use_m1:
+                
+                cumulative_rsqrd_m1 = np.sum(np.array([item['r_squared'] for item in m1_struct]))
+                cumulative_rsqrd_m2 = np.sum(np.array([sgmts1[bfidx]['r_squared'], sgmts2[bfidx]['r_squared']]))
+
+                if cumulative_rsqrd_m1 > cumulative_rsqrd_m2:
+                    refinedout = m1_struct
+                else:
+                    refinedout = [sgmts1[bfidx],sgmts2[bfidx]]
+
+            else:
+                refinedout = [sgmts1[bfidx],sgmts2[bfidx]]
+
+            #  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+            out = []
+            for item in refinedout:
+                newitem = refineregression(item, df)
+                
+                if type(newitem) is list:
+                    for nwit in newitem:
+                        out.append(nwit)
+                elif type(newitem) is dict:
+                    out.append(newitem)             
+                else:
+                    print 'other: ', newitem
+                    pass
+
+            return out
+
+        else:
+            # bad r squared and short interval. Ambiguous
+            fit['percept'] = classifyfit(fit, threslen = minintervallen, thresslo = thresslo, thresrsq = thresrsq)
+            return fit
+
+    else:                                                                                  # good r squared
+        fit['percept'] = classifyfit(fit, threslen = minintervallen, thresslo = thresslo, thresrsq = thresrsq)
+        return fit
+
+
+def classifyfit(fit, threslen = 30, thresslo = 0.0007, thresrsq = 0.3):
+    """
+        Compute the percept for a given fit.
+        Three possibilities: A, B, ambiguous
+        
+        Input:
+        - fit: dict containing the result of a linear regression using regressionbtwpoints()
+        - threslen: minimum interval length. If len(fit) < threslen, percept = ambiguous
+        - thresslo: minimum slope absolute value.
+        - thresrsq: minimum r squared value.
+        
+        Output:
+        - percept: 'A', 'B', 'amg'  
+    """
+    
+    # get length of interval in samples:
+    fit_len = fit['end_idx'] - fit['start_idx']
+
+    # condition 1: interval larger than threslen:
+    c1 = fit_len >= threslen
+
+    # condition 2.1: absolute value of slope larger than thresslo:
+    c21 = np.abs(fit['slope']) > thresslo
+
+    # condition 2.2: slope value positive or negative:
+    c22 = fit['slope'] > 0 # slope<0: A, slope>0: B
+
+    # condition 3: r squared higher than thresrsq:
+    c3 = fit['r_squared'] > thresrsq
+    # classify percept -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --        
+    if c1:                                      # is the interval greater than length threshold? YES:
+        if c21:                                 # is the slope greater than slope threshold? YES:
+            percept = 'B' if c22 else 'A'       # is the slope positive or negative?
+        else:                                   # is the slope greater than slope threshold? NO:
+            percept = 'ambg'                    # ambiguous percept
+    
+    else:                                       # is the interval greater than length threshold? NO:
+        if c3:                                  # is the r squared greater than r squared threshold? YES:
+            if c21:                             # is the slope greater than slope threshold? YES:
+                percept = 'B' if c22 else 'A'   # is the slope positive or negative?
+            else:                               # is the slope greater than slope threshold? NO:
+                percept = 'ambg'                # ambiguous percept
+        else:                                   # is the r squared greater than r squared threshold? NO
+            percept = 'ambg'                    # ambiguous percept
+            
+    return percept
