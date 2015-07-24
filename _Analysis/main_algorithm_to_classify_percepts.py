@@ -6,17 +6,31 @@ from rlabs_liblinreg import * 																# new library for the linear regre
 import matplotlib.pyplot as plt
 import numpy as np
 
-# Read raw data -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
+# Define constants -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
+# constants for the outlier data frame:
+outlier_threshold = 100  																	# velocity values over 100 will be outliers.
+ambiguousoutlier_th = 80 																	# velocity values between 80 and 100 will be ambiguous outliers.
+filter_samples = 5       																	# the samples following an outlier will not be outliers.
+
+# constants for the linear regression:
+minintervallen = 30																			# minimum number of samples an interval needs to be refined
+thresrsq = 0.3 																				# r_squared threshold
+thresslo = 0.0007 																			# slope threshold
+btwpoints = 5 																				# method 1: minimum number of samples between ambiguous outliers
+maxdivisions = 12 																			# method 2: maximum number of divisions applied to interval
+
+# colors of plot:
+a_color = 'gray' 																			# color of 'A' percept
+b_color = 'lightgray' 																		# color of 'B' percept
+c_color = 'tomato'																			# color of 'ambiguous' percept
+
+
+# Read raw data and create outlier data frame -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
 path = select_data()
 ds = DataStruct(path)
 
-# Create outlier data frame -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
-outlier_threshold = 100  # velocity values over 100 will be outliers.
-ambiguousoutlier_th = 80 # velocity values between 80 and 100 will be ambiguous outliers.
-filter_samples = 5       # the samples following an outlier will not be outliers.
-
-df = create_outlier_df(ds,outlier_threshold = outlier_threshold, 
-                      ambiguousoutlier_th = ambiguousoutlier_th, filter_samples = filter_samples)
+df = create_outlier_df(ds,outlier_threshold = outlier_threshold, ambiguousoutlier_th = ambiguousoutlier_th, 
+	filter_samples = filter_samples)
 
 # Compute linear regression  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
 outlier_idx = np.where(df['Outlierfiltered'])[0]   											# indexes where are outliers
@@ -24,11 +38,11 @@ amb_outlier_idx = np.where(df['isAmbiguousOutlier'])[0] 									# idexes where 
 n = len(outlier_idx)-1 																		# number of outliers
 lr_struct = [] 																				# initialize linear regression list (will be populates with dicts)
 
-print '\ncomputing linear regression'
 for i in range(n): 																			# for each outlier
 
 	fit = regressionbtwpoints(df, outlier_idx[i], outlier_idx[i+1]) 						# compute the linear regression between an outlier and the next outlier
-	fit = refineregression(fit, df, minintervallen = 30, thresrsq = 0.3) 					# refine fit (will output fit if refinement not necessary)
+	fit = refineregression(fit, df, minintervallen = minintervallen, thresrsq = thresrsq, 
+		thresslo = thresslo, btwpoints = btwpoints, maxdivisions = maxdivisions) 			# refine fit (will output fit if refinement not necessary)
 
 	if type(fit) is list: 																	# if refinement outputs more than one segment
 		for f in fit: 																		# get each segment 
@@ -37,22 +51,15 @@ for i in range(n): 																			# for each outlier
 		lr_struct.append(fit) 																# put it in array
 	
 	# write progress in terminal
-	sys.stdout.write('\r{0} of {1}'.format(i,n-1))
+	sys.stdout.write('\rComputing linear regression. {0} of {1} intervals'.format(i,n-1))
 	sys.stdout.flush()
 
 
-# Plotting  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
-print '\nplotting'
-
-# figure 1: a) gaze position with reported and extracted percepts
-#			b) outliers vs no-outliers with reported and extracted percepts
-a_color = 'gray'
-b_color = 'lightgray'
-c_color = 'tomato'
-
+# figure 1: a) gaze position with reported and extracted percepts -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
+print '\nGenerating plot'
 f, ax = plt.subplots(1, sharex = True)
 
-ax.plot(df['time'], df['LEpos_int'], label = 'leftgazeX (interpolated)') 												# velocity
+ax.plot(df['time'], df['LEpos_int'], label = 'leftgazeX (interpolated)') 												# plot eye gaze
 ax.set_title('Position trace (degrees)')
 
 for event in ds.trial_ts:
@@ -79,7 +86,6 @@ for fit in lr_struct:
     ax.axvspan(on, off, ymin=0.01, ymax=.5, facecolor=pltcolor, linewidth=0, alpha=0.5, label = pltlabel)
 
 ax.set_ylabel("Extracted percepts | Reported percepts")
-
 
 # Get artists and labels for legend of first subplot
 handles, labels = ax.get_legend_handles_labels()
