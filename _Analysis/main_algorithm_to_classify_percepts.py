@@ -1,7 +1,7 @@
 import os, sys
 lib_path = os.path.abspath(os.path.join('..','_Libraries'))
 sys.path.append(lib_path)
-from rlabs_libutils import DataStruct, select_data, create_outlier_df
+from rlabs_libutils import DataStruct, select_data, create_outlier_df, uniquelist_withidx
 from rlabs_liblinreg import * 																# new library for the linear regression functions
 import matplotlib.pyplot as plt
 import numpy as np
@@ -43,27 +43,49 @@ for i in range(n): 																			# for each outlier
 
 # Plotting  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  
 print '\nplotting'
-f, ax = plt.subplots(1, sharex = True,sharey = True)
 
-ax.plot(df['time'], df['LEpos_int'])
-ax.scatter(df['time'][df['Outlierfiltered']], df['LEpos_int'][df['Outlierfiltered']],color ='r')
-ax.scatter(df['time'][df['isAmbiguousOutlier']], df['LEpos_int'][df['isAmbiguousOutlier']],color ='y')
+# figure 1: a) gaze position with reported and extracted percepts
+#			b) outliers vs no-outliers with reported and extracted percepts
+a_color = 'gray'
+b_color = 'lightgray'
+c_color = 'tomato'
 
-for a in lr_struct:
-	axaxis = np.array([a['start'],a['end']])
-	ax.plot(axaxis, a['slope']*axaxis + a['intercept'], 'r')
+f, ax = plt.subplots(1, sharex = True)
+
+ax.plot(df['time'], df['LEpos_int'], label = 'leftgazeX (interpolated)') 												# velocity
+ax.set_title('Position trace (degrees)')
+
+for event in ds.trial_ts:
+    ax.plot((event, event), (np.min(df['LEpos_int']),np.max(df['LEpos_int'])), 'k-')									# line to indicate start and end of trial
+for on, off in ds.A_ts:
+    ax.axvspan(on, off, ymin=0.5, ymax=0.99, facecolor=a_color, linewidth=0, alpha=0.5, label = 'A percept') 			# reported percepts for a (button press)
+for on, off in ds.B_ts:
+    ax.axvspan(on, off, ymin=0.5, ymax=0.99, facecolor=b_color, linewidth=0, alpha=0.5, label = 'B percept') 			# reported percepts for b
+
+for fit in lr_struct:
+    on  = fit['start']
+    off = fit['end']
+    
+    if fit['percept'] == 'A':
+        pltcolor = a_color
+        label = 'A percept'
+    elif fit['percept'] == 'B':
+        pltcolor = b_color
+        label = 'B percept'
+    else:
+        pltcolor = c_color
+        pltlabel = 'ambg percept'
+    
+    ax.axvspan(on, off, ymin=0.01, ymax=.5, facecolor=pltcolor, linewidth=0, alpha=0.5, label = pltlabel)
+
+ax.set_ylabel("Extracted percepts | Reported percepts")
 
 
-	# compute annotation coordinates
-	x = axaxis[0] + np.diff(axaxis)[0]/2.0
-	y = np.diff(a['slope']*axaxis + a['intercept'])[0]/2.0# + 2
-	ax.annotate('{0}'.format(a['percept']),xy=(x,y), horizontalalignment='center', verticalalignment='bottom')   
+# Get artists and labels for legend of first subplot
+handles, labels = ax.get_legend_handles_labels()
+labelsidx, labels = uniquelist_withidx(labels)
+ax.legend([handles[idx] for idx in labelsidx], labels)
+ax.set_xlabel('time (ms)')
 
-	# ax.annotate('{4}\n{5}\nr^2: {0}\nRSS: {1}\nslp: {2}\n{3}'.format(
-		#                 "%.2f" % a['r_value']**2,"%.2f" % a['RSS'], "%.4f" % a['slope'], a['percept'],a['end_idx']-a['start_idx'],i),
-		#                        xy=(x,y), horizontalalignment='center', verticalalignment='bottom')   
-
-f.suptitle(ds.filename)
-ax.set_title('eye gaze with linear regression')
-
+f.suptitle(ds.filename.split()[0])
 plt.show()
