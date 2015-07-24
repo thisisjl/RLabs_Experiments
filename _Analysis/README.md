@@ -17,6 +17,11 @@ Collection of scripts used to analyze the responses of experimental subjects in 
       
       It requires the library [Bokeh](bokeh.pydata.org)
 
+- **main_algorithm_to_classify_percepts.py**:
+      
+      The purpose of this script is to extract percepts from the eyetracker data of a subject. In order to do this, it follows the algorithm in the schematic below:
+![alt tag](http://i.imgur.com/qgSPVQa.jpg) 
+
 
 - **comparingfilters.py**:
 
