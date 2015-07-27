@@ -1353,7 +1353,6 @@ class Forced_struct():
                         self.transTimeR.append(float(R_item))           # append right time stamp to array
                     else:
                         self.transTimeR.append(np.nan)                  # put a nan otherwise
-                    
                     self.transTrial.append(int(sptrial))                # append trial number to array
 
                     self.transOrder.append(int(ptrial))                 # append order number to array
