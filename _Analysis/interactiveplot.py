@@ -19,7 +19,8 @@ from tkMessageBox import askquestion 		# ask new name
 from bokeh.resources import CDN
 from bokeh.embed import components, file_html
 from bokeh import mpl
-from bokeh.plotting import figure, output_file, show, VBox, reset_output
+from bokeh.plotting import figure, output_file, show, VBox, reset_output, ColumnDataSource
+from bokeh.models import HoverTool
 
 def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TIME_format="%Y-%m-%d_%H.%M", input_extension='*.txt',
 	A_color=(1.0, 0., 0.), B_color=(0., 1.0, 0.), YvalsA=[0.1, 0.2, 0, 1], YvalsB=[0.05, 0.15, 0, 1],	apply_fade=0, fade_sec=0.5, 
@@ -90,11 +91,19 @@ def main(datafileslist='', DIR_OUT='', fWeb_HEADER='html_template.html', DATE_TI
 
 			# Plot X and Y gaze data over time stamps of all experiment ---------------------------------------------------------------------------
 			# Plot X coordinate for both eyes -----------------------------------------------------------------------------------------------------
+			TOOLS="pan,wheel_zoom,box_zoom,reset,hover"
+			bokehfig = figure(title = 'X coordinates. Right eye shifted {0}'.format(shiftval),tools=TOOLS)
 
-			bokehfig = figure(title = 'X coordinates. Right eye shifted {0}'.format(shiftval))
+			source = ColumnDataSource(data=dict(x=ds.timestamps,y=ds.leftgazeX))
 
-			bokehfig.scatter(ds.timestamps,ds.leftgazeX,  marker = 'x', color=rgb2hex(A_color), legend='left eye')
+			bokehfig.scatter(ds.timestamps,ds.leftgazeX,  marker = 'x', color=rgb2hex(A_color), legend='left eye', source = source)
 			bokehfig.scatter(ds.timestamps,ds.rightgazeX, marker = 'o', color=rgb2hex(B_color), legend='right eye')
+			hover = bokehfig.select(dict(type=HoverTool))
+			hover.tooltips = [
+			# add to this
+			("ts", "$x"),
+			("val", "$y"),	
+			]
 
 			for event in ds.trial_ts:																			# for each event time stamp
 			 	bokehfig.line((event, event), (plotrange[0],plotrange[1]), 'k-', color = rgb2hex((0,0,0)))		# plot a vertical line: plt.plot((x1,x2),(y1,y2),'k-')
@@ -604,13 +613,13 @@ def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEAD
 			fWebID.write('\n<!-- Script for XY plot -->')		 		# write comment in html
 			fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
 
-			script = cont[i].verg_script								# get script for vergence
-			fWebID.write('\n<!-- Script for vergence plot -->') 		# write comment in html
-			fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
+			# script = cont[i].verg_script								# get script for vergence
+			# fWebID.write('\n<!-- Script for vergence plot -->') 		# write comment in html
+			# fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
 
-			script = cont[i].fixd_script								# get script for fixation distance
-			fWebID.write('\n<!-- Script for fixation distance plot -->')# write comment in html
-			fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
+			# script = cont[i].fixd_script								# get script for fixation distance
+			# fWebID.write('\n<!-- Script for fixation distance plot -->')# write comment in html
+			# fWebID.write('\n\t\t{0}'.format(str(script)))				# write script
 
 
 		fWebID.write('\n\t</head>')										# write end of head tag (identation)	
@@ -683,28 +692,28 @@ def create_interactive_html(datastruct = None, cont = None, fWebID='', fWeb_HEAD
 			fWebID.write('\n\t\t\t\t</td>')								# close cell tag
 
 		# # Write vergence data in a row ------------------------------------------------------------------------------
-		fWebID.write('\n<!-- Div for vergence plot -->')				# write comment in html
-		fWebID.write('\n\t\t\t<tr>') 									# create new row (plots in different colums)
-		for i in range(len(cont)):										# for each element in container
-			divXY = cont[i].verg_div									# get div for vergence
+		# fWebID.write('\n<!-- Div for vergence plot -->')				# write comment in html
+		# fWebID.write('\n\t\t\t<tr>') 									# create new row (plots in different colums)
+		# for i in range(len(cont)):										# for each element in container
+		# 	divXY = cont[i].verg_div									# get div for vergence
 			
-			fWebID.write('\n\t\t\t\t<td>')								# create new cell (colum)
-			fWebID.write('\n\t\t\t\t\t')								# write identation
-			fWebID.write(str(divXY))									# write div for i script
-			fWebID.write('\n\t\t\t\t</td>')								# close cell tag
+		# 	fWebID.write('\n\t\t\t\t<td>')								# create new cell (colum)
+		# 	fWebID.write('\n\t\t\t\t\t')								# write identation
+		# 	fWebID.write(str(divXY))									# write div for i script
+		# 	fWebID.write('\n\t\t\t\t</td>')								# close cell tag
 
 		# # Write fixation distance in a row --------------------------------------------------------------------------
-		fWebID.write('\n<!-- Div for fixation dist plot -->')			# write comment in html
-		fWebID.write('\n\t\t\t<tr>') 									# create new row (plots in different colums)
-		for i in range(len(cont)):										# for each element in container
-			divXY = cont[i].fixd_div									# get div for fixation distance
+		# fWebID.write('\n<!-- Div for fixation dist plot -->')			# write comment in html
+		# fWebID.write('\n\t\t\t<tr>') 									# create new row (plots in different colums)
+		# for i in range(len(cont)):										# for each element in container
+		# 	divXY = cont[i].fixd_div									# get div for fixation distance
 			
-			fWebID.write('\n\t\t\t\t<td>')								# create new cell (colum)
-			fWebID.write('\n\t\t\t\t\t')								# write identation
-			fWebID.write(str(divXY))									# write div for i script
-			fWebID.write('\n\t\t\t\t</td>')								# close cell tag
+		# 	fWebID.write('\n\t\t\t\t<td>')								# create new cell (colum)
+		# 	fWebID.write('\n\t\t\t\t\t')								# write identation
+		# 	fWebID.write(str(divXY))									# write div for i script
+		# 	fWebID.write('\n\t\t\t\t</td>')								# close cell tag
 		
-		# fWebID.write('\n\t\t\t</tr>') 									# close row tag
+		# # fWebID.write('\n\t\t\t</tr>') 									# close row tag
 
 		# Write video XY links in a row ------------------------------------------------------------------------------
 		fWebID.write('\n\t\t\t<tr>') 									# create new row tag
