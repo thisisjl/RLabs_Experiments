@@ -208,10 +208,11 @@ def refineregression(fit, df, minintervallen = 30, thresrsq = 0.3, thresslo = 0.
 
 
             # compare results and use the best -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -  -
+            # For each method, sum the r_squared values of the segments and divide by the number of segments.
             if use_m1:
                 
-                cumulative_rsqrd_m1 = np.sum(np.array([item['r_squared'] for item in m1_struct]))
-                cumulative_rsqrd_m2 = np.sum(np.array([sgmts1[bfidx]['r_squared'], sgmts2[bfidx]['r_squared']]))
+                cumulative_rsqrd_m1 = np.sum(np.array([item['r_squared'] for item in m1_struct])) / len(m1_struct)
+                cumulative_rsqrd_m2 = np.sum(np.array([sgmts1[bfidx]['r_squared'], sgmts2[bfidx]['r_squared']])) / 2
 
                 if cumulative_rsqrd_m1 > cumulative_rsqrd_m2:
                     refinedout = m1_struct
