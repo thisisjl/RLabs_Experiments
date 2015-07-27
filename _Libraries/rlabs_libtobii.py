@@ -1411,11 +1411,20 @@ class MyTobiiController:
         pass
         pass
 
-    def calcVerg(self, SL, SR, SL2 = 0.243, SR2 = 0.240, scrnWidth_cm = 31.1, pd = 0.06, b = 0.6, So = 0.5):
+    def calcVerg(self, SL, SR, scrnWidth_cm = 31.1, pd = 0.06, b = 0.6, So = 0.5):
         """
-        Input: SL (left gaze pos), SR (right gaze pos), scrnWidth_cm of monitor, interpupillary distance (IPD) in meters,
-        b (monitor distance), So (value of midpoint of screen in arbitrary units) 
-        Output:
+            Input:
+            SL (left gaze pos)
+            SR (right gaze pos)
+            scrnWidth_cm of monitor
+            interpupillary distance (IPD) in meters,
+            b (monitor distance)
+            So (value of midpoint of screen in arbitrary units)
+            
+            Output:
+            not-aligned vergance 
+            distance 
+
         """
         from math import atan
         from math import degrees
