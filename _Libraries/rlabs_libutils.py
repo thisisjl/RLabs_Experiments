@@ -1362,9 +1362,6 @@ class Forced_struct():
             sys.exit()                                                  # exit python
 
 
-        print self.transTimeL
-        print self.transTimeR
-
     def reset_forced_values(self, trial = 0):
         self.get_values_for_trial(trial)
         self.trial = trial
@@ -1392,15 +1389,12 @@ class Forced_struct():
             self.deltaXaux1_ini = self.deltaXaux1
             
             self.lastts = self.timeTransR
-            print '{0}\t{1}\tR1\t{2}'.format(timeNow - timeStartTrial, self.Ron, self.timeTransR)
             
         if (timeNow - timeStartTrial > self.timeTransR + self.timeRamp) & (self.Ron == 1):
             self.Ron = 0
             self.i_R = self.i_R + 1
             if self.i_R < len(self.transTimeR_trial):
                 self.timeTransR = self.transTimeR_trial[self.i_R]
-
-            print '{0}\t{1}\tR2\t{2}'.format(timeNow - timeStartTrial, self.Ron,self.timeTransR)
            
         if (timeNow - timeStartTrial > self.timeTransL) & (timeNow - timeStartTrial < self.timeTransL + self.timeRamp):
             self.deltaXaux2 = self.deltaX2 * (timeNow - timeStartTrial - self.timeTransL) / self.timeRamp
@@ -1411,9 +1405,7 @@ class Forced_struct():
             
             self.deltaXaux2_ini = self.deltaXaux2
 
-
             self.lastts = self.timeTransL
-            print '{0}\t{1}\tL1\t{2}'.format(timeNow - timeStartTrial, self.Lon,self.timeTransL)
         
         if (timeNow - timeStartTrial > self.timeTransL + self.timeRamp) & (self.Lon == 1):
             self.Lon = 0
@@ -1421,7 +1413,6 @@ class Forced_struct():
             if self.i_L < len(self.transTimeL_trial):
                 self.timeTransL = self.transTimeL_trial[self.i_L]
 
-            print '{0}\t{1}\tL2\t{2}'.format(timeNow - timeStartTrial, self.Lon,self.timeTransL)
        
         # update stereo value
         self.stereo1 = (-self.deltaXaux1/2 + self.deltaXaux2/2) * self.scale
